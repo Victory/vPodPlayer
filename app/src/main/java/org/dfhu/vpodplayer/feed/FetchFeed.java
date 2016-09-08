@@ -4,7 +4,6 @@ package org.dfhu.vpodplayer.feed;
 import android.util.Log;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.protocol.HTTP;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -12,11 +11,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import static android.R.attr.data;
 
 public class FetchFeed {
 
