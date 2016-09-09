@@ -8,7 +8,12 @@ import android.view.View;
 import android.widget.Button;
 
 import org.dfhu.vpodplayer.feed.FetchFeed;
-import org.dfhu.vpodplayer.feed.FetchFeed.FeedResult;
+import org.dfhu.vpodplayer.feed.FeedFetchResult;
+import org.dfhu.vpodplayer.util.VicURL;
+import org.dfhu.vpodplayer.util.VicURLProvider;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class Podcasts extends AppCompatActivity {
 
@@ -33,12 +38,20 @@ public class Podcasts extends AppCompatActivity {
         });
     }
 
-    private class FetchAFeed extends AsyncTask<String, Integer, FeedResult> {
+    private class FetchAFeed extends AsyncTask<String, Integer, FeedFetchResult> {
 
         @Override
-        protected FeedResult doInBackground(String... feedUrls) {
-            FeedResult result = FetchFeed.fetch(feedUrls[0]);
-            return result;
+        protected FeedFetchResult doInBackground(String... feedUrls) {
+
+            // XXX: should not pass string, instead build URL in caller
+            try {
+                VicURL url = VicURLProvider.newInstance(feedUrls[0]);
+                return FetchFeed.fetch(url);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+
+            return null;
         }
     }
 }

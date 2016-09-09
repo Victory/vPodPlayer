@@ -1,82 +1,44 @@
 package org.dfhu.vpodplayer.feed;
 
 
-import android.util.Log;
+import android.support.annotation.NonNull;
 
-import org.apache.commons.io.IOUtils;
+
+import org.dfhu.vpodplayer.util.VicURL;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.net.URLConnection;
 
 
 public class FetchFeed {
 
-    public static class FeedResult {
-
-        enum Status {
-            MALFORMED_URL,
-            COULD_NOT_OPEN_URL,
-            COULD_NOT_READ_STREAM,
-            SUCCESS
-        }
-
-        public final String data;
-        public final Status status;
-        public final Exception exception;
-
-        /** Set the status, leave data empty and store the exception */
-        public FeedResult(Status status, IOException e) {
-            this.status = status;
-            this.exception = e;
-            this.data = "";
-            Log.w("Could not fetch feed", e);
-        }
-
-        /** Set the data. Status is SUCCESS and exception is null */
-        public FeedResult(String data) {
-            this.status = Status.SUCCESS;
-            this.data = data;
-            this.exception = null;
-        }
-    }
+    private FetchFeed() {}
 
     /**
      * Gets the feed data. Assumes that the rss feed is encoded with UTF-8
      *
-     * @param feedURL - full url with http(s) prefix
-     * @return has information about the attempted feed retrieval
+     * @param feedUrl - URL object for the feed
+     * @return - the feed and status
      */
-    public static FeedResult fetch(String feedURL) {
-        URL url;
-        try {
-            url = new URL(feedURL);
-        } catch (MalformedURLException e) {
-            return new FeedResult(FeedResult.Status.MALFORMED_URL, e);
-        }
+    @NonNull
+    public static FeedFetchResult fetch(VicURL feedUrl) {
 
-        HttpURLConnection connection;
+        URLConnection connection;
         try {
-            connection = (HttpURLConnection) url.openConnection();
+            connection = feedUrl.openConnection();
         } catch (IOException e) {
-            return new FeedResult(FeedResult.Status.COULD_NOT_OPEN_URL, e);
+            return new FeedFetchResult(FeedFetchResult.Status.COULD_NOT_OPEN_URL, e);
         }
 
-        String data;
-        InputStream inputStream = null;
+        InputStream inputStream;
         try {
             inputStream = new BufferedInputStream(connection.getInputStream());
-            data = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            return new FeedResult(FeedResult.Status.COULD_NOT_READ_STREAM, e);
-        } finally {
-            IOUtils.closeQuietly(inputStream);
+            return new FeedFetchResult(FeedFetchResult.Status.COULD_NOT_GET_INPUTSTREAM, e);
         }
 
-        return new FeedResult(data);
+        return new FeedFetchResult(inputStream);
     }
 }
