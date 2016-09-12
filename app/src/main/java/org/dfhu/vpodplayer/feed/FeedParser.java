@@ -3,10 +3,6 @@ package org.dfhu.vpodplayer.feed;
 
 import android.util.Log;
 
-import com.einmalfel.earl.Enclosure;
-import com.einmalfel.earl.Feed;
-import com.einmalfel.earl.Item;
-
 import org.dfhu.vpodplayer.util.LogTags;
 
 public class FeedParser {
@@ -14,11 +10,11 @@ public class FeedParser {
     public static final int MAX_ITEMS = 80;
     public static final String ITEM_ID_VERSION_PREFIX = "V1-";
 
-    public static FeedParserResult parse(Feed earl) {
+    public static FeedParserResult parse(Feed feed) {
         FeedInfo feedInfo = new FeedInfo();
 
-        feedInfo.setTitle(earl.getTitle());
-        for (Item item: earl.getItems()) {
+        feedInfo.setTitle(feed.getTitle());
+        for (FeedItem item: feed.getItems()) {
             EpisodeInfo episode = new EpisodeInfo();
             try {
                 String link = getLink(item);
@@ -35,15 +31,15 @@ public class FeedParser {
     }
 
     /** Set a unique Id, use Version prefix for future proofing as poorly written feeds are discovered */
-    private static String getItemId(Item item) throws NoLinkException {
+    private static String getItemId(FeedItem item) throws NoLinkException {
         StringBuilder sb = new StringBuilder();
         sb.append(ITEM_ID_VERSION_PREFIX);
         sb.append(getLink(item));
         return sb.toString();
     }
 
-    private static String getLink(Item item) throws NoLinkException {
-        for (Enclosure enclosure: item.getEnclosures()) {
+    private static String getLink(FeedItem item) throws NoLinkException {
+        for (FeedItemEnclosure enclosure: item.getEnclosures()) {
             if (!enclosure.getType().startsWith("audio")) {
                 continue;
             }

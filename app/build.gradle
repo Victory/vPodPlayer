@@ -30,7 +30,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'commons-io:commons-io:+'
-    compile 'com.einmalfel:earl:1.0.0'
+    compile 'org.jsoup:jsoup:1.9.2'
     testCompile 'junit:junit:4.12'
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'

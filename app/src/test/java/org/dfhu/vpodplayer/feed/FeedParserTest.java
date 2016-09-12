@@ -3,9 +3,6 @@ package org.dfhu.vpodplayer.feed;
 
 import android.util.Log;
 
-import com.einmalfel.earl.Enclosure;
-import com.einmalfel.earl.Feed;
-import com.einmalfel.earl.Item;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,22 +47,22 @@ public class FeedParserTest extends Assert {
     @Test
     public void itemHasTitleAndLink() {
 
-        List<Item> items = new ArrayList<>();
+        List<FeedItem> items = new ArrayList<>();
 
         mockFeed = mock(Feed.class);
-        Item mockItem = mock(Item.class);
+        FeedItem mockItem = mock(FeedItem.class);
         String itemTitle = "Item Title";
         when(mockItem.getTitle()).thenReturn(itemTitle);
-        Enclosure mockEnclosure = mock(Enclosure.class);
-        List<Enclosure> enclosures = new ArrayList<>();
+        FeedItemEnclosure mockEnclosure = mock(FeedItemEnclosure.class);
+        List<FeedItemEnclosure> enclosures = new ArrayList<>();
         when(mockEnclosure.getType()).thenReturn("audio/");
         enclosures.add(mockEnclosure);
         String link = "http://mysite.com/episode1.mp3";
         when(mockEnclosure.getLink()).thenReturn(link);
 
-        Mockito.<List<? extends Enclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
+        Mockito.<List<? extends FeedItemEnclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
         items.add(mockItem);
-        Mockito.<List<? extends Item>>when(mockFeed.getItems()).thenReturn(items);
+        Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);
 
         FeedParserResult result = FeedParser.parse(mockFeed);
 
@@ -80,29 +77,29 @@ public class FeedParserTest extends Assert {
 
         PowerMockito.mockStatic(Log.class);
 
-        List<Item> items = new ArrayList<>();
+        List<FeedItem> items = new ArrayList<>();
 
         // mock a "bad" item
-        items.add(mock(Item.class));
+        items.add(mock(FeedItem.class));
 
         // mock a "good" item
         mockFeed = mock(Feed.class);
-        Item mockItem = mock(Item.class);
+        FeedItem mockItem = mock(FeedItem.class);
         String itemTitle = "Item Title";
         when(mockItem.getTitle()).thenReturn(itemTitle);
-        Enclosure mockEnclosure = mock(Enclosure.class);
-        List<Enclosure> enclosures = new ArrayList<>();
+        FeedItemEnclosure mockEnclosure = mock(FeedItemEnclosure.class);
+        List<FeedItemEnclosure> enclosures = new ArrayList<>();
         when(mockEnclosure.getType()).thenReturn("audio/");
         String link = "http://mysite.com/episode1.mp3";
         when(mockEnclosure.getLink()).thenReturn(link);
         enclosures.add(mockEnclosure);
-        Mockito.<List<? extends Enclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
+        Mockito.<List<? extends FeedItemEnclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
         items.add(mockItem);
 
         // mock another "bad" item
-        items.add(mock(Item.class));
+        items.add(mock(FeedItem.class));
 
-        Mockito.<List<? extends Item>>when(mockFeed.getItems()).thenReturn(items);
+        Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);
 
         FeedParserResult result = FeedParser.parse(mockFeed);
 
@@ -120,37 +117,37 @@ public class FeedParserTest extends Assert {
 
         PowerMockito.mockStatic(Log.class);
 
-        List<Item> items = new ArrayList<>();
+        List<FeedItem> items = new ArrayList<>();
 
 
         // mock a "good" item
-        Item mockItem = mock(Item.class);
+        FeedItem mockItem = mock(FeedItem.class);
         String itemTitle = "Item Title 1";
         when(mockItem.getTitle()).thenReturn(itemTitle);
-        Enclosure mockEnclosure = mock(Enclosure.class);
-        List<Enclosure> enclosures = new ArrayList<>();
+        FeedItemEnclosure mockEnclosure = mock(FeedItemEnclosure.class);
+        List<FeedItemEnclosure> enclosures = new ArrayList<>();
         when(mockEnclosure.getType()).thenReturn("audio/");
         String link1 = "http://mysite.com/episode1.mp3";
         when(mockEnclosure.getLink()).thenReturn(link1);
         enclosures.add(mockEnclosure);
-        Mockito.<List<? extends Enclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
+        Mockito.<List<? extends FeedItemEnclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
         items.add(mockItem);
 
         // mock another "good" item
-        mockItem = mock(Item.class);
+        mockItem = mock(FeedItem.class);
         itemTitle = "Item Title 2";
         when(mockItem.getTitle()).thenReturn(itemTitle);
-        mockEnclosure = mock(Enclosure.class);
+        mockEnclosure = mock(FeedItemEnclosure.class);
         enclosures = new ArrayList<>();
         when(mockEnclosure.getType()).thenReturn("audio/");
         String link2 = "http://mysite.com/episode2.mp3";
         when(mockEnclosure.getLink()).thenReturn(link2);
         enclosures.add(mockEnclosure);
-        Mockito.<List<? extends Enclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
+        Mockito.<List<? extends FeedItemEnclosure>>when(mockItem.getEnclosures()).thenReturn(enclosures);
         items.add(mockItem);
 
         mockFeed = mock(Feed.class);
-        Mockito.<List<? extends Item>>when(mockFeed.getItems()).thenReturn(items);
+        Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);
 
         FeedParserResult result = FeedParser.parse(mockFeed);
 
