@@ -5,5 +5,5 @@ import java.util.List;
 public interface FeedItem {
     String getTitle();
 
-    List<FeedItemEnclosure> getEnclosures();
+    String getLink();
 }
