@@ -4,7 +4,6 @@ package org.dfhu.vpodplayer.feed;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.util.List;
 
 public class JsFeedItem implements FeedItem {
 

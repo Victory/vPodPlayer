@@ -16,7 +16,6 @@ public class FeedParser {
         for (FeedItem item: feed.getItems()) {
             EpisodeInfo episode = new EpisodeInfo();
             try {
-                String link = item.getLink();
                 episode.setLink(item.getLink());
                 episode.setId(getItemId(item));
             } catch (NoLinkException e) {
