@@ -13,10 +13,14 @@ import org.dfhu.vpodplayer.util.VicURL;
 import org.dfhu.vpodplayer.util.VicURLProvider;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class Podcasts extends AppCompatActivity {
 
+    @BindView(R.id.testFetchFeed)
     Button mFetchFeeds;
 
     private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
@@ -25,7 +29,7 @@ public class Podcasts extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
-        mFetchFeeds = (Button) findViewById(R.id.testFetchFeed);
+        ButterKnife.bind(this);
 
         mFetchFeeds.setOnClickListener(new View.OnClickListener() {
             @Override
