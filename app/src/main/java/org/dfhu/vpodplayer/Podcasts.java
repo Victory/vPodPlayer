@@ -20,26 +20,23 @@ import butterknife.OnClick;
 
 public class Podcasts extends AppCompatActivity {
 
-    @BindView(R.id.testFetchFeed)
-    Button mFetchFeeds;
-
-    private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
+    //private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
         ButterKnife.bind(this);
+    }
 
-        mFetchFeeds.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FetchAFeed faf = new FetchAFeed();
-                faf.execute(sTestFeed);
+    @OnClick(R.id.testFetchFeed)
+    public void fetchFeed() {
+        /*
+        FetchAFeed faf = new FetchAFeed();
+        faf.execute(sTestFeed);
+        */
 
-                Log.d("testing", "button was clicked 3");
-            }
-        });
+        Log.d("testing", "button was clicked 5");
     }
 
     private class FetchAFeed extends AsyncTask<String, Integer, FeedFetchResult> {
