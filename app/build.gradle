@@ -31,8 +31,13 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'commons-io:commons-io:+'
     compile 'org.jsoup:jsoup:1.9.2'
+
     compile 'com.jakewharton:butterknife:8.4.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+
+    compile 'au.com.gridstone.rxstore:rxstore:5.0.2'
+    compile 'au.com.gridstone.rxstore:converter-moshi:5.0.2'
+
     testCompile 'junit:junit:4.12'
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
