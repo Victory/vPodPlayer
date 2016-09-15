@@ -73,8 +73,6 @@ public class RxStoreFeedCacheInstrumentedTest extends Assert {
         assertTrue(nexted[0]);
     }
 
-
-
     @Test
     public void putFeed() {
         Context appContext = InstrumentationRegistry.getTargetContext();

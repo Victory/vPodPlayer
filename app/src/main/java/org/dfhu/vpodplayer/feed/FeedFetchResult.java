@@ -10,7 +10,7 @@ import java.io.InputStream;
 
 public class FeedFetchResult {
 
-    enum Status {
+    public enum Status {
         COULD_NOT_OPEN_URL,
         COULD_NOT_GET_INPUTSTREAM,
         SUCCESS
