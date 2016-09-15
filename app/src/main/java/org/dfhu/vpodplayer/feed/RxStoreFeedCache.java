@@ -1,6 +1,10 @@
 package org.dfhu.vpodplayer.feed;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import au.com.gridstone.rxstore.StoreProvider;
+import rx.Single;
 
 public class RxStoreFeedCache implements FeedCache {
 
@@ -11,13 +15,21 @@ public class RxStoreFeedCache implements FeedCache {
     }
 
     @Override
-    public void setFeed(String feedId, Feed feed) {
+    public Single<Feed> setFeed(String feedId, Feed feed) {
+        List<CacheFeedItem> items = new ArrayList<>();
 
+        for (FeedItem item: feed.getItems()) {
+            items.add(new CacheFeedItem(item.getTitle(), item.getLink()));
+        }
+        CacheFeed cfi = new CacheFeed(feed.getTitle(), items);
+        StoreProvider.ValueStore<Feed> store = storeProvider.valueStore(feedId, CacheFeed.class);
+        return store.observePut(cfi);
     }
 
     @Override
     public Feed getFeed(String feedId) {
-        return null;
+        StoreProvider.ValueStore<Feed> store = storeProvider.valueStore(feedId, CacheFeed.class);
+        return store.getBlocking();
     }
 
 }
