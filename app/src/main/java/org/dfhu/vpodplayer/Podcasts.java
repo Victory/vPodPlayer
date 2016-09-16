@@ -106,7 +106,7 @@ public class Podcasts extends AppCompatActivity {
                         return FetchFeed.fetch(url);
                     }
                 })
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .flatMap(new Func1<FeedFetchResult, Observable<Feed>>() {
                     @Override
                     public Observable<Feed> call(FeedFetchResult feedFetchResult) {
@@ -125,6 +125,7 @@ public class Podcasts extends AppCompatActivity {
                             }
                             Feed feed = new JsFeed(doc);
 
+                            Log.d("test-title", "sendingObservable.just(feed)");
                             return Observable.just(feed);
                         }
 
@@ -132,7 +133,7 @@ public class Podcasts extends AppCompatActivity {
                         return null;
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread());
+                .observeOn(AndroidSchedulers.mainThread()).cache();
                 fetchObserver.subscribe(new FetchSubscriber());
 
         Log.d("testing", "started download and parse");
