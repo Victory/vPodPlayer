@@ -29,6 +29,7 @@ public class Podcasts extends AppCompatActivity
     @BindView(R.id.testFetchFeed)
     Button mTestFetchFeed;
 
+    private FetchFeedFragment mFetchFeedFragment;
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
     private CompositeSubscription subs = new CompositeSubscription();
 
@@ -42,9 +43,18 @@ public class Podcasts extends AppCompatActivity
         Log.d("test-title", "on create: " + testTitle.toString());
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle b) {
+        super.onSaveInstanceState(b);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mFetchFeedFragment != null) {
+            mFetchFeedFragment.getArguments().remove("activePush");
+        }
     }
 
     @Override
@@ -74,31 +84,37 @@ public class Podcasts extends AppCompatActivity
 
                                     @Override
                                     public void onError(Throwable e) {
-
                                         Log.d("test-title", "observer error", e);
                                     }
 
                                     @Override
                                     public void onNext(String s) {
-                                        Log.d("test-title", "before setTitle: " + s);
+                                        Log.d("test-title", "setTitle: " + s);
                                         setTitle(s);
                                         mTestFetchFeed.setEnabled(true);
-                                        Log.d("test-title", "after setTitle: " + s);
                                     }
                                 }
                         ));
 
     }
 
-
     @OnClick(R.id.testFetchFeed)
     public void fetchFeed() {
+
+        /*
+        if (mFetchFeedFragment != null) {
+            Log.d("test-title", "fetch already in progress");
+           return;
+        }
+        */
+
         mTestFetchFeed.setEnabled(false);
         FragmentManager fm = getFragmentManager();
 
-        FetchFeedFragment mFetchFeedFragment = new FetchFeedFragment();
+        mFetchFeedFragment = new FetchFeedFragment();
         Bundle args = new Bundle();
         args.putString(BUNDLE_KEY_PODCAST_URL, "testing: " + Math.random());
+        args.putBoolean("activePush", true);
         mFetchFeedFragment.setArguments(args);
         fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
     }

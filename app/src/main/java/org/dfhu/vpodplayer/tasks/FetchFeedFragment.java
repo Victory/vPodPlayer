@@ -9,13 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.dfhu.vpodplayer.R;
-
-import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
+import rx.functions.Action0;
 import rx.functions.Func0;
 import rx.util.async.Async;
 
@@ -24,8 +20,14 @@ import rx.util.async.Async;
  */
 public class FetchFeedFragment extends Fragment {
 
-    private TextView mTestTitle;
     FetchFeedCallbacks mCallbacks;
+    private boolean hasBeenCalled = false;
+    private Observable<String> o;
+
+    public FetchFeedFragment() {
+        super();
+        Log.d("test-title", "creating fetch feedback");
+    }
 
     public interface FetchFeedCallbacks {
         String BUNDLE_KEY_PODCAST_URL = "PODCAST_URL";
@@ -43,14 +45,23 @@ public class FetchFeedFragment extends Fragment {
     @Override
     @Nullable
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("test-frag", "Creating view");
+        Log.d("test-title", "Creating view");
+        if (!getArguments().getBoolean("activePush")) {
+            Log.d("test-title", "not activePush");
+            return null;
+        }
 
-        mTestTitle = (TextView) getActivity().findViewById(R.id.testTitle);
+        /*
+        if (hasBeenCalled) {
+            Log.d("test-title", "Ignoring as already called");
+            return null;
+        }
+        hasBeenCalled = true;
+        */
+
         mCallbacks = (FetchFeedCallbacks) getActivity();
-        final String title = getArguments().getString(FetchFeedCallbacks.BUNDLE_KEY_PODCAST_URL);
 
-
-        Observable<String> o = Async.start(new Func0<String>() {
+        o = Async.start(new Func0<String>() {
             @Override
             public String call() {
 
@@ -62,7 +73,14 @@ public class FetchFeedFragment extends Fragment {
 
                 return "called me " + Math.floor(Math.random() * 500);
             }
+        }).doOnUnsubscribe(new Action0() {
+            @Override
+            public void call() {
+                Log.d("test-title", "setting hasBeenCalled to false");
+                hasBeenCalled = false;
+            }
         });
+
         mCallbacks.addFetchFeedSubscription(o);
 
         return null;
