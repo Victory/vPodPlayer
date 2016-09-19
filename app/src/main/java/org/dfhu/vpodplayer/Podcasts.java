@@ -14,6 +14,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.subscriptions.CompositeSubscription;
@@ -31,29 +32,23 @@ public class Podcasts extends AppCompatActivity
 
     private FetchFeedFragment mFetchFeedFragment;
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
-    private CompositeSubscription subs = new CompositeSubscription();
+    private static final CompositeSubscription subs = new CompositeSubscription();
 
+    private final Bundle configChangeBundle = new Bundle();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
         ButterKnife.bind(this);
-
         Log.d("test-title", "on create: " + testTitle.toString());
-    }
-
-
-    @Override
-    public void onSaveInstanceState(Bundle b) {
-        super.onSaveInstanceState(b);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         if (mFetchFeedFragment != null) {
-            mFetchFeedFragment.getArguments().remove("activePush");
+            mFetchFeedFragment.getArguments().remove(BUNDLE_KEY_ADD_SUBSCRIPTION);
         }
     }
 
@@ -66,60 +61,56 @@ public class Podcasts extends AppCompatActivity
     @Override
     public void addFetchFeedSubscription(Observable<String> observable) {
         subs.clear();
-        subs.add(
+
+        Subscription evt =
                 observable
-                        .doOnSubscribe(new Action0() {
+                .doOnSubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Log.d("test-title", "doOnSubscribe");
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        new Observer<String>() {
                             @Override
-                            public void call() {
-                                Log.d("test-title", "doOnSubscribe");
+                            public void onCompleted() {
+                                Log.d("test-title", "observer complete");
                             }
-                        })
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                                new Observer<String>() {
-                                    @Override
-                                    public void onCompleted() {
-                                        Log.d("test-title", "observer complete");
-                                    }
 
-                                    @Override
-                                    public void onError(Throwable e) {
-                                        Log.d("test-title", "observer error", e);
-                                    }
+                            @Override
+                            public void onError(Throwable e) {
+                                Log.d("test-title", "observer error", e);
+                            }
 
-                                    @Override
-                                    public void onNext(String s) {
-                                        Log.d("test-title", "setTitle: " + s);
-                                        setTitle(s);
-                                        mTestFetchFeed.setEnabled(true);
-                                    }
-                                }
-                        ));
+                            @Override
+                            public void onNext(String s) {
+                                Log.d("test-title", "setTitle: " + s);
+                                setTitle(s);
+                                mTestFetchFeed.setEnabled(true);
+                            }
+                        }
+                );
 
+        subs.add(evt);
     }
 
     @OnClick(R.id.testFetchFeed)
     public void fetchFeed() {
-
-        /*
-        if (mFetchFeedFragment != null) {
-            Log.d("test-title", "fetch already in progress");
-           return;
-        }
-        */
-
-        mTestFetchFeed.setEnabled(false);
+       mTestFetchFeed.setEnabled(false);
         FragmentManager fm = getFragmentManager();
 
         mFetchFeedFragment = new FetchFeedFragment();
         Bundle args = new Bundle();
         args.putString(BUNDLE_KEY_PODCAST_URL, "testing: " + Math.random());
-        args.putBoolean("activePush", true);
+        args.putBoolean(BUNDLE_KEY_ADD_SUBSCRIPTION, true);
         mFetchFeedFragment.setArguments(args);
         fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
     }
 
     private void setTitle(String title) {
+
+        configChangeBundle.putString("title", title);
         testTitle.setText(title);
     }
 }

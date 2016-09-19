@@ -1,17 +1,16 @@
 package org.dfhu.vpodplayer.tasks;
 
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 
 import rx.Observable;
-import rx.functions.Action0;
 import rx.functions.Func0;
 import rx.util.async.Async;
 
@@ -21,7 +20,6 @@ import rx.util.async.Async;
 public class FetchFeedFragment extends Fragment {
 
     FetchFeedCallbacks mCallbacks;
-    private boolean hasBeenCalled = false;
     private Observable<String> o;
 
     public FetchFeedFragment() {
@@ -30,7 +28,10 @@ public class FetchFeedFragment extends Fragment {
     }
 
     public interface FetchFeedCallbacks {
+        // The podcast we will fetch
         String BUNDLE_KEY_PODCAST_URL = "PODCAST_URL";
+        // key should be true if we want to create and subscribe to a new observable
+        String BUNDLE_KEY_ADD_SUBSCRIPTION = "ADD_NEW_SUBSCRIPTION";
         void addFetchFeedSubscription(Observable<String> observable);
     }
 
@@ -42,22 +43,16 @@ public class FetchFeedFragment extends Fragment {
         Log.d("test-frag", "onCreate");
     }
 
+
+
     @Override
     @Nullable
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d("test-title", "Creating view");
-        if (!getArguments().getBoolean("activePush")) {
+        if (!getArguments().getBoolean(FetchFeedCallbacks.BUNDLE_KEY_ADD_SUBSCRIPTION)) {
             Log.d("test-title", "not activePush");
             return null;
         }
-
-        /*
-        if (hasBeenCalled) {
-            Log.d("test-title", "Ignoring as already called");
-            return null;
-        }
-        hasBeenCalled = true;
-        */
 
         mCallbacks = (FetchFeedCallbacks) getActivity();
 
@@ -72,12 +67,6 @@ public class FetchFeedFragment extends Fragment {
                 }
 
                 return "called me " + Math.floor(Math.random() * 500);
-            }
-        }).doOnUnsubscribe(new Action0() {
-            @Override
-            public void call() {
-                Log.d("test-title", "setting hasBeenCalled to false");
-                hasBeenCalled = false;
             }
         });
 
