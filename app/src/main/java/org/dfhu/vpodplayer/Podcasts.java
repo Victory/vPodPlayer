@@ -3,7 +3,11 @@ package org.dfhu.vpodplayer;
 import android.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -24,11 +28,11 @@ public class Podcasts extends AppCompatActivity
 
     //private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
 
+    @BindView(R.id.tool_bar)
+    Toolbar toolbar;
+
     @BindView(R.id.testTitle)
     TextView testTitle;
-
-    @BindView(R.id.testFetchFeed)
-    Button mTestFetchFeed;
 
     private FetchFeedFragment mFetchFeedFragment;
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
@@ -42,7 +46,16 @@ public class Podcasts extends AppCompatActivity
         setContentView(R.layout.activity_podcasts);
         ButterKnife.bind(this);
         Log.d("test-title", "on create: " + testTitle.toString());
+        setSupportActionBar(toolbar);
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflator = getMenuInflater();
+        inflator.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
 
     @Override
     public void onDestroy() {
@@ -87,7 +100,6 @@ public class Podcasts extends AppCompatActivity
                             public void onNext(String s) {
                                 Log.d("test-title", "setTitle: " + s);
                                 setTitle(s);
-                                mTestFetchFeed.setEnabled(true);
                             }
                         }
                 );
@@ -95,9 +107,7 @@ public class Podcasts extends AppCompatActivity
         subs.add(evt);
     }
 
-    @OnClick(R.id.testFetchFeed)
     public void fetchFeed() {
-       mTestFetchFeed.setEnabled(false);
         FragmentManager fm = getFragmentManager();
 
         mFetchFeedFragment = new FetchFeedFragment();
@@ -106,6 +116,17 @@ public class Podcasts extends AppCompatActivity
         args.putBoolean(BUNDLE_KEY_ADD_SUBSCRIPTION, true);
         mFetchFeedFragment.setArguments(args);
         fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.refresh_podcast:
+                fetchFeed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void setTitle(String title) {
