@@ -1,6 +1,7 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -8,14 +9,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.TextView;
 
 import org.dfhu.vpodplayer.tasks.FetchFeedFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
@@ -50,14 +49,6 @@ public class Podcasts extends AppCompatActivity
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflator = getMenuInflater();
-        inflator.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         if (mFetchFeedFragment != null) {
@@ -69,6 +60,53 @@ public class Podcasts extends AppCompatActivity
     public void onPause() {
         super.onPause();
         subs.clear();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflator = getMenuInflater();
+        inflator.inflate(R.menu.main_menu, menu);
+
+        MenuItem subscribeItem = (MenuItem) menu.findItem(R.id.menu_subscribe);
+        final SubscribeActionView subscribeView = (SubscribeActionView) MenuItemCompat.getActionView(subscribeItem);
+
+
+        MenuItemCompat.setOnActionExpandListener(subscribeItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                return true;
+            }
+        });
+        /*
+        subscribeItem.setOnActionExpandListener(new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return false;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                return false;
+            }
+        });
+        */
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh_podcast:
+                fetchFeed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -107,7 +145,7 @@ public class Podcasts extends AppCompatActivity
         subs.add(evt);
     }
 
-    public void fetchFeed() {
+    private void fetchFeed() {
         FragmentManager fm = getFragmentManager();
 
         mFetchFeedFragment = new FetchFeedFragment();
@@ -118,15 +156,9 @@ public class Podcasts extends AppCompatActivity
         fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.refresh_podcast:
-                fetchFeed();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+
+    private void openSubscriptionDialogue() {
+
     }
 
     private void setTitle(String title) {

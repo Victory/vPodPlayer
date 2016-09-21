@@ -16,5 +16,12 @@
         android:orderInCategory="200"
         app:showAsAction="always"
         android:icon="@android:drawable/ic_menu_rotate"
-        android:id="@+id/refresh_podcast" />
+        android:id="@+id/menu_refresh_podcast" />ic_search
+    <item
+        android:id="@+id/menu_subscribe"
+        app:actionViewClass="org.dfhu.vpodplayer.SubscribeActionView"
+        android:icon="@android:drawable/alert_dark_frame"
+        app:showAsAction="ifRoom|collapseActionView"
+        android:title="Subscribe" />
+
 </menu>
