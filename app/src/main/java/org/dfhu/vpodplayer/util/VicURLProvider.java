@@ -17,9 +17,22 @@ public class VicURLProvider {
         public URLConnection openConnection() throws IOException {
             return url.openConnection();
         }
+
+        @Override
+        public String getUrlString() {
+            return url.toString();
+        }
     }
 
+    /**
+     * create a new instance of an http url
+     *
+     * @param url - fully qualified
+     * @return new instance
+     * @throws MalformedURLException
+     */
     public static VicURL newInstance(String url) throws MalformedURLException {
+
         return new Connectable(new URL(url));
     }
 }

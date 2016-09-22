@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">vPodPlayer</string>
+    <string name="action_search">Podcast Url</string>
 </resources>

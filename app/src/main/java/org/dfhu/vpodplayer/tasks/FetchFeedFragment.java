@@ -10,6 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
+import org.dfhu.vpodplayer.feed.FeedFetchResult;
+import org.dfhu.vpodplayer.feed.FetchFeed;
+import org.dfhu.vpodplayer.util.VicURL;
+import org.dfhu.vpodplayer.util.VicURLProvider;
+
+import java.net.MalformedURLException;
+
 import rx.Observable;
 import rx.functions.Func0;
 import rx.util.async.Async;
@@ -20,7 +27,7 @@ import rx.util.async.Async;
 public class FetchFeedFragment extends Fragment {
 
     FetchFeedCallbacks mCallbacks;
-    private Observable<String> o;
+    private Observable<VicURL> o;
 
     public FetchFeedFragment() {
         super();
@@ -32,7 +39,7 @@ public class FetchFeedFragment extends Fragment {
         String BUNDLE_KEY_PODCAST_URL = "PODCAST_URL";
         // key should be true if we want to create and subscribe to a new observable
         String BUNDLE_KEY_ADD_SUBSCRIPTION = "ADD_NEW_SUBSCRIPTION";
-        void addFetchFeedSubscription(Observable<String> observable);
+        void addFetchFeedSubscription(Observable<VicURL> observable);
     }
 
     @Override
@@ -56,20 +63,18 @@ public class FetchFeedFragment extends Fragment {
 
         mCallbacks = (FetchFeedCallbacks) getActivity();
 
-        o = Async.start(new Func0<String>() {
+        final String url = getArguments().getString(FetchFeedCallbacks.BUNDLE_KEY_PODCAST_URL);
+
+        o = Async.start(new Func0<VicURL>() {
             @Override
-            public String call() {
-
+            public VicURL call() {
                 try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    return VicURLProvider.newInstance(url);
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException("Invalid url");
                 }
-
-                return "called me " + Math.floor(Math.random() * 500);
             }
         });
-
         mCallbacks.addFetchFeedSubscription(o);
 
         return null;

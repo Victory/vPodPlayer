@@ -10,10 +10,10 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
-import java.util.concurrent.Callable;
 
 import rx.Observable;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import rx.util.async.Async;
 
 
@@ -29,33 +29,28 @@ public class FetchFeed {
      * @return - the feed and status
      */
     @NonNull
-    public static Observable<FeedFetchResult> fetch(final VicURL feedUrl) {
-        return Async.start(new Func0<FeedFetchResult>() {
+    public static Observable<InputStream> getInputStream(final VicURL feedUrl) {
+
+        return Async.start(new Func0<Observable<InputStream>>() {
             @Override
-            public FeedFetchResult call() {
-                return fetchSync(feedUrl);
+            public Observable<InputStream> call() {
+                try {
+                    return Observable.just(getInputStreamSync(feedUrl));
+                } catch (IOException e) {
+                    return Observable.error(new Throwable("just throw"));
+                }
+            }
+        }).flatMap(new Func1<Observable<InputStream>, Observable<InputStream>>() {
+            @Override
+            public Observable<InputStream> call(Observable<InputStream> inputStreamObservable) {
+                return inputStreamObservable;
             }
         });
     }
 
     @NonNull
-    private static FeedFetchResult fetchSync(VicURL feedUrl) {
-
-        URLConnection connection;
-        try {
-            connection = feedUrl.openConnection();
-        } catch (IOException e) {
-            return new FeedFetchResult(FeedFetchResult.Status.COULD_NOT_OPEN_URL, e);
-        }
-
-        InputStream inputStream;
-        try {
-            inputStream = new BufferedInputStream(connection.getInputStream());
-        } catch (IOException e) {
-            return new FeedFetchResult(FeedFetchResult.Status.COULD_NOT_GET_INPUTSTREAM, e);
-        }
-
-
-        return new FeedFetchResult(inputStream);
+    public static InputStream getInputStreamSync(VicURL feedUrl) throws IOException {
+        URLConnection connection = feedUrl.openConnection();
+        return new BufferedInputStream(connection.getInputStream());
     }
 }
