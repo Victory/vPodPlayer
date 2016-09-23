@@ -23,8 +23,6 @@ import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 import rx.subjects.SerializedSubject;
 import rx.subjects.Subject;
@@ -202,7 +200,7 @@ public class Podcasts extends AppCompatActivity
     public void triggerFetchFeed(String feedUrl) {
         // prefix with http
         if (!feedUrl.startsWith("http://")) {
-            feedUrl = "http://192.168.1.6:3000/" + feedUrl;
+            feedUrl = "http://" + feedUrl;
         }
 
         FragmentManager fm = getFragmentManager();
