@@ -1,7 +1,6 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
-import android.content.Context;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,20 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
-import org.dfhu.vpodplayer.feed.FeedFetchResult;
-import org.dfhu.vpodplayer.feed.FeedParser;
-import org.dfhu.vpodplayer.feed.FeedParserResult;
-import org.dfhu.vpodplayer.feed.FetchFeed;
-import org.dfhu.vpodplayer.feed.JsFeed;
 import org.dfhu.vpodplayer.tasks.FetchFeedFragment;
-import org.dfhu.vpodplayer.util.VicURL;
-import org.dfhu.vpodplayer.util.VicURLProvider;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,8 +24,10 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import rx.subjects.BehaviorSubject;
+import rx.subjects.PublishSubject;
+import rx.subjects.SerializedSubject;
+import rx.subjects.Subject;
 import rx.subscriptions.CompositeSubscription;
 
 public class Podcasts extends AppCompatActivity
@@ -47,15 +35,45 @@ public class Podcasts extends AppCompatActivity
 
     //private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
 
+    private static class FetchBus {
+       private final Subject<String, String> bus = new SerializedSubject<String, String>(PublishSubject.<String>create());
+
+        public void send(String str) {
+           bus.onNext(str);
+        }
+
+        public Observable<String> getObservable(final String key) {
+            return bus.doOnSubscribe(new Action0() {
+                @Override
+                public void call() {
+                    Log.d("test-title", "getting bus observer: " + key);
+                }
+            }).doOnUnsubscribe(new Action0() {
+                @Override
+                public void call() {
+                    Log.d("test-title", "unsubscribing bus observer: " + key);
+                }
+            }).doOnCompleted(new Action0() {
+                @Override
+                public void call() {
+                    Log.d("test-title", "onComplete bus observer: " + key);
+                }
+            });
+        }
+    }
+
+    private FetchBus myBus = new FetchBus();
+
     @BindView(R.id.tool_bar)
     Toolbar toolbar;
 
     @BindView(R.id.testTitle)
     TextView testTitle;
 
-    private FetchFeedFragment mFetchFeedFragment;
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
     private static final CompositeSubscription subs = new CompositeSubscription();
+
+    private Subscription sub;
 
     private final Bundle configChangeBundle = new Bundle();
 
@@ -64,22 +82,38 @@ public class Podcasts extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
         ButterKnife.bind(this);
-        Log.d("test-title", "on create: " + testTitle.toString());
+
+        final String nameThis = testTitle.toString();
+        Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
+
+        sub = myBus.getObservable(nameThis).subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
+                Log.d("test-title", "busy onCompleted");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d("test-title", "busy onError", e);
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.d("test-title", "on busy setting title: " + nameThis);
+                setTitle(s);
+            }
+        });
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mFetchFeedFragment != null) {
-            mFetchFeedFragment.getArguments().remove(BUNDLE_KEY_ADD_SUBSCRIPTION);
-        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        subs.clear();
     }
 
     @Override
@@ -125,55 +159,18 @@ public class Podcasts extends AppCompatActivity
     }
 
     @Override
-    public void addFetchFeedSubscription(Observable<VicURL> observable) {
+    public void addFetchFeedSubscription(Observable<Feed> observable) {
         subs.clear();
-
         Subscription evt;
         evt = observable
-                .subscribeOn(Schedulers.io())
-                .flatMap(new Func1<VicURL, Observable<InputStream>>() {
+                .doOnSubscribe(new Action0() {
                     @Override
-                    public Observable<InputStream> call(VicURL vicURL) {
-                        Log.d("test-title", "fetching inputstream: " + vicURL.getUrlString());
-                        try {
-                            return Observable.just(FetchFeed.getInputStreamSync(vicURL));
-                        } catch (IOException e) {
-                            return Observable.error(e);
-                        }
-                    }
-                })
-                .flatMap(new Func1<InputStream, Observable<Feed>>() {
-                    @Override
-                    public Observable<Feed> call(InputStream inputStream) {
-                        try {
-                            Document doc = Jsoup.parse(inputStream, "UTF-8", "");
-                            JsFeed feed = new JsFeed(doc);
-                            return Observable.just((Feed) feed);
-                        } catch (IOException e) {
-                            return Observable.error(e);
-                        }
-
+                    public void call() {
+                        Log.d("test-title", "subcribing addFetchFeedSubscription");
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Feed>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d("test-title", "onComplete");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("test-title", "error: " + e.getMessage());
-                        toasty(e.getMessage());
-                    }
-
-                    @Override
-                    public void onNext(Feed r) {
-                        Log.d("test-title", "onNext");
-                        setTitle(r.getTitle());
-                    }
-                });
+                .subscribe(new DoFeed());
         subs.add(evt);
     }
 
@@ -181,22 +178,40 @@ public class Podcasts extends AppCompatActivity
         Toast.makeText(this, s, Toast.LENGTH_LONG).show();
     }
 
-    @Override
-    public void triggerFetchFeed(String feedUrl) {
-
-        // prefix with http
-        if (!feedUrl.startsWith("http://")) {
-            feedUrl = "http://" + feedUrl;
+    public class DoFeed implements Observer<Feed> {
+        @Override
+        public void onCompleted() {
+            Log.d("test-title", "onComplete");
         }
 
-        mFetchFeedFragment = new FetchFeedFragment();
-        Bundle args = new Bundle();
-        args.putString(BUNDLE_KEY_PODCAST_URL, feedUrl);
-        args.putBoolean(BUNDLE_KEY_ADD_SUBSCRIPTION, true);
-        mFetchFeedFragment.setArguments(args);
+        @Override
+        public void onError(Throwable e) {
+            Log.e("test-title", "error: " + e.getMessage());
+            toasty(e.getMessage());
+        }
+
+        @Override
+        public void onNext(Feed r) {
+            Log.d("test-title", "onNext: "+ r.getTitle());
+            setTitle(r.getTitle());
+            myBus.send("bussy" + r.getTitle());
+        }
+    }
+
+    @Override
+    public void triggerFetchFeed(String feedUrl) {
+        // prefix with http
+        if (!feedUrl.startsWith("http://")) {
+            feedUrl = "http://192.168.1.6:3000/" + feedUrl;
+        }
 
         FragmentManager fm = getFragmentManager();
-        fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
+        FetchFeedFragment mFetchFeedFragment = (FetchFeedFragment) fm.findFragmentByTag(TAG_FETCH_FEED_FRAGMENT);
+        if (mFetchFeedFragment == null) {
+            mFetchFeedFragment = new FetchFeedFragment();
+            fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
+        }
+        addFetchFeedSubscription(mFetchFeedFragment.buildObserver(feedUrl));
     }
 
     private void setTitle(String title) {

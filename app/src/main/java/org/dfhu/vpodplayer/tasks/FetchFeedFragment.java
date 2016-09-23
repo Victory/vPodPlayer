@@ -1,7 +1,6 @@
 package org.dfhu.vpodplayer.tasks;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.app.Fragment;
 import android.util.Log;
@@ -10,15 +9,22 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
-import org.dfhu.vpodplayer.feed.FeedFetchResult;
+import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.feed.FetchFeed;
+import org.dfhu.vpodplayer.feed.JsFeed;
 import org.dfhu.vpodplayer.util.VicURL;
 import org.dfhu.vpodplayer.util.VicURLProvider;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 
 import rx.Observable;
 import rx.functions.Func0;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import rx.util.async.Async;
 
 /**
@@ -26,8 +32,10 @@ import rx.util.async.Async;
  */
 public class FetchFeedFragment extends Fragment {
 
-    FetchFeedCallbacks mCallbacks;
-    private Observable<VicURL> o;
+    /** Holds which implements FetchFeedCallBacks (Generally an Activity) */
+    private FetchFeedCallbacks mCallbacks;
+
+    private String mOnDeckUrl;
 
     public FetchFeedFragment() {
         super();
@@ -35,11 +43,7 @@ public class FetchFeedFragment extends Fragment {
     }
 
     public interface FetchFeedCallbacks {
-        // The podcast we will fetch
-        String BUNDLE_KEY_PODCAST_URL = "PODCAST_URL";
-        // key should be true if we want to create and subscribe to a new observable
-        String BUNDLE_KEY_ADD_SUBSCRIPTION = "ADD_NEW_SUBSCRIPTION";
-        void addFetchFeedSubscription(Observable<VicURL> observable);
+        void addFetchFeedSubscription(Observable<Feed> observable);
     }
 
     @Override
@@ -50,22 +54,43 @@ public class FetchFeedFragment extends Fragment {
         Log.d("test-frag", "onCreate");
     }
 
-
-
     @Override
     @Nullable
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("test-title", "Creating view");
-        if (!getArguments().getBoolean(FetchFeedCallbacks.BUNDLE_KEY_ADD_SUBSCRIPTION)) {
-            Log.d("test-title", "not activePush");
-            return null;
+        Log.d("test-title", "onCreateView FetchFeedFragment: " + this.getId());
+
+        /*
+        if (mOnDeckUrl != null) {
+            fetch(mOnDeckUrl);
+            mOnDeckUrl = null;
         }
+        */
 
+        return null;
+    }
+
+    /*
+    public void newSubscription(String url) {
+        if (mCallbacks != null) {
+            fetch(url);
+        } else {
+            mOnDeckUrl = url;
+        }
+    }
+
+    public void fetch(String url) {
+        Observable<Feed> o = buildObserver(url);
         mCallbacks = (FetchFeedCallbacks) getActivity();
+        if (mCallbacks == null) {
+            Log.e("life-cycle-race", "Activity is null in FetchFeedFragement");
+        }
+        mCallbacks.addFetchFeedSubscription(o);
+    }
+    */
 
-        final String url = getArguments().getString(FetchFeedCallbacks.BUNDLE_KEY_PODCAST_URL);
+    public Observable<Feed> buildObserver(final String url) {
 
-        o = Async.start(new Func0<VicURL>() {
+        Observable<VicURL> getVicUrl = Async.start(new Func0<VicURL>() {
             @Override
             public VicURL call() {
                 try {
@@ -74,10 +99,32 @@ public class FetchFeedFragment extends Fragment {
                     throw new RuntimeException("Invalid url");
                 }
             }
-        });
-        mCallbacks.addFetchFeedSubscription(o);
+        }).subscribeOn(Schedulers.io());
 
-        return null;
+        return getVicUrl.flatMap(new Func1<VicURL, Observable<InputStream>>() {
+                    @Override
+                    public Observable<InputStream> call(VicURL vicURL) {
+                        Log.d("test-title", "fetching inputstream: " + vicURL.getUrlString());
+                        try {
+                            return Observable.just(FetchFeed.getInputStreamSync(vicURL));
+                        } catch (IOException e) {
+                            return Observable.error(e);
+                        }
+                    }
+                })
+                .flatMap(new Func1<InputStream, Observable<Feed>>() {
+                    @Override
+                    public Observable<Feed> call(InputStream inputStream) {
+                        try {
+                            Document doc = Jsoup.parse(inputStream, "UTF-8", "");
+                            JsFeed feed = new JsFeed(doc);
+                            return Observable.just((Feed) feed);
+                        } catch (IOException e) {
+                            return Observable.error(e);
+                        }
+
+                    }
+                });
     }
 
     @Override
