@@ -24,8 +24,6 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.subjects.PublishSubject;
-import rx.subjects.SerializedSubject;
-import rx.subjects.Subject;
 import rx.subscriptions.CompositeSubscription;
 
 public class Podcasts extends AppCompatActivity
@@ -34,30 +32,12 @@ public class Podcasts extends AppCompatActivity
     //private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
 
     private static class FetchBus {
-       private final Subject<String, String> bus = new SerializedSubject<String, String>(PublishSubject.<String>create());
+        private static FetchBus instance = new FetchBus();
+        private static PublishSubject<String> subject = PublishSubject.create();
 
-        public void send(String str) {
-           bus.onNext(str);
-        }
-
-        public Observable<String> getObservable(final String key) {
-            return bus.doOnSubscribe(new Action0() {
-                @Override
-                public void call() {
-                    Log.d("test-title", "getting bus observer: " + key);
-                }
-            }).doOnUnsubscribe(new Action0() {
-                @Override
-                public void call() {
-                    Log.d("test-title", "unsubscribing bus observer: " + key);
-                }
-            }).doOnCompleted(new Action0() {
-                @Override
-                public void call() {
-                    Log.d("test-title", "onComplete bus observer: " + key);
-                }
-            });
-        }
+        static FetchBus getInstance() { return instance; }
+        void setText(String v) { subject.onNext(v); }
+        Observable<String> getEvents() { return subject; }
     }
 
     private FetchBus myBus = new FetchBus();
@@ -85,7 +65,7 @@ public class Podcasts extends AppCompatActivity
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
 
-        sub = myBus.getObservable(nameThis).subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<String>() {
+        sub = myBus.getEvents().subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<String>() {
             @Override
             public void onCompleted() {
                 Log.d("test-title", "busy onCompleted");
@@ -158,7 +138,7 @@ public class Podcasts extends AppCompatActivity
 
     @Override
     public void addFetchFeedSubscription(Observable<Feed> observable) {
-        subs.clear();
+        //subs.clear();
         Subscription evt;
         evt = observable
                 .doOnSubscribe(new Action0() {
@@ -169,7 +149,7 @@ public class Podcasts extends AppCompatActivity
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new DoFeed());
-        subs.add(evt);
+        //subs.add(evt);
     }
 
     private void toasty(String s) {
@@ -192,7 +172,7 @@ public class Podcasts extends AppCompatActivity
         public void onNext(Feed r) {
             Log.d("test-title", "onNext: "+ r.getTitle());
             setTitle(r.getTitle());
-            myBus.send("bussy" + r.getTitle());
+            myBus.setText("bussy" + r.getTitle());
         }
     }
 
@@ -200,7 +180,7 @@ public class Podcasts extends AppCompatActivity
     public void triggerFetchFeed(String feedUrl) {
         // prefix with http
         if (!feedUrl.startsWith("http://")) {
-            feedUrl = "http://" + feedUrl;
+            feedUrl = "http://192.168.1.6:3000/" + feedUrl;
         }
 
         FragmentManager fm = getFragmentManager();
