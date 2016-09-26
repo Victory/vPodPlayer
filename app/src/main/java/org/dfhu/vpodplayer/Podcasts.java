@@ -30,11 +30,11 @@ public class Podcasts extends AppCompatActivity
     private static class FetchBus {
         private FetchBus() {}
         private static FetchBus instance = new FetchBus();
-        private static PublishSubject<String> subject = PublishSubject.create();
+        private static PublishSubject<Feed> subject = PublishSubject.create();
 
         static FetchBus getInstance() { return instance; }
-        void setText(String v) { subject.onNext(v); }
-        Observable<String> getEvents() { return subject; }
+        void setText(Feed v) { subject.onNext(v); }
+        Observable<Feed> getEvents() { return subject; }
     }
 
     @BindView(R.id.tool_bar)
@@ -60,7 +60,7 @@ public class Podcasts extends AppCompatActivity
 
         FetchBus.getInstance().getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<String>() {
+                .subscribe(new Subscriber<Feed>() {
                     @Override
                     public void onCompleted() {
                         Log.d("test-title", "busy onCompleted");
@@ -72,9 +72,9 @@ public class Podcasts extends AppCompatActivity
                     }
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(Feed feed) {
                         Log.d("test-title", "on busy setting title: " + nameThis);
-                        setTitle(s);
+                        handleFeed(feed);
                     }
                 });
     }
@@ -161,10 +161,9 @@ public class Podcasts extends AppCompatActivity
         }
 
         @Override
-        public void onNext(Feed r) {
-            Log.d("test-title", "onNext: "+ r.getTitle());
-            setTitle(r.getTitle());
-            FetchBus.getInstance().setText("bussy" + r.getTitle());
+        public void onNext(Feed feed) {
+            Log.d("test-title", "onNext: "+ feed.getTitle());
+            FetchBus.getInstance().setText(feed);
         }
     }
 
@@ -184,8 +183,8 @@ public class Podcasts extends AppCompatActivity
         addFetchFeedSubscription(mFetchFeedFragment.buildObserver(feedUrl));
     }
 
-    void setTitle(String title) {
-        configChangeBundle.putString("title", title);
-        testTitle.setText(title);
+    void handleFeed(Feed feed) {
+        configChangeBundle.putString("title", feed.getTitle());
+        testTitle.setText(feed.getTitle());
     }
 }
