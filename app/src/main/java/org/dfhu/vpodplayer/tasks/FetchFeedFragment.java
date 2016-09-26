@@ -32,11 +32,6 @@ import rx.util.async.Async;
  */
 public class FetchFeedFragment extends Fragment {
 
-    /** Holds which implements FetchFeedCallBacks (Generally an Activity) */
-    private FetchFeedCallbacks mCallbacks;
-
-    private String mOnDeckUrl;
-
     public FetchFeedFragment() {
         super();
         Log.d("test-title", "creating fetch feedback");
@@ -103,6 +98,5 @@ public class FetchFeedFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mCallbacks = null;
     }
 }

@@ -13,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
-import org.dfhu.vpodplayer.feed.FetchFeed;
 import org.dfhu.vpodplayer.tasks.FetchFeedFragment;
 
 import butterknife.BindView;
@@ -24,7 +23,6 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.subjects.PublishSubject;
-import rx.subscriptions.CompositeSubscription;
 
 public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
@@ -38,8 +36,6 @@ public class Podcasts extends AppCompatActivity
         void setText(String v) { subject.onNext(v); }
         Observable<String> getEvents() { return subject; }
     }
-
-    private FetchBus myBus = new FetchBus();
 
     @BindView(R.id.tool_bar)
     Toolbar toolbar;
@@ -105,7 +101,7 @@ public class Podcasts extends AppCompatActivity
 
     /** set the binding for subscribe ActionView */
     private void bindSubscribeMenuItem(Menu menu) {
-        MenuItem subscribeItem = (MenuItem) menu.findItem(R.id.menu_subscribe);
+        MenuItem subscribeItem = menu.findItem(R.id.menu_subscribe);
         final SubscribeActionView subscribeView = (SubscribeActionView) MenuItemCompat.getActionView(subscribeItem);
         subscribeView.setFeedFetcher(this);
 
@@ -148,7 +144,7 @@ public class Podcasts extends AppCompatActivity
                 .subscribe(new DoFeed());
     }
 
-    private void toasty(String s) {
+    void toasty(String s) {
         Toast.makeText(this, s, Toast.LENGTH_LONG).show();
     }
 
@@ -188,7 +184,7 @@ public class Podcasts extends AppCompatActivity
         addFetchFeedSubscription(mFetchFeedFragment.buildObserver(feedUrl));
     }
 
-    private void setTitle(String title) {
+    void setTitle(String title) {
         configChangeBundle.putString("title", title);
         testTitle.setText(title);
     }
