@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
+import org.dfhu.vpodplayer.feed.FetchFeed;
 import org.dfhu.vpodplayer.tasks.FetchFeedFragment;
 
 import butterknife.BindView;
@@ -20,7 +21,6 @@ import butterknife.ButterKnife;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.subjects.PublishSubject;
@@ -29,9 +29,8 @@ import rx.subscriptions.CompositeSubscription;
 public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
 
-    //private static final String sTestFeed = "http://www.npr.org/rss/podcast.php?id=510289";
-
     private static class FetchBus {
+        private FetchBus() {}
         private static FetchBus instance = new FetchBus();
         private static PublishSubject<String> subject = PublishSubject.create();
 
@@ -49,9 +48,6 @@ public class Podcasts extends AppCompatActivity
     TextView testTitle;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
-    private static final CompositeSubscription subs = new CompositeSubscription();
-
-    private Subscription sub;
 
     private final Bundle configChangeBundle = new Bundle();
 
@@ -61,27 +57,30 @@ public class Podcasts extends AppCompatActivity
         setContentView(R.layout.activity_podcasts);
         ButterKnife.bind(this);
 
+
         final String nameThis = testTitle.toString();
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
 
-        sub = myBus.getEvents().subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<String>() {
-            @Override
-            public void onCompleted() {
-                Log.d("test-title", "busy onCompleted");
-            }
+        FetchBus.getInstance().getEvents()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d("test-title", "busy onCompleted");
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                Log.d("test-title", "busy onError", e);
-            }
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("test-title", "busy onError", e);
+                    }
 
-            @Override
-            public void onNext(String s) {
-                Log.d("test-title", "on busy setting title: " + nameThis);
-                setTitle(s);
-            }
-        });
+                    @Override
+                    public void onNext(String s) {
+                        Log.d("test-title", "on busy setting title: " + nameThis);
+                        setTitle(s);
+                    }
+                });
     }
 
     @Override
@@ -138,9 +137,7 @@ public class Podcasts extends AppCompatActivity
 
     @Override
     public void addFetchFeedSubscription(Observable<Feed> observable) {
-        //subs.clear();
-        Subscription evt;
-        evt = observable
+        observable
                 .doOnSubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -149,7 +146,6 @@ public class Podcasts extends AppCompatActivity
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new DoFeed());
-        //subs.add(evt);
     }
 
     private void toasty(String s) {
@@ -172,7 +168,7 @@ public class Podcasts extends AppCompatActivity
         public void onNext(Feed r) {
             Log.d("test-title", "onNext: "+ r.getTitle());
             setTitle(r.getTitle());
-            myBus.setText("bussy" + r.getTitle());
+            FetchBus.getInstance().setText("bussy" + r.getTitle());
         }
     }
 

@@ -58,35 +58,8 @@ public class FetchFeedFragment extends Fragment {
     @Nullable
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d("test-title", "onCreateView FetchFeedFragment: " + this.getId());
-
-        /*
-        if (mOnDeckUrl != null) {
-            fetch(mOnDeckUrl);
-            mOnDeckUrl = null;
-        }
-        */
-
         return null;
     }
-
-    /*
-    public void newSubscription(String url) {
-        if (mCallbacks != null) {
-            fetch(url);
-        } else {
-            mOnDeckUrl = url;
-        }
-    }
-
-    public void fetch(String url) {
-        Observable<Feed> o = buildObserver(url);
-        mCallbacks = (FetchFeedCallbacks) getActivity();
-        if (mCallbacks == null) {
-            Log.e("life-cycle-race", "Activity is null in FetchFeedFragement");
-        }
-        mCallbacks.addFetchFeedSubscription(o);
-    }
-    */
 
     public Observable<Feed> buildObserver(final String url) {
 
