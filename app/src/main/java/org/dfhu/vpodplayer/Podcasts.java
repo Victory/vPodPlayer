@@ -20,12 +20,14 @@ import butterknife.ButterKnife;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.subjects.PublishSubject;
 
 public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
+
 
     private static class FetchBus {
         private FetchBus() {}
@@ -44,7 +46,7 @@ public class Podcasts extends AppCompatActivity
     TextView testTitle;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
-
+    private Subscription fetchSubscription;
     private final Bundle configChangeBundle = new Bundle();
 
     @Override
@@ -58,7 +60,7 @@ public class Podcasts extends AppCompatActivity
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
 
-        FetchBus.getInstance().getEvents()
+        fetchSubscription = FetchBus.getInstance().getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Feed>() {
                     @Override
@@ -82,6 +84,7 @@ public class Podcasts extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
+        fetchSubscription.unsubscribe();
     }
 
     @Override
@@ -91,8 +94,8 @@ public class Podcasts extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflator = getMenuInflater();
-        inflator.inflate(R.menu.main_menu, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
 
         bindSubscribeMenuItem(menu);
 
@@ -144,11 +147,7 @@ public class Podcasts extends AppCompatActivity
                 .subscribe(new DoFeed());
     }
 
-    void toasty(String s) {
-        Toast.makeText(this, s, Toast.LENGTH_LONG).show();
-    }
-
-    public class DoFeed implements Observer<Feed> {
+    public static class DoFeed implements Observer<Feed> {
         @Override
         public void onCompleted() {
             Log.d("test-title", "onComplete");
@@ -157,7 +156,6 @@ public class Podcasts extends AppCompatActivity
         @Override
         public void onError(Throwable e) {
             Log.e("test-title", "error: " + e.getMessage());
-            toasty(e.getMessage());
         }
 
         @Override
