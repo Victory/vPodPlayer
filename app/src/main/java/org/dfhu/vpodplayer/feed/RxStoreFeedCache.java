@@ -15,14 +15,14 @@ public class RxStoreFeedCache implements FeedCache {
     }
 
     @Override
-    public Single<Feed> setFeed(String feedId, Feed feed) {
+    public Single<Feed> setFeed(Feed feed) {
         List<CacheFeedItem> items = new ArrayList<>();
 
         for (FeedItem item: feed.getItems()) {
             items.add(new CacheFeedItem(item.getTitle(), item.getLink()));
         }
-        CacheFeed cfi = new CacheFeed(feed.getTitle(), items);
-        StoreProvider.ValueStore<Feed> store = storeProvider.valueStore(feedId, CacheFeed.class);
+        CacheFeed cfi = new CacheFeed(feed.getUrl(), feed.getTitle(), items);
+        StoreProvider.ValueStore<Feed> store = storeProvider.valueStore(cfi.getId(), CacheFeed.class);
         return store.observePut(cfi);
     }
 

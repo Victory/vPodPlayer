@@ -12,11 +12,8 @@ import org.junit.runner.RunWith;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
@@ -29,7 +26,8 @@ public class FeedParserInstrumentedTest extends Assert {
         InputStream in = getPlanetMoneyInputStream();
 
         Document doc = Jsoup.parse(in, "UTF-8", "");
-        Feed feed = new JsFeed(doc);
+        String url = "http://example.com/feed.xml";
+        Feed feed = new JsoupFeed(url, doc);
         assertEquals("Planet Money", feed.getTitle());
 
         List<FeedItem> items = feed.getItems();

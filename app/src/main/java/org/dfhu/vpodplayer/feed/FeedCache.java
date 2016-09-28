@@ -7,5 +7,5 @@ import rx.Single;
  */
 public interface FeedCache {
     Feed getFeed(String feedId);
-    Single<Feed> setFeed(String feedId, Feed feed);
+    Single<Feed> setFeed(Feed feed);
 }

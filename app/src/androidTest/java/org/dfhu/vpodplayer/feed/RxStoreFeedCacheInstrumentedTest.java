@@ -84,7 +84,7 @@ public class RxStoreFeedCacheInstrumentedTest extends Assert {
         List<CacheFeedItem> episodes = new ArrayList<>();
         episodes.add(new CacheFeedItem("episode 1", "http://example.com/link1.mp3"));
         episodes.add(new CacheFeedItem("episode 2", "http://example.com/link2.mp3"));
-        CacheFeed cfi = new CacheFeed(expectedTitle, episodes);
+        CacheFeed cfi = new CacheFeed("http://example.com/feed.xml", expectedTitle, episodes);
 
         StoreProvider.ValueStore<CacheFeed> store = storeProvider.valueStore("put2", CacheFeed.class);
 
@@ -141,13 +141,13 @@ public class RxStoreFeedCacheInstrumentedTest extends Assert {
         List<CacheFeedItem> episodes = new ArrayList<>();
         episodes.add(new CacheFeedItem("episode 1", "http://example.com/link1.mp3"));
         episodes.add(new CacheFeedItem("episode 2", "http://example.com/link2.mp3"));
-        Feed cfi = new CacheFeed(expectedTitle, episodes);
+        Feed cfi = new CacheFeed("http://example.com/feed.xml", expectedTitle, episodes);
 
         final Throwable[] theE = {null};
         final Boolean[] completed = {false};
         final Boolean[] nexted = {false};
 
-        feedCache.setFeed("testone", cfi).subscribe(new Observer<Feed>() {
+        feedCache.setFeed(cfi).subscribe(new Observer<Feed>() {
             @Override
             public void onCompleted() {
                 completed[0] = true;
@@ -189,13 +189,13 @@ public class RxStoreFeedCacheInstrumentedTest extends Assert {
         List<CacheFeedItem> episodes = new ArrayList<>();
         episodes.add(new CacheFeedItem("episode 1", "http://example.com/link1.mp3"));
         episodes.add(new CacheFeedItem("episode 2", "http://example.com/link2.mp3"));
-        Feed cfi = new CacheFeed(expectedTitle, episodes);
+        Feed cfi = new CacheFeed("http://example.com/feed.xml", expectedTitle, episodes);
 
         final Throwable[] theE = {null};
         final Boolean[] completed = {false};
         final Boolean[] nexted = {false};
 
-        feedCache.setFeed("testtwo", cfi).subscribe(new Observer<Feed>() {
+        feedCache.setFeed(cfi).subscribe(new Observer<Feed>() {
             @Override
             public void onCompleted() {
                 completed[0] = true;

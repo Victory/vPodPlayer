@@ -60,6 +60,14 @@ public class Podcasts extends AppCompatActivity
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
 
+        subscribeToFetch(nameThis);
+    }
+
+    /**
+     * Subscribe the the results of fetching a feed
+     * @param nameThis - debugging
+     */
+    private void subscribeToFetch(final String nameThis) {
         fetchSubscription = FetchBus.getInstance().getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Feed>() {
@@ -184,5 +192,7 @@ public class Podcasts extends AppCompatActivity
     void handleFeed(Feed feed) {
         configChangeBundle.putString("title", feed.getTitle());
         testTitle.setText(feed.getTitle());
+
+
     }
 }

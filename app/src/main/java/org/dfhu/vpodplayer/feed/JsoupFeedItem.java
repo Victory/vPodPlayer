@@ -5,11 +5,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 
-public class JsFeedItem implements FeedItem {
+public class JsoupFeedItem implements FeedItem {
 
     private final Element elm;
 
-    public JsFeedItem(Element elm) {
+    public JsoupFeedItem(Element elm) {
         this.elm = elm;
     }
     @Override

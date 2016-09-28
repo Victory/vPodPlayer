@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.feed.FetchFeed;
-import org.dfhu.vpodplayer.feed.JsFeed;
+import org.dfhu.vpodplayer.feed.JsoupFeed;
 import org.dfhu.vpodplayer.util.VicURL;
 import org.dfhu.vpodplayer.util.VicURLProvider;
 import org.jsoup.Jsoup;
@@ -56,6 +56,15 @@ public class FetchFeedFragment extends Fragment {
         return null;
     }
 
+    public static class InputStreamWithUrl {
+        public final String url;
+        public final InputStream inputStream;
+        public InputStreamWithUrl(String url, InputStream inputStream) {
+            this.url = url;
+            this.inputStream = inputStream;
+        }
+    }
+
     public Observable<Feed> buildObserver(final String url) {
 
         Observable<VicURL> getVicUrl = Async.start(new Func0<VicURL>() {
@@ -69,23 +78,27 @@ public class FetchFeedFragment extends Fragment {
             }
         }).subscribeOn(Schedulers.io());
 
-        return getVicUrl.flatMap(new Func1<VicURL, Observable<InputStream>>() {
+        return getVicUrl.flatMap(new Func1<VicURL, Observable<InputStreamWithUrl>>() {
                     @Override
-                    public Observable<InputStream> call(VicURL vicURL) {
+                    public Observable<InputStreamWithUrl> call(VicURL vicURL) {
                         Log.d("test-title", "fetching inputstream: " + vicURL.getUrlString());
                         try {
-                            return Observable.just(FetchFeed.getInputStreamSync(vicURL));
+                            InputStreamWithUrl inputStreamWithUrl =
+                                    new InputStreamWithUrl(
+                                            vicURL.getUrlString(),
+                                            FetchFeed.getInputStreamSync(vicURL));
+                            return Observable.just(inputStreamWithUrl);
                         } catch (IOException e) {
                             return Observable.error(e);
                         }
                     }
                 })
-                .flatMap(new Func1<InputStream, Observable<Feed>>() {
+                .flatMap(new Func1<InputStreamWithUrl, Observable<Feed>>() {
                     @Override
-                    public Observable<Feed> call(InputStream inputStream) {
+                    public Observable<Feed> call(InputStreamWithUrl inputStreamWithUrl) {
                         try {
-                            Document doc = Jsoup.parse(inputStream, "UTF-8", "");
-                            JsFeed feed = new JsFeed(doc);
+                            Document doc = Jsoup.parse(inputStreamWithUrl.inputStream, "UTF-8", "");
+                            JsoupFeed feed = new JsoupFeed(inputStreamWithUrl.url, doc);
                             return Observable.just((Feed) feed);
                         } catch (IOException e) {
                             return Observable.error(e);

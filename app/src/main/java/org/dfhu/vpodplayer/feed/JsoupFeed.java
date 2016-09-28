@@ -7,11 +7,13 @@ import org.jsoup.select.Elements;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JsFeed implements Feed {
+public class JsoupFeed implements Feed {
 
-    private Document doc;
+    private final Document doc;
+    private final String url;
 
-    public JsFeed(Document doc) {
+    public JsoupFeed(String url, Document doc) {
+        this.url = url;
         this.doc = doc;
     }
 
@@ -27,12 +29,22 @@ public class JsFeed implements Feed {
     }
 
     @Override
+    public String getId() {
+        return "V1-" + getUrl().toLowerCase().replaceAll("[^a-zA-Z0-9]", "-");
+    }
+
+    @Override
+    public String getUrl() {
+        return url;
+    }
+
+    @Override
     public List<FeedItem> getItems() {
         Elements elms = doc.select("rss > channel item");
         List<FeedItem> items = new ArrayList<FeedItem>();
 
         for (Element elm: elms) {
-            FeedItem item = new JsFeedItem(elm);
+            FeedItem item = new JsoupFeedItem(elm);
             items.add(item);
         }
 
