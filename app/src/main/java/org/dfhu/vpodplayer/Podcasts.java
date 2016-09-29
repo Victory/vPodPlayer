@@ -14,6 +14,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
+import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.sqlite.ShowSqliteOpenHelper;
 import org.dfhu.vpodplayer.tasks.FetchFeedFragment;
 
 import butterknife.BindView;
@@ -40,9 +42,16 @@ public class Podcasts extends AppCompatActivity
         static FetchBus getInstance() { return instance; }
         void setText(Feed v) { subject.onNext(v); }
         Observable<Feed> getEvents() { return subject; }
+    }
 
+    private static class ToastErrorBus {
+        private ToastErrorBus() {}
+        private static ToastErrorBus instance = new ToastErrorBus();
+        private static PublishSubject<String> subject = PublishSubject.create();
 
-
+        static ToastErrorBus getInstance() { return instance; }
+        void toastError(String v) { subject.onNext(v); }
+        Observable<String> getEvents() { return subject; }
     }
 
     @BindView(R.id.tool_bar)
@@ -53,6 +62,7 @@ public class Podcasts extends AppCompatActivity
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
     private Subscription fetchSubscription;
+    private Subscription toastErrorSubscription;
     private final Bundle configChangeBundle = new Bundle();
 
     @Override
@@ -67,7 +77,30 @@ public class Podcasts extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         subscribeToFetch(nameThis);
+        subscribeToToastError();
     }
+
+    private void subscribeToToastError() {
+        toastErrorSubscription = ToastErrorBus.getInstance().getEvents()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        makeToast(s);
+                    }
+                });
+    }
+
 
     /**
      * Subscribe the the results of fetching a feed
@@ -99,6 +132,7 @@ public class Podcasts extends AppCompatActivity
     public void onDestroy() {
         super.onDestroy();
         fetchSubscription.unsubscribe();
+        toastErrorSubscription.unsubscribe();
     }
 
     @Override
@@ -170,6 +204,7 @@ public class Podcasts extends AppCompatActivity
         @Override
         public void onError(Throwable e) {
             Log.e("test-title", "error: " + e.getMessage());
+            safeToast("error: " + e.getMessage());
         }
 
         @Override
@@ -198,5 +233,21 @@ public class Podcasts extends AppCompatActivity
     void handleFeed(Feed feed) {
         configChangeBundle.putString("title", feed.getTitle());
         testTitle.setText(feed.getTitle());
+        Show show = new Show();
+        show.title = feed.getTitle();
+        show.url = feed.getUrl();
+
+        ShowSqliteOpenHelper db = new ShowSqliteOpenHelper(this);
+        if (db.add(show) < 0) {
+            safeToast("Could not add show. Already subscribed?");
+        }
+    }
+
+    public static void safeToast(String s) {
+       ToastErrorBus.getInstance().toastError(s);
+    }
+
+    public void makeToast(String s) {
+        Toast.makeText(this, s, Toast.LENGTH_LONG).show();
     }
 }
