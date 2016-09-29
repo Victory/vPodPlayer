@@ -1,6 +1,7 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
+import android.content.Context;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,6 +30,8 @@ public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
 
 
+    public static final String CACHE_DIR_FOR_FEED_LIST = "feeds";
+
     private static class FetchBus {
         private FetchBus() {}
         private static FetchBus instance = new FetchBus();
@@ -37,6 +40,9 @@ public class Podcasts extends AppCompatActivity
         static FetchBus getInstance() { return instance; }
         void setText(Feed v) { subject.onNext(v); }
         Observable<Feed> getEvents() { return subject; }
+
+
+
     }
 
     @BindView(R.id.tool_bar)
@@ -192,7 +198,5 @@ public class Podcasts extends AppCompatActivity
     void handleFeed(Feed feed) {
         configChangeBundle.putString("title", feed.getTitle());
         testTitle.setText(feed.getTitle());
-
-
     }
 }

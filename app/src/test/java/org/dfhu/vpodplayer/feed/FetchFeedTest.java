@@ -29,6 +29,11 @@ public class FetchFeedTest extends Assert {
     @Mock
     VicURL mockUrl;
 
+    @Test
+    public void disabled() {
+        fail("tests commented out");
+    }
+
     @Test(expected=IllegalAccessException.class)
     public void constructorIsPrivate() throws Exception {
         Constructor<?>[] constructors = FetchFeed.class.getDeclaredConstructors();
@@ -40,6 +45,7 @@ public class FetchFeedTest extends Assert {
         fail("Method should be private");
     }
 
+    /*
     @Test
     public void goodUrlWillReturnSuccessStatus() throws IOException {
         mockUrl = mock(VicURL.class);
@@ -77,4 +83,5 @@ public class FetchFeedTest extends Assert {
 
         assertTrue(results.status == FeedFetchResult.Status.COULD_NOT_GET_INPUTSTREAM);
     }
+    */
 }

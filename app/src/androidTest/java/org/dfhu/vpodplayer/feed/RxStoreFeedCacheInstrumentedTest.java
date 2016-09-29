@@ -10,8 +10,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import au.com.gridstone.rxstore.StoreProvider;
-import au.com.gridstone.rxstore.converters.MoshiConverter;
 import rx.Observer;
 
 public class RxStoreFeedCacheInstrumentedTest extends Assert {
@@ -30,6 +28,11 @@ public class RxStoreFeedCacheInstrumentedTest extends Assert {
         }
     }
 
+    @Test
+    public void failed() {
+        fail("all tests disabled while replacing rxstore");
+    }
+    /*
     @Test
     public void putTestClassWithStoreProvider() {
         Context appContext = InstrumentationRegistry.getTargetContext();
@@ -231,4 +234,5 @@ public class RxStoreFeedCacheInstrumentedTest extends Assert {
         assertEquals(result.getItems().get(0).getTitle(), "episode 1");
         assertEquals(result.getItems().get(1).getTitle(), "episode 2");
     }
+    */
 }
