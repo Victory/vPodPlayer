@@ -1,7 +1,6 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
-import android.content.Context;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,7 +15,7 @@ import android.widget.Toast;
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.ShowSqliteOpenHelper;
-import org.dfhu.vpodplayer.tasks.FetchFeedFragment;
+import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
