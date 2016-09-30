@@ -4,8 +4,6 @@ import android.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -20,7 +18,6 @@ import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.ShowSqliteOpenHelper;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
