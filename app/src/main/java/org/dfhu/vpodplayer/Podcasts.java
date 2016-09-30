@@ -54,8 +54,6 @@ public class Podcasts extends AppCompatActivity
     @BindView(R.id.tool_bar)
     Toolbar toolbar;
 
-    @BindView(R.id.showsRecyclerView)
-    RecyclerView showsRecyclerView;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
     private Subscription fetchSubscription;
@@ -77,16 +75,15 @@ public class Podcasts extends AppCompatActivity
         subscribeToToastError();
 
 
-        ShowSqliteOpenHelper db = new ShowSqliteOpenHelper(this);
-        List<Show> shows = db.all();
-        ShowsRecyclerViewAdapter adapter = new ShowsRecyclerViewAdapter(shows);
-        showsRecyclerView.setAdapter(adapter);
-        showsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        ShowListFragment fragment = new ShowListFragment();
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.activity_podcasts, fragment, "SHOWSTAG")
-                .commit();
+        if (getSupportFragmentManager().findFragmentByTag("SHOWSTAG") == null) {
+            ShowListFragment fragment = new ShowListFragment();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragmentContainer, fragment, "SHOWSTAG")
+                    .commit();
+        }
+
+
     }
 
     private void subscribeToToastError() {
