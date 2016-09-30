@@ -4,6 +4,8 @@ import android.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -13,9 +15,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
+import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.ShowSqliteOpenHelper;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,8 +54,8 @@ public class Podcasts extends AppCompatActivity
     @BindView(R.id.tool_bar)
     Toolbar toolbar;
 
-    @BindView(R.id.testTitle)
-    TextView testTitle;
+    @BindView(R.id.showsRecyclerView)
+    RecyclerView showsRecyclerView;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
     private Subscription fetchSubscription;
@@ -64,12 +69,24 @@ public class Podcasts extends AppCompatActivity
         ButterKnife.bind(this);
 
 
-        final String nameThis = testTitle.toString();
+        final String nameThis = this.toString();
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
 
         subscribeToFetch(nameThis);
         subscribeToToastError();
+
+
+        ShowSqliteOpenHelper db = new ShowSqliteOpenHelper(this);
+        List<Show> shows = db.all();
+        ShowsRecyclerViewAdapter adapter = new ShowsRecyclerViewAdapter(shows);
+        showsRecyclerView.setAdapter(adapter);
+        showsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        ShowListFragment fragment = new ShowListFragment();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.activity_podcasts, fragment, "SHOWSTAG")
+                .commit();
     }
 
     private void subscribeToToastError() {
@@ -224,7 +241,6 @@ public class Podcasts extends AppCompatActivity
 
     void handleFeed(Feed feed) {
         configChangeBundle.putString("title", feed.getTitle());
-        testTitle.setText(feed.getTitle());
         Show show = new Show();
         show.title = feed.getTitle();
         show.url = feed.getUrl();

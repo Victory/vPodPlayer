@@ -12,15 +12,12 @@
         layout="@layout/tool_bar"
         />
 
-    <TextView
-        android:text="no title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:id="@+id/testTitle"
-        android:layout_below="@+id/tool_bar"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="9dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
+    <fragment
+        android:id="@+id/myShowsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tool_bar"
+        android:name="org.dfhu.vpodplayer.fragment.ShowListFragment"
+        tools:layout="@layout/fragment_shows" />
 </RelativeLayout>
