@@ -30,27 +30,20 @@ import rx.subjects.PublishSubject;
 public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
 
-
-    public static final String CACHE_DIR_FOR_FEED_LIST = "feeds";
-
     private static class FetchBus {
         private FetchBus() {}
-        private static FetchBus instance = new FetchBus();
         private static PublishSubject<Feed> subject = PublishSubject.create();
 
-        static FetchBus getInstance() { return instance; }
-        void setText(Feed v) { subject.onNext(v); }
-        Observable<Feed> getEvents() { return subject; }
+        static void publish(Feed v) { subject.onNext(v); }
+        static Observable<Feed> getEvents() { return subject; }
     }
 
     private static class ToastErrorBus {
         private ToastErrorBus() {}
-        private static ToastErrorBus instance = new ToastErrorBus();
         private static PublishSubject<String> subject = PublishSubject.create();
 
-        static ToastErrorBus getInstance() { return instance; }
-        void toastError(String v) { subject.onNext(v); }
-        Observable<String> getEvents() { return subject; }
+        static void publish(String v) { subject.onNext(v); }
+        static Observable<String> getEvents() { return subject; }
     }
 
     @BindView(R.id.tool_bar)
@@ -80,7 +73,7 @@ public class Podcasts extends AppCompatActivity
     }
 
     private void subscribeToToastError() {
-        toastErrorSubscription = ToastErrorBus.getInstance().getEvents()
+        toastErrorSubscription = ToastErrorBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<String>() {
                     @Override
@@ -106,7 +99,7 @@ public class Podcasts extends AppCompatActivity
      * @param nameThis - debugging
      */
     private void subscribeToFetch(final String nameThis) {
-        fetchSubscription = FetchBus.getInstance().getEvents()
+        fetchSubscription = FetchBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Feed>() {
                     @Override
@@ -209,7 +202,7 @@ public class Podcasts extends AppCompatActivity
         @Override
         public void onNext(Feed feed) {
             Log.d("test-title", "onNext: "+ feed.getTitle());
-            FetchBus.getInstance().setText(feed);
+            FetchBus.publish(feed);
         }
     }
 
@@ -243,7 +236,7 @@ public class Podcasts extends AppCompatActivity
     }
 
     public static void safeToast(String s) {
-       ToastErrorBus.getInstance().toastError(s);
+       ToastErrorBus.publish(s);
     }
 
     public void makeToast(String s) {
