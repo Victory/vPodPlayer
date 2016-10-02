@@ -4,7 +4,6 @@ import android.test.AndroidTestCase;
 import android.test.RenamingDelegatingContext;
 
 import org.dfhu.vpodplayer.model.Episode;
-import org.dfhu.vpodplayer.model.Show;
 import org.junit.Test;
 
 import java.util.List;
