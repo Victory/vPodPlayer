@@ -5,16 +5,17 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 
-public class JsoupFeedItem implements FeedItem {
+class JsoupFeedItem implements FeedItem {
 
     private final Element elm;
 
-    public JsoupFeedItem(Element elm) {
+    JsoupFeedItem(Element elm) {
         this.elm = elm;
     }
+
     @Override
-    public String getTitle() {
-        return null;
+    public String getTitle(){
+        return elm.select("title").text();
     }
 
     @Override

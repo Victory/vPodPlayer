@@ -1,5 +1,6 @@
 package org.dfhu.vpodplayer.feed;
 
+import org.dfhu.vpodplayer.model.Episode;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -38,14 +39,21 @@ public class JsoupFeed implements Feed {
         return url;
     }
 
+    /**
+     * Get episode info, the consumer is expected to set the showId before inserting
+     * @return - episodes, without the showId
+     */
     @Override
-    public List<FeedItem> getItems() {
+    public List<Episode> getEpisodes() {
         Elements elms = doc.select("rss > channel item");
-        List<FeedItem> items = new ArrayList<FeedItem>();
+        List<Episode> items = new ArrayList<>();
 
         for (Element elm: elms) {
             FeedItem item = new JsoupFeedItem(elm);
-            items.add(item);
+            Episode episode = new Episode();
+            episode.url = getUrl();
+            episode.title = item.getTitle();
+            items.add(episode);
         }
 
         return items;

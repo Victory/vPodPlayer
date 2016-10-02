@@ -14,10 +14,14 @@ import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
+import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -31,6 +35,7 @@ import rx.subjects.PublishSubject;
 
 public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
+
 
     private static class FetchBus {
         private FetchBus() {}
@@ -79,7 +84,6 @@ public class Podcasts extends AppCompatActivity
                     .add(R.id.fragmentContainer, fragment, "SHOWSTAG")
                     .commit();
         }
-
 
     }
 
@@ -239,9 +243,22 @@ public class Podcasts extends AppCompatActivity
         show.title = feed.getTitle();
         show.url = feed.getUrl();
 
-        Shows db = new Shows(this);
-        if (db.add(show) < 0) {
-            safeToast("Could not add show. Already subscribed?");
+        Shows showsDb = new Shows(this);
+        long result = showsDb.add(show);
+        if (result < 0) {
+            show = showsDb.findShowByUrl(show.url);
+        }
+
+        if (show.url == null) {
+            safeToast("Internal error: Can't add or find local subscription to show.");
+            return;
+        }
+
+        Episodes episodeDb = new Episodes(this);
+        List<Episode> episodes = feed.getEpisodes();
+        for (Episode episode: episodes) {
+            episode.showId = show.id;
+            episodeDb.add(episode);
         }
     }
 

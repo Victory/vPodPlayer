@@ -95,4 +95,19 @@ public class Shows extends SQLiteOpenHelper {
         });
     }
 
+    /**
+     * Find a show with a url or create and empty show object if none found
+     *
+     * @param url - the url of the show to find
+     * @return - found show, or new Show() if none found
+     */
+    public Show findShowByUrl(String url) {
+        // XXX: can be done in sql
+        for (Show show: all()) {
+            if (show.url.equals(url)) {
+                return show;
+            }
+        }
+        return new Show();
+    }
 }

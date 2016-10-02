@@ -3,6 +3,7 @@ package org.dfhu.vpodplayer.feed;
 
 import android.util.Log;
 
+import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.util.LogTags;
 
 public class FeedParser {
@@ -13,15 +14,10 @@ public class FeedParser {
         FeedInfo feedInfo = new FeedInfo();
 
         feedInfo.setTitle(feed.getTitle());
-        for (FeedItem item: feed.getItems()) {
+        for (Episode ep: feed.getEpisodes()) {
             EpisodeInfo episode = new EpisodeInfo();
-            try {
-                episode.setLink(item.getLink());
-                episode.setId(getItemId(item));
-            } catch (NoLinkException e) {
-                Log.e(LogTags.PARSE_FEED, "Could not parse: " + item.getTitle());
-            }
-            episode.setTitle(item.getTitle());
+            episode.setLink(ep.url);
+            episode.setTitle(ep.title);
             feedInfo.addEpisode(episode);
         }
 
