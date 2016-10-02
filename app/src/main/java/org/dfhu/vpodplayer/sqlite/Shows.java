@@ -10,7 +10,7 @@ import org.dfhu.vpodplayer.model.Show;
 
 import java.util.List;
 
-public class ShowSqliteOpenHelper extends SQLiteOpenHelper {
+public class Shows extends SQLiteOpenHelper {
 
     private static final int DB_VERSION = 1;
     private static final String DB_NAME = "shows";
@@ -36,7 +36,7 @@ public class ShowSqliteOpenHelper extends SQLiteOpenHelper {
                     "`url` TEXT NOT NULL UNIQUE" +
                     ")";
 
-    public ShowSqliteOpenHelper(Context context) {
+    public Shows(Context context) {
        super(context, DB_NAME, null, DB_VERSION);
     }
 

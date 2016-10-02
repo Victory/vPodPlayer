@@ -15,7 +15,7 @@ import android.widget.Toast;
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Show;
-import org.dfhu.vpodplayer.sqlite.ShowSqliteOpenHelper;
+import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
 
@@ -239,7 +239,7 @@ public class Podcasts extends AppCompatActivity
         show.title = feed.getTitle();
         show.url = feed.getUrl();
 
-        ShowSqliteOpenHelper db = new ShowSqliteOpenHelper(this);
+        Shows db = new Shows(this);
         if (db.add(show) < 0) {
             safeToast("Could not add show. Already subscribed?");
         }

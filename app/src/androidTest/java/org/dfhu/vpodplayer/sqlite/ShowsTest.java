@@ -8,14 +8,14 @@ import org.junit.Test;
 
 import java.util.List;
 
-public class ShowSqliteOpenHelperTest extends AndroidTestCase {
-    private ShowSqliteOpenHelper db;
+public class ShowsTest extends AndroidTestCase {
+    private Shows db;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         RenamingDelegatingContext context = new RenamingDelegatingContext(getContext(), "test_");
-        db = new ShowSqliteOpenHelper(context);
+        db = new Shows(context);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class ShowSqliteOpenHelperTest extends AndroidTestCase {
         Show show = new Show();
         show.title = "The title";
         show.url = "http://example.com/feed.xml";
-        long id =db.add(show);
+        long id = db.add(show);
         assertTrue(id > 0);
 
         List<Show> all = db.all();

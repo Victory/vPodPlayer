@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.ShowsRecyclerViewAdapter;
 import org.dfhu.vpodplayer.model.Show;
-import org.dfhu.vpodplayer.sqlite.ShowSqliteOpenHelper;
+import org.dfhu.vpodplayer.sqlite.Shows;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class ShowListFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_shows, container, false);
 
-        ShowSqliteOpenHelper db = new ShowSqliteOpenHelper(getActivity());
+        Shows db = new Shows(getActivity());
         List<Show> shows = db.all();
         ShowsRecyclerViewAdapter adapter = new ShowsRecyclerViewAdapter(shows);
 
