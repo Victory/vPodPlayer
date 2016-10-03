@@ -133,6 +133,10 @@ public class Podcasts extends AppCompatActivity
                     @Override
                     public void onNext(Show show) {
                         EpisodeListFragment fragment = new EpisodeListFragment();
+                        Bundle args = new Bundle();
+                        args.putInt("showId", show.id);
+                        fragment.setArguments(args);
+
                         getSupportFragmentManager()
                                 .beginTransaction()
                                 .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)

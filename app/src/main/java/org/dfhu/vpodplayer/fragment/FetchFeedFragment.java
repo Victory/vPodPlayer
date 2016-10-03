@@ -16,6 +16,7 @@ import org.dfhu.vpodplayer.util.VicURL;
 import org.dfhu.vpodplayer.util.VicURLProvider;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,8 +59,8 @@ public class FetchFeedFragment extends Fragment {
 
     public static class InputStreamWithUrl {
         public final String url;
-        public final InputStream inputStream;
-        public InputStreamWithUrl(String url, InputStream inputStream) {
+        final InputStream inputStream;
+        InputStreamWithUrl(String url, InputStream inputStream) {
             this.url = url;
             this.inputStream = inputStream;
         }
@@ -97,7 +98,7 @@ public class FetchFeedFragment extends Fragment {
                     @Override
                     public Observable<Feed> call(InputStreamWithUrl inputStreamWithUrl) {
                         try {
-                            Document doc = Jsoup.parse(inputStreamWithUrl.inputStream, "UTF-8", "");
+                            Document doc = Jsoup.parse(inputStreamWithUrl.inputStream, "UTF-8", "", Parser.xmlParser());
                             JsoupFeed feed = new JsoupFeed(inputStreamWithUrl.url, doc);
                             return Observable.just((Feed) feed);
                         } catch (IOException e) {

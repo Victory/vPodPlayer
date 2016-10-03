@@ -19,6 +19,8 @@ import java.util.List;
 
 public class EpisodeListFragment extends Fragment {
 
+    private int showId;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,8 +34,10 @@ public class EpisodeListFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_episodes, container, false);
 
+        showId = getArguments().getInt("showId");
+
         Episodes db = new Episodes(getActivity());
-        List<Episode> episodes = db.all();
+        List<Episode> episodes = db.allForShow(showId);
         EpisodesRecyclerViewAdapter adapter = new EpisodesRecyclerViewAdapter(episodes);
 
         RecyclerView showsRecyclerView = (RecyclerView) view.findViewById(R.id.episodesRecyclerView);
