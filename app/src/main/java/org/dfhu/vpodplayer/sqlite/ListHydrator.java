@@ -5,10 +5,10 @@ import android.database.Cursor;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ListHydrator<T> {
+class ListHydrator<T> {
     private final Cursor cursor;
 
-    public ListHydrator(Cursor cursor) {
+    ListHydrator(Cursor cursor) {
         this.cursor = cursor;
     }
 
@@ -16,10 +16,9 @@ public class ListHydrator<T> {
      * Iterate over all the items, run consumeHydrator.consume(), close the cursor.
      *
      * @param consumeHydrator consumer
-     * @param <T> Holds the type of object
      * @return New list of items
      */
-    public <T> List<T> hydrate(ConsumeHydrator<T> consumeHydrator) {
+    List<T> hydrate(ConsumeHydrator<T> consumeHydrator) {
         try {
             List<T> items = new LinkedList<>();
             if (!cursor.moveToFirst()) {

@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.feed.SubscribeToFeed;
+import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
@@ -22,6 +23,7 @@ import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
 
+import java.util.LinkedList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -36,6 +38,7 @@ import rx.subjects.PublishSubject;
 
 public class Podcasts extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
+
 
 
     private static class FetchBus {
@@ -57,10 +60,9 @@ public class Podcasts extends AppCompatActivity
     @BindView(R.id.tool_bar)
     Toolbar toolbar;
 
-
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
-    private Subscription fetchSubscription;
-    private Subscription toastErrorSubscription;
+    public static final String TAG_MAIN_DISPLAY_FRAGMENT = "TAG_MAIN_DISPLAY_FRAGMENT";
+    private List<Subscription> subscriptions = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,18 +77,70 @@ public class Podcasts extends AppCompatActivity
 
         subscribeToFetch(nameThis);
         subscribeToToastError();
+        subscribeToShowClicked();
+        subscribeToEpisodeClicked();
 
-        if (getSupportFragmentManager().findFragmentByTag("SHOWSTAG") == null) {
+        if (getSupportFragmentManager().findFragmentByTag(TAG_MAIN_DISPLAY_FRAGMENT) == null) {
             ShowListFragment fragment = new ShowListFragment();
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragmentContainer, fragment, "SHOWSTAG")
+                    .add(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
                     .commit();
         }
+
+
+    }
+
+    private void subscribeToEpisodeClicked() {
+        Subscription sub = EpisodesRecyclerViewAdapter.EpisodeClickBus.getEvents()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Episode>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d("episodeClickSub", "onComplete");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("episodeClickSub", "onError", e);
+                    }
+
+                    @Override
+                    public void onNext(Episode episode) {
+                        Log.d("episodeClickSub", "onNext: " + episode);
+                    }
+                });
+        subscriptions.add(sub);
+    }
+
+    private void subscribeToShowClicked() {
+        Subscription sub = ShowsRecyclerViewAdapter.ShowClickBus.getEvents()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Show>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d("showClickSubscription", "onComplete");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("showClickSubscription", "onError", e);
+                    }
+
+                    @Override
+                    public void onNext(Show show) {
+                        EpisodeListFragment fragment = new EpisodeListFragment();
+                        getSupportFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
+                                .commit();
+                    }
+                });
+        subscriptions.add(sub);
     }
 
     private void subscribeToToastError() {
-        toastErrorSubscription = ToastErrorBus.getEvents()
+        Subscription sub = ToastErrorBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<String>() {
                     @Override
@@ -104,6 +158,7 @@ public class Podcasts extends AppCompatActivity
                         makeToast(s);
                     }
                 });
+        subscriptions.add(sub);
     }
 
 
@@ -112,7 +167,7 @@ public class Podcasts extends AppCompatActivity
      * @param nameThis - debugging
      */
     private void subscribeToFetch(final String nameThis) {
-        fetchSubscription = FetchBus.getEvents()
+        Subscription sub = FetchBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Feed>() {
                     @Override
@@ -131,13 +186,19 @@ public class Podcasts extends AppCompatActivity
                         handleFeed(feed);
                     }
                 });
+
+        subscriptions.add(sub);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        fetchSubscription.unsubscribe();
-        toastErrorSubscription.unsubscribe();
+
+        for (Subscription sub: subscriptions) {
+            if (sub != null) {
+                sub.unsubscribe();
+            }
+        }
     }
 
     @Override

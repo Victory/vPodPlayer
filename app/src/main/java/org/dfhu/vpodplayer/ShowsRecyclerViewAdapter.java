@@ -2,6 +2,7 @@ package org.dfhu.vpodplayer;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +12,19 @@ import org.dfhu.vpodplayer.model.Show;
 
 import java.util.List;
 
+import rx.Observable;
+import rx.subjects.PublishSubject;
+
 
 public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecyclerViewAdapter.ViewHolder> {
+
+    static class ShowClickBus {
+        private ShowClickBus() {}
+        private static PublishSubject<Show> subject = PublishSubject.create();
+
+        static void publish(Show v) { subject.onNext(v); }
+        static Observable<Show> getEvents() { return subject; }
+    }
 
     private final List<Show> shows;
 
@@ -31,6 +43,7 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Show show = shows.get(position);
+        holder.setShow(show);
         holder.itemShowTitle.setText(show.title);
     }
 
@@ -39,12 +52,27 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
         return shows.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public final TextView itemShowTitle;
+    static class ViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
 
-        public ViewHolder(View itemView) {
+        final TextView itemShowTitle;
+
+        private Show show;
+
+        public void setShow(Show show) {
+            this.show = show;
+        }
+
+        ViewHolder(View itemView) {
             super(itemView);
+            itemView.setOnClickListener(this);
             itemShowTitle = (TextView) itemView.findViewById(R.id.itemShowTitle);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Log.d("ShowsRecylerViewAdapter", "onClick - position:" + getLayoutPosition() + " id:" + show.id);
+            ShowClickBus.publish(show);
         }
     }
 }
