@@ -70,10 +70,12 @@ public class Podcasts extends AppCompatActivity
         setContentView(R.layout.activity_podcasts);
         ButterKnife.bind(this);
 
-
         final String nameThis = this.toString();
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
+
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         subscribeToFetch(nameThis);
         subscribeToToastError();
@@ -86,9 +88,10 @@ public class Podcasts extends AppCompatActivity
                     .beginTransaction()
                     .add(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
                     .commit();
+
+            getSupportActionBar().setHomeButtonEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
-
-
     }
 
     private void subscribeToEpisodeClicked() {
@@ -134,6 +137,9 @@ public class Podcasts extends AppCompatActivity
                                 .beginTransaction()
                                 .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
                                 .commit();
+
+                        getSupportActionBar().setHomeButtonEnabled(true);
+                        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                     }
                 });
         subscriptions.add(sub);
@@ -243,9 +249,24 @@ public class Podcasts extends AppCompatActivity
             case R.id.menu_refresh_podcast:
                 Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show();
                 return true;
+            case android.R.id.home:
+                setHomeFragment();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void setHomeFragment() {
+        ShowListFragment fragment = new ShowListFragment();
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
+                .commit();
+
+        getSupportActionBar().setHomeButtonEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     @Override
