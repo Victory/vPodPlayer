@@ -1,8 +1,8 @@
 package org.dfhu.vpodplayer.feed;
 
 
-public interface FeedItem {
+interface FeedItem {
     String getTitle();
 
-    String getLink();
+    String getUrl();
 }

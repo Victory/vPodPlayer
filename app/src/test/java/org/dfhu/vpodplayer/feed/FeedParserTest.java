@@ -35,6 +35,11 @@ public class FeedParserTest extends Assert {
     }
 
     @Test
+    public void disabled() {
+        fail("most tests disabled");
+    }
+
+    @Test
     public void setsTitle() {
         mockFeed = mock(Feed.class);
         when(mockFeed.getTitle()).thenReturn("Mock Podcast");
@@ -44,6 +49,7 @@ public class FeedParserTest extends Assert {
         assertEquals(result.info.getTitle(), "Mock Podcast");
     }
 
+    /*
     @Test
     public void itemHasTitleAndLink() {
 
@@ -54,7 +60,7 @@ public class FeedParserTest extends Assert {
         String itemTitle = "Item Title";
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link = "http://mysite.com/episode1.mp3";
-        when(mockItem.getLink()).thenReturn(link);
+        when(mockItem.getUrl()).thenReturn(link);
 
         items.add(mockItem);
         Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);
@@ -83,7 +89,7 @@ public class FeedParserTest extends Assert {
         String itemTitle = "Item Title";
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link = "http://mysite.com/episode1.mp3";
-        when(mockItem.getLink()).thenReturn(link);
+        when(mockItem.getUrl()).thenReturn(link);
         items.add(mockItem);
 
         // mock another "bad" item
@@ -112,7 +118,7 @@ public class FeedParserTest extends Assert {
         String itemTitle = "Item Title 1";
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link1 = "http://mysite.com/episode1.mp3";
-        when(mockItem.getLink()).thenReturn(link1);
+        when(mockItem.getUrl()).thenReturn(link1);
         items.add(mockItem);
 
         // mock another "good" item
@@ -120,7 +126,7 @@ public class FeedParserTest extends Assert {
         itemTitle = "Item Title 2";
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link2 = "http://mysite.com/episode2.mp3";
-        when(mockItem.getLink()).thenReturn(link2);
+        when(mockItem.getUrl()).thenReturn(link2);
         items.add(mockItem);
 
         mockFeed = mock(Feed.class);
@@ -137,4 +143,5 @@ public class FeedParserTest extends Assert {
         assertTrue(!result.info.getEpisodes().get(0).getId().isEmpty());
         assertTrue(!result.info.getEpisodes().get(1).getId().isEmpty());
     }
+    */
 }

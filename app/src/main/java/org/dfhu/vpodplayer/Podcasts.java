@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
+import org.dfhu.vpodplayer.feed.SubscribeToFeed;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
@@ -60,7 +61,6 @@ public class Podcasts extends AppCompatActivity
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
     private Subscription fetchSubscription;
     private Subscription toastErrorSubscription;
-    private final Bundle configChangeBundle = new Bundle();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +76,6 @@ public class Podcasts extends AppCompatActivity
         subscribeToFetch(nameThis);
         subscribeToToastError();
 
-
         if (getSupportFragmentManager().findFragmentByTag("SHOWSTAG") == null) {
             ShowListFragment fragment = new ShowListFragment();
             getSupportFragmentManager()
@@ -84,7 +83,6 @@ public class Podcasts extends AppCompatActivity
                     .add(R.id.fragmentContainer, fragment, "SHOWSTAG")
                     .commit();
         }
-
     }
 
     private void subscribeToToastError() {
@@ -238,28 +236,9 @@ public class Podcasts extends AppCompatActivity
     }
 
     void handleFeed(Feed feed) {
-        configChangeBundle.putString("title", feed.getTitle());
-        Show show = new Show();
-        show.title = feed.getTitle();
-        show.url = feed.getUrl();
-
         Shows showsDb = new Shows(this);
-        long result = showsDb.add(show);
-        if (result < 0) {
-            show = showsDb.findShowByUrl(show.url);
-        }
-
-        if (show.url == null) {
-            safeToast("Internal error: Can't add or find local subscription to show.");
-            return;
-        }
-
         Episodes episodeDb = new Episodes(this);
-        List<Episode> episodes = feed.getEpisodes();
-        for (Episode episode: episodes) {
-            episode.showId = show.id;
-            episodeDb.add(episode);
-        }
+        SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
     }
 
     public static void safeToast(String s) {

@@ -1,16 +1,13 @@
 package org.dfhu.vpodplayer.feed;
 
 
-import android.util.Log;
-
 import org.dfhu.vpodplayer.model.Episode;
-import org.dfhu.vpodplayer.util.LogTags;
 
-public class FeedParser {
+class FeedParser {
 
-    public static final String ITEM_ID_VERSION_PREFIX = "V1-";
+    private static final String ITEM_ID_VERSION_PREFIX = "V1-";
 
-    public static FeedParserResult parse(Feed feed) {
+    static FeedParserResult parse(Feed feed) {
         FeedInfo feedInfo = new FeedInfo();
 
         feedInfo.setTitle(feed.getTitle());
@@ -26,10 +23,7 @@ public class FeedParser {
 
     /** Set a unique Id, use Version prefix for future proofing as poorly written feeds are discovered */
     private static String getItemId(FeedItem item) throws NoLinkException {
-        StringBuilder sb = new StringBuilder();
-        sb.append(ITEM_ID_VERSION_PREFIX);
-        sb.append(item.getLink());
-        return sb.toString();
+        return ITEM_ID_VERSION_PREFIX + item.getUrl();
     }
 
 

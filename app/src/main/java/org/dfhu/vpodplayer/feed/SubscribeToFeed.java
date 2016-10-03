@@ -1,0 +1,40 @@
+package org.dfhu.vpodplayer.feed;
+
+
+import org.dfhu.vpodplayer.model.Episode;
+import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.sqlite.Episodes;
+import org.dfhu.vpodplayer.sqlite.Shows;
+
+import java.util.List;
+
+import static org.dfhu.vpodplayer.Podcasts.safeToast;
+
+public class SubscribeToFeed {
+
+    private SubscribeToFeed() {}
+
+    /** Store show and episdoes from the feed in the database */
+    public static void subscribe(Feed feed, Shows showsDb, Episodes episodesDb) {
+
+        Show show = new Show();
+        show.title = feed.getTitle();
+        show.url = feed.getUrl();
+
+        long result = showsDb.add(show);
+        if (result < 0) {
+            show = showsDb.findShowByUrl(show.url);
+        }
+
+        if (show.url == null) {
+            safeToast("Internal error: Can't add or find local subscription to show.");
+            return;
+        }
+
+        List<Episode> episodes = feed.getEpisodes();
+        for (Episode episode: episodes) {
+            episode.showId = show.id;
+            episodesDb.add(episode);
+        }
+    }
+}

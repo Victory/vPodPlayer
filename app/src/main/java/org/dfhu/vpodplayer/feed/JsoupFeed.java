@@ -51,7 +51,7 @@ public class JsoupFeed implements Feed {
         for (Element elm: elms) {
             FeedItem item = new JsoupFeedItem(elm);
             Episode episode = new Episode();
-            episode.url = getUrl();
+            episode.url = item.getUrl();
             episode.title = item.getTitle();
             items.add(episode);
         }

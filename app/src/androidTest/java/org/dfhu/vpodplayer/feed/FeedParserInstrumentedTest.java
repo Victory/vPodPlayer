@@ -5,6 +5,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
 
+import org.dfhu.vpodplayer.model.Episode;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.Test;
@@ -30,11 +31,11 @@ public class FeedParserInstrumentedTest extends Assert {
         Feed feed = new JsoupFeed(url, doc);
         assertEquals("Planet Money", feed.getTitle());
 
-        List<FeedItem> items = feed.getItems();
+        List<Episode> items = feed.getEpisodes();
         assertTrue(items.size() == 2);
 
         String expected = "http://play.podtrac.com/npr-510289/npr.mc.tritondigital.com/NPR_510289/media/anon.npr-mp3/npr/pmoney/2016/09/20160901_pmoney_pmpod.mp3?orgId=1&d=1092&p=510289&story=492283098&t=podcast&e=492283098&ft=pod&f=510289";
-        String actual = items.get(0).getLink();
+        String actual = items.get(0).url;
         assertEquals(expected, actual);
     }
 

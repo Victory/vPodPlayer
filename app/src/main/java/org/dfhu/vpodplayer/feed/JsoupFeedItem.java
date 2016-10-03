@@ -19,7 +19,7 @@ class JsoupFeedItem implements FeedItem {
     }
 
     @Override
-    public String getLink() {
+    public String getUrl() {
         Elements elms = elm.select("enclosure");
         String type;
         for(Element elm: elms) {
