@@ -80,7 +80,7 @@ public class Shows extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` ORDER BY `title`";
         Cursor cursor = db.rawQuery(sql, null);
-        ListHydrator<Show> hydrator = new ListHydrator<>(cursor);
+        ListHydrator<Show> hydrator = new ListHydrator<>(cursor, db);
 
         return hydrator.hydrate(new ConsumeHydrator<Show>() {
             @Override

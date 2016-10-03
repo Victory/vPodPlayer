@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
 
@@ -62,26 +63,47 @@ public class Episodes extends SQLiteOpenHelper {
         }
     }
 
-
-
     /**
      * Store and episode for a show
      * @param episode The episode to add, must have a url and showId
      * @return id of the inserted show, -1 if we couldn't add the episode
      */
     public long add(Episode episode) {
-        if (episode.showId <= 0 || episode.url == null) {
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            return addNoClose(episode, db);
+        } finally {
+            db.close();
+        }
+    }
+
+    private long addNoClose(Episode episode, SQLiteDatabase db) {
+        if (episode.showId <= 0) {
+            Log.d("Episodes", "episode.url == null: " + episode);
             return -1;
         }
 
-        SQLiteDatabase db = getWritableDatabase();
+        if ( episode.url == null) {
+            Log.d("Episodes", "episode.url == null: " + episode);
+            return -1;
+        }
+
         ContentValues contentValues = new ContentValues();
         contentValues.put(K_SHOW_ID, episode.showId);
         contentValues.put(K_TITLE, episode.title);
         contentValues.put(K_URL, episode.url);
 
+        return db.insert(DB_NAME, null, contentValues);
+    }
+
+    /** All episodes in the list */
+    public void addAllForShow(List<Episode> episodes, int showId) {
+        SQLiteDatabase db = getWritableDatabase();
         try {
-            return db.insert(DB_NAME, null, contentValues);
+            for (Episode episode : episodes) {
+                episode.showId = showId;
+                addNoClose(episode, db);
+            }
         } finally {
             db.close();
         }
@@ -95,7 +117,7 @@ public class Episodes extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` ORDER BY `title`";
         Cursor cursor = db.rawQuery(sql, null);
-        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor);
+        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
         return hydrator.hydrate(new ConsumeHydrator<Episode>() {
             @Override
@@ -119,7 +141,7 @@ public class Episodes extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId + " ORDER BY `title`";
         Cursor cursor = db.rawQuery(sql, null);
-        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor);
+        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
         return hydrator.hydrate(new ConsumeHydrator<Episode>() {
             @Override

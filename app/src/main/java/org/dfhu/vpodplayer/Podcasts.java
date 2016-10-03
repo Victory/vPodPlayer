@@ -322,9 +322,10 @@ public class Podcasts extends AppCompatActivity
     }
 
     void handleFeed(Feed feed) {
-        Shows showsDb = new Shows(this);
-        Episodes episodeDb = new Episodes(this);
+        Shows showsDb = new Shows(this.getApplicationContext());
+        Episodes episodeDb = new Episodes(this.getApplicationContext());
         SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
+        setHomeFragment();
     }
 
     public static void safeToast(String s) {

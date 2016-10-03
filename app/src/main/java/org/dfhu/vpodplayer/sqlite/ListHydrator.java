@@ -1,15 +1,19 @@
 package org.dfhu.vpodplayer.sqlite;
 
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.LinkedList;
 import java.util.List;
 
 class ListHydrator<T> {
     private final Cursor cursor;
+    private final SQLiteDatabase db;
 
-    ListHydrator(Cursor cursor) {
+    ListHydrator(Cursor cursor, SQLiteDatabase db) {
         this.cursor = cursor;
+        this.db = db;
     }
 
     /**
@@ -32,6 +36,7 @@ class ListHydrator<T> {
             return items;
         } finally {
             cursor.close();
+            db.close();
         }
     }
 }

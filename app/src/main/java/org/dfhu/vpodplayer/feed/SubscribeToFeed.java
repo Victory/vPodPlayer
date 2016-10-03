@@ -24,6 +24,8 @@ public class SubscribeToFeed {
         long result = showsDb.add(show);
         if (result < 0) {
             show = showsDb.findShowByUrl(show.url);
+        } else {
+            show.id = (int) result;
         }
 
         if (show.url == null) {
@@ -32,9 +34,6 @@ public class SubscribeToFeed {
         }
 
         List<Episode> episodes = feed.getEpisodes();
-        for (Episode episode: episodes) {
-            episode.showId = show.id;
-            episodesDb.add(episode);
-        }
+        episodesDb.addAllForShow(episodes, show.id);
     }
 }
