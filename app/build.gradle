@@ -40,6 +40,7 @@ dependencies {
     compile 'io.reactivex:rxjava-async-util:0.21.0'
     compile 'com.android.support:support-v4:22.2.1'
     compile 'com.android.support:recyclerview-v7:22.2.1'
+    compile 'com.google.android.exoplayer:exoplayer:r2.0.1'
     testCompile 'junit:junit:4.12'
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
