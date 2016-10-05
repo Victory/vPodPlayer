@@ -32,7 +32,7 @@ public class ShowListFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_shows, container, false);
 
-        Shows db = new Shows(getActivity());
+        Shows db = new Shows(getActivity().getApplicationContext());
         List<Show> shows = db.all();
         ShowsRecyclerViewAdapter adapter = new ShowsRecyclerViewAdapter(shows);
 

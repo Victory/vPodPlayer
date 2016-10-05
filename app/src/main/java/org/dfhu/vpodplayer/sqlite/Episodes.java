@@ -77,6 +77,7 @@ public class Episodes extends SQLiteOpenHelper {
         }
     }
 
+
     private long addNoClose(Episode episode, SQLiteDatabase db) {
         if (episode.showId <= 0) {
             Log.d("Episodes", "episode.url == null: " + episode);
@@ -143,7 +144,28 @@ public class Episodes extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
-        return hydrator.hydrate(new ConsumeHydrator<Episode>() {
+        return hydrator.hydrate(new Hydrator());
+    }
+
+
+    /**
+     * Get episode by id, or empty episode if none found
+     * @param episodeId - the id of the episode
+     * @return
+     */
+    public Episode getById(int episodeId) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE id = " + episodeId + " LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, null);
+        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
+        List<Episode> episodes = hydrator.hydrate(new Hydrator());
+        if (episodes.size() == 0) {
+            return new Episode();
+        }
+        return episodes.get(0);
+    }
+
+    private static class Hydrator implements ConsumeHydrator<Episode> {
             @Override
             public void consume(ColumnCursor cc, List<Episode> items) {
                 Episode episode = new Episode();
@@ -154,6 +176,5 @@ public class Episodes extends SQLiteOpenHelper {
                 episode.description = cc.getStringColumn(K_DESCRIPTION);
                 items.add(episode);
             }
-        });
-    }
+        }
 }

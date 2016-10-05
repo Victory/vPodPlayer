@@ -36,7 +36,7 @@ public class EpisodeListFragment extends Fragment {
 
         showId = getArguments().getInt("showId");
 
-        Episodes db = new Episodes(getActivity());
+        Episodes db = new Episodes(getActivity().getApplicationContext());
         List<Episode> episodes = db.allForShow(showId);
         EpisodesRecyclerViewAdapter adapter = new EpisodesRecyclerViewAdapter(episodes);
 

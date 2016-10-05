@@ -16,6 +16,7 @@ import android.widget.Toast;
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.feed.SubscribeToFeed;
 import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
+import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
@@ -122,6 +123,18 @@ public class Podcasts extends AppCompatActivity
                     @Override
                     public void onNext(Episode episode) {
                         Log.d("episodeClickSub", "onNext: " + episode);
+
+                        PlayerFragment fragment = new PlayerFragment();
+                        Bundle args = new Bundle();
+                        args.putInt("episodeId", episode.id);
+                        fragment.setArguments(args);
+
+                        getSupportFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
+                                .commit();
+
+                        showHomeButton(true);
                     }
                 });
         subscriptions.add(sub);
