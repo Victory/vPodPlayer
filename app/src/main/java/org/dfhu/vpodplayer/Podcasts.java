@@ -2,6 +2,7 @@ package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -73,9 +74,7 @@ public class Podcasts extends AppCompatActivity
         final String nameThis = this.toString();
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
-
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        showHomeButton(true);
 
         subscribeToFetch(nameThis);
         subscribeToToastError();
@@ -89,9 +88,21 @@ public class Podcasts extends AppCompatActivity
                     .add(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
                     .commit();
 
-            getSupportActionBar().setHomeButtonEnabled(false);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            showHomeButton(false);
         }
+    }
+
+    /**
+     * Show or hide the action bar's up home button
+     * @param show - true to show, false to hide
+     */
+    public void showHomeButton(boolean show) {
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar == null) {
+            return;
+        }
+        supportActionBar.setHomeButtonEnabled(show);
+        supportActionBar.setDisplayHomeAsUpEnabled(show);
     }
 
     private void subscribeToEpisodeClicked() {
@@ -142,8 +153,7 @@ public class Podcasts extends AppCompatActivity
                                 .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
                                 .commit();
 
-                        getSupportActionBar().setHomeButtonEnabled(true);
-                        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                        showHomeButton(true);
                     }
                 });
         subscriptions.add(sub);
@@ -269,8 +279,7 @@ public class Podcasts extends AppCompatActivity
                 .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
                 .commit();
 
-        getSupportActionBar().setHomeButtonEnabled(false);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        showHomeButton(false);
     }
 
     @Override
