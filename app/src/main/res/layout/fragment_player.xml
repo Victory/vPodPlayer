@@ -5,8 +5,14 @@
     android:weightSum="1">
 
     <Button
-        android:text="Play"
+        android:text="Pause"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/playPauseButton" />
+
+    <org.dfhu.vpodplayer.PlayerControlsView
+        android:id="@+id/playerControls"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </LinearLayout>
