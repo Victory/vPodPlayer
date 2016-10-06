@@ -1,6 +1,7 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
+import android.content.Context;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -28,8 +29,8 @@ import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 import java.util.LinkedList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import javax.inject.Inject;
+
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
@@ -59,7 +60,9 @@ public class Podcasts extends AppCompatActivity
         static Observable<String> getEvents() { return subject; }
     }
 
-    @BindView(R.id.tool_bar)
+    @Inject
+    Context context;
+
     Toolbar toolbar;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
@@ -70,8 +73,8 @@ public class Podcasts extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
-        ButterKnife.bind(this);
 
+        toolbar = (Toolbar) findViewById(R.id.tool_bar);
         final String nameThis = this.toString();
         Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);

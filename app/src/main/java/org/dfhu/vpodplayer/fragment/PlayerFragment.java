@@ -22,10 +22,16 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 
 import org.dfhu.vpodplayer.PodPlayer;
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 
+import javax.inject.Inject;
+
 public class PlayerFragment extends Fragment {
+
+    @Inject
+    PodPlayer podPlayer;
 
     private boolean isPlaying = false;
     private static SimpleExoPlayer exoPlayer;
@@ -34,6 +40,7 @@ public class PlayerFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        ((VPodPlayerApplication) getActivity().getApplication()).component().inject(this);
     }
 
     @Override
@@ -91,7 +98,7 @@ public class PlayerFragment extends Fragment {
         if (exoPlayer != null && exoPlayer.getPlaybackState() == ExoPlayer.STATE_READY) {
             return;
         }
-        exoPlayer = PodPlayer.play(context);
+        exoPlayer = podPlayer.getPlayer();
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, "vPodPlayer");
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
         MediaSource mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
