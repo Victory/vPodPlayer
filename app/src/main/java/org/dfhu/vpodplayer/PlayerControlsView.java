@@ -29,10 +29,11 @@ public class PlayerControlsView extends View {
     private float centerY;
     private float width;
     private float height;
-    double deg = 1;
+    double deg = 0;
+    double lastDeg = 0;
     double downDeg;
-    double lastDeg;
-    boolean rotateLock = false;
+    double motionArcDeg = 0;
+    double arcLength = 1;
 
     RectF arcRect;
 
@@ -85,7 +86,7 @@ public class PlayerControlsView extends View {
         float left = centerX - size;
         float right = centerX + size;
         arcRect = new RectF(left, top, right, bottom);
-        canvas.drawArc(arcRect, 270, (float) deg, true, listenArcPaint);
+        canvas.drawArc(arcRect, 270, (float) arcLength, true, listenArcPaint);
 
         canvas.drawCircle(centerX, centerY, size / 4, innerPaint);
 
@@ -98,6 +99,8 @@ public class PlayerControlsView extends View {
         super.onTouchEvent(event);
         return true;
     }
+
+    double motionSum;
 
     @NonNull
     private void logMotionEvent(MotionEvent event) {
@@ -116,24 +119,54 @@ public class PlayerControlsView extends View {
                 actionString = "down";
                 handleCenterClick(x, y, event);
                 downDeg = deg;
+                lastDeg = deg;
+                motionSum = 0;
                 break;
             case MotionEvent.ACTION_MOVE:
                 actionString = "move";
-                if (downDeg < deg) {
-                    invalidate();
+                motionArcDeg = deg - downDeg;
+
+                double mdd = deg - lastDeg;
+
+                if (Math.abs(mdd) > 300) {
+                    Log.d("motion-event", "DISCONTINUOUS");
+                    mdd = 0;
+                }
+                arcLength += mdd;
+
+                if (arcLength + mdd >= 360) {
+                    arcLength = 360;
+                    Log.d("motion-event", "TOO BIG");
+                } else if (arcLength + mdd <= 0) {
+                    arcLength = 0;
+                    Log.d("motion-event", "TOO SMALL");
+                } else {
+                    arcLength += mdd;
                 }
 
+                Log.d("move-event", "mdd: " + mdd + " mad:" + motionArcDeg + " deg: " + deg + " lastDeg:" + lastDeg);
+                lastDeg = deg;
+                invalidate();
                 break;
             case MotionEvent.ACTION_UP:
                 actionString = "up";
+
+                /*
+                double dd = deg - downDeg;
+                if (dd > 0) {
+                    arcLength = Math.min(360, arcLength + dd);
+                } else {
+                    arcLength = Math.max(0, arcLength + dd);
+                }
+                Log.d("action-up", "arcLength: " + arcLength + " dd: " + dd);
+                */
                 break;
             default:
                 actionString = "unknown";
         }
-        lastDeg = deg;
 
         double percent = 100 * (Math.toDegrees(rads) % 360) / 360;
-        Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
+        //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
     }
 
     public void handleCenterClick(float x, float y, MotionEvent event) {
