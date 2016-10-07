@@ -14,10 +14,11 @@ import android.view.ViewTreeObserver;
 
 public class PlayerControlsView extends View {
 
-    private static final String LOW_COLOR = "#558899";
-    private static final String INNER_COLOR = "#990099";
-    private static final String LISTENED_ARC_COLOR = "#00FF00";
-    private static final String DEBUG_COLOR = "#FF0000";
+    public static final String LOW_COLOR = "#558899";
+    public static final String INNER_COLOR_PLAY = "#AA33AA";
+    public static final String INNER_COLOR_PAUSE = "#660066";
+    public static final String LISTENED_ARC_COLOR = "#00FF00";
+    public static final String DEBUG_COLOR = "#FF0000";
     private final Paint outerPaint;
     private final Paint innerPaint;
     private final Paint listenArcPaint;
@@ -40,7 +41,7 @@ public class PlayerControlsView extends View {
         outerPaint.setAntiAlias(true);
 
         innerPaint = new Paint();
-        innerPaint.setColor(Color.parseColor(INNER_COLOR));
+        innerPaint.setColor(Color.parseColor(INNER_COLOR_PLAY));
         innerPaint.setAntiAlias(true);
 
 
@@ -84,10 +85,7 @@ public class PlayerControlsView extends View {
         float right = centerX + size;
         arcRect = new RectF(left, top, right, bottom);
         canvas.drawArc(arcRect, 270, (float) arcLength, true, listenArcPaint);
-
         canvas.drawCircle(centerX, centerY, size / 4, innerPaint);
-
-        //canvas.drawRect(left, top, right, bottom, debugPaint);
     }
 
     @Override
@@ -123,6 +121,11 @@ public class PlayerControlsView extends View {
         //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
     }
 
+    public void setCenterColor(String hexColor) {
+        innerPaint.setColor(Color.parseColor(hexColor));
+        invalidate();
+    }
+
     private class PlayPositionHandler {
         double deg = 0;
         double lastDeg = 0;
@@ -137,7 +140,6 @@ public class PlayerControlsView extends View {
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    handleCenterClick(x, y, event);
                     downDeg = deg;
                     lastDeg = deg;
                     break;
@@ -162,7 +164,11 @@ public class PlayerControlsView extends View {
                     //Log.d("move-event", "mdd: " + mdd + " deg: " + deg + " lastDeg:" + lastDeg);
                     lastDeg = deg;
                     invalidate();
-                    double percent = 100 * (Math.toDegrees(rads) % 360) / 360;
+                    double percent = (Math.toDegrees(rads) % 360) / 360;
+                    if (onPositionListener != null) {
+                        onPositionListener.positionChange(percent);
+                    }
+
                     break;
                 case MotionEvent.ACTION_UP:
                     break;
@@ -186,18 +192,28 @@ public class PlayerControlsView extends View {
             return false;
         }
 
-
-
-        onCenterClickListener.click(event);
+        onCenterClickListener.click(this);
         return true;
     }
 
     private OnCenterClickListener onCenterClickListener;
-    public static interface OnCenterClickListener {
-       void click(MotionEvent event);
+    public interface OnCenterClickListener {
+       void click(PlayerControlsView view);
     }
-
     public void setOnCenterClickListener(OnCenterClickListener listener) {
         onCenterClickListener = listener;
+    }
+
+    private OnPositionListener onPositionListener;
+    public interface OnPositionListener {
+        /**
+         * Triggered on MotionEvent.ACTION_UP of position rotation
+         *
+         * @param positionPercent - the perecent of arc filled
+         */
+        void positionChange(double positionPercent);
+    }
+    public void setOnPositionListener(OnPositionListener listener) {
+        onPositionListener = listener;
     }
 }

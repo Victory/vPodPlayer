@@ -55,29 +55,35 @@ public class PlayerFragment extends Fragment {
         Episodes db = new Episodes(getActivity().getApplicationContext());
         final Episode episode = db.getById(episodeId);
 
-        //Uri uri = Uri.parse(episode.url);
-        Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
+        Uri uri = Uri.parse(episode.url);
+        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         podPlayer.startPlayingUri(uri);
         isPlaying = true;
 
-        final Button playPauseButton = (Button) view.findViewById(R.id.playPauseButton);
         controls.setOnCenterClickListener(new PlayerControlsView.OnCenterClickListener() {
             @Override
-            public void click(MotionEvent event) {
+            public void click(PlayerControlsView playerControlsView) {
 
                 Log.d("PlayerFragment", "clicked: " + episode.title);
-                String msg;
                 if (isPlaying) {
                     podPlayer.setPlayWhenReady(false);
-                    msg = "Play";
+                    playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PAUSE);
                 } else {
                     podPlayer.setPlayWhenReady(true);
-                    msg = "Pause";
+                    playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PLAY);
                 }
-                playPauseButton.setText(msg);
 
                 isPlaying = !isPlaying;
+            }
+        });
+
+        controls.setOnPositionListener(new PlayerControlsView.OnPositionListener() {
+            @Override
+            public void positionChange(double positionPercent) {
+                long duration = podPlayer.getDuration();
+                double seek = duration * positionPercent;
+                podPlayer.seekTo((long) seek);
             }
         });
 
