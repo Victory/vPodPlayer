@@ -29,11 +29,9 @@ public class PlayerControlsView extends View {
     private float centerY;
     private float width;
     private float height;
-    double deg = 0;
-    double lastDeg = 0;
-    double downDeg;
-    double motionArcDeg = 0;
     double arcLength = 1;
+
+    private final PlayPositionHandler playPositionHandler;
 
     RectF arcRect;
 
@@ -56,8 +54,9 @@ public class PlayerControlsView extends View {
         debugPaint.setColor(Color.parseColor(DEBUG_COLOR));
         debugPaint.setAntiAlias(true);
 
-        ViewTreeObserver observer = getViewTreeObserver();
+        playPositionHandler = new PlayPositionHandler();
 
+        ViewTreeObserver observer = getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -100,90 +99,101 @@ public class PlayerControlsView extends View {
         return true;
     }
 
-    double motionSum;
-
     @NonNull
     private void logMotionEvent(MotionEvent event) {
-        String actionString;
 
         float x = event.getX();
         float y = event.getY();
 
-        float cfx = x - centerX;
-        float cfy = y - centerY;
-        double rads = Math.atan2(cfy, cfx) + 360;
-        deg = Math.toDegrees(rads) % 360;
+        boolean isCenterAction = isCenterAction(x, y);
+
+        if (!isCenterAction) {
+            playPositionHandler.handle(x, y, event);
+        }
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                actionString = "down";
-                handleCenterClick(x, y, event);
-                downDeg = deg;
-                lastDeg = deg;
-                motionSum = 0;
+                if (isCenterAction) {
+                    handleCenterClick(x, y, event);
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
-                actionString = "move";
-                motionArcDeg = deg - downDeg;
-
-                double mdd = deg - lastDeg;
-
-                if (Math.abs(mdd) > 300) {
-                    Log.d("motion-event", "DISCONTINUOUS");
-                    mdd = 0;
-                }
-                arcLength += mdd;
-
-                if (arcLength + mdd >= 360) {
-                    arcLength = 360;
-                    Log.d("motion-event", "TOO BIG");
-                } else if (arcLength + mdd <= 0) {
-                    arcLength = 0;
-                    Log.d("motion-event", "TOO SMALL");
-                } else {
-                    arcLength += mdd;
-                }
-
-                Log.d("move-event", "mdd: " + mdd + " mad:" + motionArcDeg + " deg: " + deg + " lastDeg:" + lastDeg);
-                lastDeg = deg;
-                invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                actionString = "up";
-
-                /*
-                double dd = deg - downDeg;
-                if (dd > 0) {
-                    arcLength = Math.min(360, arcLength + dd);
-                } else {
-                    arcLength = Math.max(0, arcLength + dd);
-                }
-                Log.d("action-up", "arcLength: " + arcLength + " dd: " + dd);
-                */
                 break;
-            default:
-                actionString = "unknown";
         }
-
-        double percent = 100 * (Math.toDegrees(rads) % 360) / 360;
         //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
     }
 
-    public void handleCenterClick(float x, float y, MotionEvent event) {
-        if (onCenterClickListener == null) {
-            return;
-        }
+    private class PlayPositionHandler {
+        double deg = 0;
+        double lastDeg = 0;
+        double downDeg;
 
+        public void handle(float x, float y, MotionEvent event) {
+
+            float cfx = x - centerX;
+            float cfy = y - centerY;
+            double rads = Math.atan2(cfy, cfx) + 360;
+            deg = Math.toDegrees(rads) % 360;
+
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    handleCenterClick(x, y, event);
+                    downDeg = deg;
+                    lastDeg = deg;
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    double mdd = deg - lastDeg;
+
+                    if (Math.abs(mdd) > 300) {
+                        //Log.d("motion-event", "DISCONTINUOUS");
+                        mdd = 0;
+                    }
+                    arcLength += mdd;
+
+                    if (arcLength + mdd >= 360) {
+                        arcLength = 360;
+                        //Log.d("motion-event", "TOO BIG");
+                    } else if (arcLength + mdd <= 0) {
+                        arcLength = 0;
+                        //Log.d("motion-event", "TOO SMALL");
+                    } else {
+                        arcLength += mdd;
+                    }
+                    //Log.d("move-event", "mdd: " + mdd + " deg: " + deg + " lastDeg:" + lastDeg);
+                    lastDeg = deg;
+                    invalidate();
+                    double percent = 100 * (Math.toDegrees(rads) % 360) / 360;
+                    break;
+                case MotionEvent.ACTION_UP:
+                    break;
+            }
+
+        }
+    }
+
+    public boolean isCenterAction (float x, float y) {
         float cfx = x - centerX;
         float cfy = y - centerY;
         double z = Math.sqrt(cfx*cfx + cfy*cfy);
         if (z > size / 4) {
-            return;
+            return false;
         }
-        onCenterClickListener.click(event);
-
-
+        return true;
     }
+
+    public boolean handleCenterClick(float x, float y, MotionEvent event) {
+        if (onCenterClickListener == null) {
+            return false;
+        }
+
+
+
+        onCenterClickListener.click(event);
+        return true;
+    }
+
     private OnCenterClickListener onCenterClickListener;
     public static interface OnCenterClickListener {
        void click(MotionEvent event);
