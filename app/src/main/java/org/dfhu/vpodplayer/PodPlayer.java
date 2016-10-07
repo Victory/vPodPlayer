@@ -75,7 +75,7 @@ public class PodPlayer {
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
         MediaSource mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
         player.prepare(mediaSource);
-        player.setPlayWhenReady(true);
+        //player.setPlayWhenReady(true);
     }
 
         private static SimpleExoPlayer getExoPlayer(Context context) {

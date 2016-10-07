@@ -55,8 +55,8 @@ public class PlayerFragment extends Fragment {
         Episodes db = new Episodes(getActivity().getApplicationContext());
         final Episode episode = db.getById(episodeId);
 
-        Uri uri = Uri.parse(episode.url);
-        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
+        //Uri uri = Uri.parse(episode.url);
+        Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         podPlayer.startPlayingUri(uri);
         isPlaying = true;
@@ -80,14 +80,6 @@ public class PlayerFragment extends Fragment {
                 isPlaying = !isPlaying;
             }
         });
-
-        /*
-        playPauseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
-        */
 
         return view;
     }

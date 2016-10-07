@@ -7,6 +7,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import org.dfhu.vpodplayer.FeedFetcher;
+import org.dfhu.vpodplayer.R;
+
 
 public class SubscribeActionView extends LinearLayoutCompat implements CollapsibleActionView {
 
