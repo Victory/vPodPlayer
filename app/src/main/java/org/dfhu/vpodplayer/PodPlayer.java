@@ -78,25 +78,18 @@ public class PodPlayer {
         player.setPlayWhenReady(true);
     }
 
-        private static SimpleExoPlayer getExoPlayer(Context context) {
-            Handler mainHandler = new Handler();
-            BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-            TrackSelection.Factory videoTrackSelectionFactory =
-                    new AdaptiveVideoTrackSelection.Factory(bandwidthMeter);
-            TrackSelector trackSelector =
-                    new DefaultTrackSelector(mainHandler, videoTrackSelectionFactory);
-
-            LoadControl loadControl = new DefaultLoadControl();
-
-            return ExoPlayerFactory.newSimpleInstance(context, trackSelector, loadControl);
-        }
     public void setPlayWhenReady(boolean playWhenReady) {
         player.setPlayWhenReady(playWhenReady);
+    }
+
+    public long getCurrentPosition() {
+        return player.getCurrentPosition();
     }
 
     public long getDuration() {
         return player.getDuration();
     }
+
     public void seekTo(long positionMs) {
         player.seekTo(positionMs);
     }

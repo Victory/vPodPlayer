@@ -7,10 +7,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import org.dfhu.vpodplayer.PlayerControlsView;
 import org.dfhu.vpodplayer.PodPlayer;
@@ -19,7 +17,18 @@ import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 
 public class PlayerFragment extends Fragment {
 
@@ -27,17 +36,35 @@ public class PlayerFragment extends Fragment {
     PodPlayer podPlayer;
 
     private boolean isPlaying = false;
+    private Subscription updatePositionSubscription;
+    private List<Subscription> subscriptions = new LinkedList<Subscription>();
+
+    private static class UpdatePositionBus {
+        private UpdatePositionBus() {}
+        private static PublishSubject<Long> subject = PublishSubject.create();
+
+        static void publish(Long v) { subject.onNext(v); }
+        static Observable<Long> getEvents() { return subject; }
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         ((VPodPlayerApplication) getActivity().getApplication()).component().inject(this);
+
+        bindToUpdatePositionBus();
     }
 
     @Override
     public void onDestroy() {
         podPlayer.end();
+
+        for (Subscription sub: subscriptions) {
+            sub.unsubscribe();
+        }
+
+        unsubscribeUpdatePositionSubscription();
         super.onDestroy();
     }
 
@@ -60,6 +87,7 @@ public class PlayerFragment extends Fragment {
 
         podPlayer.startPlayingUri(uri);
         isPlaying = true;
+        subscribeUpdatePositionSubscription();
 
         controls.setOnCenterClickListener(new PlayerControlsView.OnCenterClickListener() {
             @Override
@@ -69,9 +97,11 @@ public class PlayerFragment extends Fragment {
                 if (isPlaying) {
                     podPlayer.setPlayWhenReady(false);
                     playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PAUSE);
+                    unsubscribeUpdatePositionSubscription();
                 } else {
                     podPlayer.setPlayWhenReady(true);
                     playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PLAY);
+                    subscribeUpdatePositionSubscription();
                 }
 
                 isPlaying = !isPlaying;
@@ -88,5 +118,64 @@ public class PlayerFragment extends Fragment {
         });
 
         return view;
+    }
+
+    public void bindToUpdatePositionBus() {
+
+        UpdatePositionBus.getEvents()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Long>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Long aLong) {
+                        double duration = podPlayer.getDuration();
+                        double position = podPlayer.getCurrentPosition();
+                        double positionPercent = position / duration;
+                        PlayerControlsView view = (PlayerControlsView) getView().findViewById(R.id.playerControls);
+                        Log.d("PlayerFragement", "" + positionPercent);
+                        view.updatePlayer(positionPercent);
+                    }
+                });
+    }
+
+    public void unsubscribeUpdatePositionSubscription() {
+        if (updatePositionSubscription != null) {
+            updatePositionSubscription.unsubscribe();
+        }
+        updatePositionSubscription = null;
+    }
+
+    public void subscribeUpdatePositionSubscription () {
+        unsubscribeUpdatePositionSubscription();
+        updatePositionSubscription =
+                Observable.interval(0, 1000, TimeUnit.MILLISECONDS, Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Subscriber<Long>() {
+                            @Override
+                            public void onCompleted() {
+
+                                Log.d("PlayerFragement", "complete");
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                Log.d("PlayerFragement", "error", e);
+                            }
+
+                            @Override
+                            public void onNext(Long aLong) {
+                                Log.d("PlayerFragement", "updating");
+                                UpdatePositionBus.publish(aLong);
+                            }
+                        });
     }
 }

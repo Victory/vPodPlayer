@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -123,6 +124,13 @@ public class PlayerControlsView extends View {
 
     public void setCenterColor(String hexColor) {
         innerPaint.setColor(Color.parseColor(hexColor));
+        invalidate();
+    }
+
+    public void updatePlayer(double positionPercent) {
+        Log.d("PlayerControlsView", "updatePlayer: " + positionPercent);
+        double deg = 360 * positionPercent;
+        arcLength = deg;
         invalidate();
     }
 
