@@ -5,10 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.graphics.drawable.shapes.ArcShape;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -20,7 +18,7 @@ public class PlayerControlsView extends View {
     private static final String INNER_COLOR = "#990099";
     private static final String LISTENED_ARC_COLOR = "#00FF00";
     private static final String DEBUG_COLOR = "#FF0000";
-    private final Paint outterPaint;
+    private final Paint outerPaint;
     private final Paint innerPaint;
     private final Paint listenArcPaint;
     private final Paint debugPaint;
@@ -37,9 +35,9 @@ public class PlayerControlsView extends View {
 
     public PlayerControlsView(Context context, final AttributeSet attributeSet) {
         super(context, attributeSet);
-        outterPaint = new Paint();
-        outterPaint.setColor(Color.parseColor(LOW_COLOR));
-        outterPaint.setAntiAlias(true);
+        outerPaint = new Paint();
+        outerPaint.setColor(Color.parseColor(LOW_COLOR));
+        outerPaint.setAntiAlias(true);
 
         innerPaint = new Paint();
         innerPaint.setColor(Color.parseColor(INNER_COLOR));
@@ -78,7 +76,7 @@ public class PlayerControlsView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawCircle(centerX, centerY, size, outterPaint);
+        canvas.drawCircle(centerX, centerY, size, outerPaint);
 
         float top = centerY - size;
         float bottom = centerY + size;
