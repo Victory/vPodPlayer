@@ -137,10 +137,14 @@ public class PlayerFragment extends Fragment {
 
                     @Override
                     public void onNext(Long aLong) {
+                        PlayerControlsView view = (PlayerControlsView) getView().findViewById(R.id.playerControls);
+                        if (view.getIsMoving()) {
+                            return;
+                        }
                         double duration = podPlayer.getDuration();
                         double position = podPlayer.getCurrentPosition();
                         double positionPercent = position / duration;
-                        PlayerControlsView view = (PlayerControlsView) getView().findViewById(R.id.playerControls);
+
                         Log.d("PlayerFragement", "" + positionPercent);
                         view.updatePlayer(positionPercent);
                     }

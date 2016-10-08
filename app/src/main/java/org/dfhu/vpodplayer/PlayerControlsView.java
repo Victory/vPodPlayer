@@ -31,6 +31,8 @@ public class PlayerControlsView extends View {
     private float height;
     double arcLength = 1;
 
+    private boolean isMoving = false;
+
     private final PlayPositionHandler playPositionHandler;
 
     RectF arcRect;
@@ -96,6 +98,15 @@ public class PlayerControlsView extends View {
         return true;
     }
 
+
+    /**
+     * return true if between ACTION_DOWN and ACTION_UP events
+     * @return
+     */
+    public boolean getIsMoving() {
+        return isMoving;
+    }
+
     @NonNull
     private void logMotionEvent(MotionEvent event) {
 
@@ -110,6 +121,7 @@ public class PlayerControlsView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                isMoving = true;
                 if (isCenterAction) {
                     handleCenterClick(x, y, event);
                 }
@@ -117,6 +129,8 @@ public class PlayerControlsView extends View {
             case MotionEvent.ACTION_MOVE:
                 break;
             case MotionEvent.ACTION_UP:
+
+                isMoving = false;
                 break;
         }
         //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
