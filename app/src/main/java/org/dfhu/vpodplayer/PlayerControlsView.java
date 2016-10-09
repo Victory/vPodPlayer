@@ -167,7 +167,7 @@ public class PlayerControlsView extends View {
 
     public void updatePlayer(PlayerInfo info) {
         playerInfo = info;
-        Log.d("PlayerControlsView", "updatePlayer: " + playerInfo.positionPercent);
+        //Log.d("PlayerControlsView", "updatePlayer: " + playerInfo.positionPercent);
         double deg = 360 * playerInfo.positionPercent;
         arcLength = deg;
         invalidate();

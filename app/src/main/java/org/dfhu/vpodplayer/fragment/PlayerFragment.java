@@ -106,7 +106,7 @@ public class PlayerFragment extends Fragment {
         controls.setOnPositionListener(new PlayerControlsView.OnPositionListener() {
             @Override
             public void positionChange(double positionPercent) {
-                Log.d("PlayerFragment", "positionPercent: " + positionPercent);
+                //Log.d("PlayerFragment", "positionPercent: " + positionPercent);
                 long duration = podPlayer.getDuration();
                 double seek = duration * positionPercent;
                 podPlayer.seekTo((long) seek);
@@ -141,7 +141,7 @@ public class PlayerFragment extends Fragment {
                         double position = podPlayer.getCurrentPosition();
                         double positionPercent = position / duration;
 
-                        Log.d("PlayerFragement", "" + positionPercent + " - " + position);
+                        //Log.d("PlayerFragement", "positionInfo: " + positionPercent + " - " + position);
 
                         PlayerControlsView.PlayerInfo playerInfo = new PlayerControlsView.PlayerInfo();
                         playerInfo.positionPercent = positionPercent;
@@ -160,7 +160,7 @@ public class PlayerFragment extends Fragment {
 
     public void subscribeUpdatePositionSubscription () {
         updatePositionSubscription =
-                Observable.interval(0, 5000, TimeUnit.MILLISECONDS, Schedulers.newThread())
+                Observable.interval(0, 1000, TimeUnit.MILLISECONDS, Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Subscriber<Long>() {
                             @Override
