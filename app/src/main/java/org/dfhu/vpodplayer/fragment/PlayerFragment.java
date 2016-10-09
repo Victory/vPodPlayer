@@ -1,6 +1,5 @@
 package org.dfhu.vpodplayer.fragment;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -37,7 +36,7 @@ public class PlayerFragment extends Fragment {
 
     private boolean isPlaying = false;
     private Subscription updatePositionSubscription;
-    private List<Subscription> subscriptions = new LinkedList<Subscription>();
+    private List<Subscription> subscriptions = new LinkedList<>();
 
     private static class UpdatePositionBus {
         private UpdatePositionBus() {}
@@ -64,7 +63,6 @@ public class PlayerFragment extends Fragment {
             sub.unsubscribe();
         }
 
-        unsubscribeUpdatePositionSubscription();
         super.onDestroy();
     }
 
@@ -73,17 +71,14 @@ public class PlayerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
-        //if (1 == 1) return view; // while debugging ControlsView
-
         PlayerControlsView controls = (PlayerControlsView) view.findViewById(R.id.playerControls);
-        final Context context = inflater.getContext().getApplicationContext();
 
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(getActivity().getApplicationContext());
         final Episode episode = db.getById(episodeId);
 
-        Uri uri = Uri.parse(episode.url);
-        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
+        //Uri uri = Uri.parse(episode.url);
+        Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         podPlayer.startPlayingUri(uri);
         isPlaying = true;
@@ -111,6 +106,7 @@ public class PlayerFragment extends Fragment {
         controls.setOnPositionListener(new PlayerControlsView.OnPositionListener() {
             @Override
             public void positionChange(double positionPercent) {
+                Log.d("PlayerFragment", "positionPercent: " + positionPercent);
                 long duration = podPlayer.getDuration();
                 double seek = duration * positionPercent;
                 podPlayer.seekTo((long) seek);
@@ -145,8 +141,12 @@ public class PlayerFragment extends Fragment {
                         double position = podPlayer.getCurrentPosition();
                         double positionPercent = position / duration;
 
-                        Log.d("PlayerFragement", "" + positionPercent);
-                        view.updatePlayer(positionPercent);
+                        Log.d("PlayerFragement", "" + positionPercent + " - " + position);
+
+                        PlayerControlsView.PlayerInfo playerInfo = new PlayerControlsView.PlayerInfo();
+                        playerInfo.positionPercent = positionPercent;
+                        playerInfo.currentPosition = (long) position;
+                        view.updatePlayer(playerInfo);
                     }
                 });
     }
@@ -159,9 +159,8 @@ public class PlayerFragment extends Fragment {
     }
 
     public void subscribeUpdatePositionSubscription () {
-        unsubscribeUpdatePositionSubscription();
         updatePositionSubscription =
-                Observable.interval(0, 1000, TimeUnit.MILLISECONDS, Schedulers.newThread())
+                Observable.interval(0, 5000, TimeUnit.MILLISECONDS, Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Subscriber<Long>() {
                             @Override
@@ -177,9 +176,10 @@ public class PlayerFragment extends Fragment {
 
                             @Override
                             public void onNext(Long aLong) {
-                                Log.d("PlayerFragement", "updating");
-                                UpdatePositionBus.publish(aLong);
+                               UpdatePositionBus.publish(aLong);
                             }
                         });
+
+        subscriptions.add(updatePositionSubscription);
     }
 }

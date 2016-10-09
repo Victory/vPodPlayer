@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
+import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -19,17 +20,20 @@ public class PlayerControlsView extends View {
     public static final String INNER_COLOR_PLAY = "#AA33AA";
     public static final String INNER_COLOR_PAUSE = "#660066";
     public static final String LISTENED_ARC_COLOR = "#00FF00";
+    public static final String TEXT_COLOR = "#008800";
     public static final String DEBUG_COLOR = "#FF0000";
     private final Paint outerPaint;
     private final Paint innerPaint;
     private final Paint listenArcPaint;
     private final Paint debugPaint;
+    private final Paint textPaint;
     private float size;
     private float centerX;
     private float centerY;
     private float width;
     private float height;
     double arcLength = 1;
+    private PlayerInfo playerInfo = new PlayerInfo();
 
     private boolean isMoving = false;
 
@@ -39,6 +43,12 @@ public class PlayerControlsView extends View {
 
     public PlayerControlsView(Context context, final AttributeSet attributeSet) {
         super(context, attributeSet);
+
+        textPaint = new Paint();
+        textPaint.setColor(Color.parseColor(TEXT_COLOR));
+        textPaint.setAntiAlias(true);
+        textPaint.setTextSize(50);
+
         outerPaint = new Paint();
         outerPaint.setColor(Color.parseColor(LOW_COLOR));
         outerPaint.setAntiAlias(true);
@@ -89,6 +99,13 @@ public class PlayerControlsView extends View {
         arcRect = new RectF(left, top, right, bottom);
         canvas.drawArc(arcRect, 270, (float) arcLength, true, listenArcPaint);
         canvas.drawCircle(centerX, centerY, size / 4, innerPaint);
+
+        long pos = (long) Math.ceil(playerInfo.currentPosition / 1000.0);
+        String elapsedTime = DateUtils.formatElapsedTime(pos);
+        canvas.drawText("position: " + elapsedTime, 5, 50, textPaint);
+
+        long per = (long) Math.ceil(playerInfo.positionPercent * 100);
+        canvas.drawText("percent: " + per + "%", 5, 100, textPaint);
     }
 
     @Override
@@ -114,11 +131,6 @@ public class PlayerControlsView extends View {
         float y = event.getY();
 
         boolean isCenterAction = isCenterAction(x, y);
-
-        if (!isCenterAction) {
-            playPositionHandler.handle(x, y, event);
-        }
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 isMoving = true;
@@ -129,9 +141,13 @@ public class PlayerControlsView extends View {
             case MotionEvent.ACTION_MOVE:
                 break;
             case MotionEvent.ACTION_UP:
-
                 isMoving = false;
                 break;
+        }
+
+
+        if (!isCenterAction) {
+            playPositionHandler.handle(x, y, event);
         }
         //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
     }
@@ -141,9 +157,18 @@ public class PlayerControlsView extends View {
         invalidate();
     }
 
-    public void updatePlayer(double positionPercent) {
-        Log.d("PlayerControlsView", "updatePlayer: " + positionPercent);
-        double deg = 360 * positionPercent;
+    /**
+     * Contains information from the player's current state
+     */
+    public static class PlayerInfo {
+        public double positionPercent;
+        public long currentPosition;
+    }
+
+    public void updatePlayer(PlayerInfo info) {
+        playerInfo = info;
+        Log.d("PlayerControlsView", "updatePlayer: " + playerInfo.positionPercent);
+        double deg = 360 * playerInfo.positionPercent;
         arcLength = deg;
         invalidate();
     }
@@ -186,7 +211,7 @@ public class PlayerControlsView extends View {
                     //Log.d("move-event", "mdd: " + mdd + " deg: " + deg + " lastDeg:" + lastDeg);
                     lastDeg = deg;
                     invalidate();
-                    double percent = (Math.toDegrees(rads) % 360) / 360;
+                    double percent = arcLength / 360;
                     if (onPositionListener != null) {
                         onPositionListener.positionChange(percent);
                     }
