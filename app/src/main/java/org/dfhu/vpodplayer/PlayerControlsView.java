@@ -101,8 +101,12 @@ public class PlayerControlsView extends View {
         canvas.drawCircle(centerX, centerY, size / 4, innerPaint);
 
         long pos = (long) Math.ceil(playerInfo.currentPosition / 1000.0);
+        long duration = (long) Math.ceil(playerInfo.duration / 1000.0);
+
         String elapsedTime = DateUtils.formatElapsedTime(pos);
-        canvas.drawText("position: " + elapsedTime, 5, 50, textPaint);
+        String totalDuration = DateUtils.formatElapsedTime(duration);
+
+        canvas.drawText("position: " + elapsedTime + "/" + totalDuration, 5, 50, textPaint);
 
         long per = (long) Math.ceil(playerInfo.positionPercent * 100);
         canvas.drawText("percent: " + per + "%", 5, 100, textPaint);
@@ -162,6 +166,7 @@ public class PlayerControlsView extends View {
      */
     public static class PlayerInfo {
         public double positionPercent;
+        public double duration;
         public long currentPosition;
     }
 
