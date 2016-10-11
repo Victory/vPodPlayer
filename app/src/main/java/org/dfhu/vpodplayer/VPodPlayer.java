@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.feed.SubscribeToFeed;
+import org.dfhu.vpodplayer.fragment.DownloadFragment;
 import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
@@ -127,7 +128,9 @@ public class VPodPlayer extends AppCompatActivity
                     public void onNext(Episode episode) {
                         Log.d("episodeClickSub", "onNext: " + episode);
 
-                        PlayerFragment fragment = new PlayerFragment();
+                        //PlayerFragment fragment = new PlayerFragment();
+
+                        DownloadFragment fragment = new DownloadFragment();
                         Bundle args = new Bundle();
                         args.putInt("episodeId", episode.id);
                         fragment.setArguments(args);
