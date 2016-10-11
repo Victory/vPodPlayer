@@ -99,10 +99,10 @@ public class PlayerControlsView extends View {
         canvas.drawArc(arcRect, 270, (float) arcLength, true, listenArcPaint);
         canvas.drawCircle(centerX, centerY, size / 4, innerPaint);
 
+        // Update position dial if we know the duration
         if (playerInfo.duration <= 0) {
             return;
         }
-
         double percent = arcLength / 360.0;
         long pos = (long) Math.ceil(percent * playerInfo.duration / 1000.0);
         long duration = (long) Math.ceil(playerInfo.duration / 1000.0);
@@ -129,6 +129,7 @@ public class PlayerControlsView extends View {
         return isMoving;
     }
 
+    boolean isOuterAction;
     private void logMotionEvent(MotionEvent event) {
 
         float x = event.getX();
@@ -138,6 +139,7 @@ public class PlayerControlsView extends View {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 isMoving = true;
+                isOuterAction = isOuterAction(x, y);
                 if (isCenterAction) {
                     handleCenterClick(x, y, event);
                 }
@@ -146,11 +148,12 @@ public class PlayerControlsView extends View {
                 break;
             case MotionEvent.ACTION_UP:
                 isMoving = false;
+                isOuterAction = false;
                 break;
         }
 
 
-        if (!isCenterAction) {
+        if (isOuterAction) {
             playPositionHandler.handle(x, y, event);
         }
         //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
@@ -236,6 +239,21 @@ public class PlayerControlsView extends View {
         if (z > size / 4) {
             return false;
         }
+        return true;
+    }
+
+    public boolean isOuterAction(float x, float y) {
+        if (isCenterAction(x, y)) {
+            return false;
+        }
+
+        float cfx = x - centerX;
+        float cfy = y - centerY;
+        double z = Math.sqrt(cfx*cfx + cfy*cfy);
+        if (z > size) {
+            return false;
+        }
+
         return true;
     }
 
