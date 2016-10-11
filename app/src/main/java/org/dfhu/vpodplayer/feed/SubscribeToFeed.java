@@ -8,7 +8,7 @@ import org.dfhu.vpodplayer.sqlite.Shows;
 
 import java.util.List;
 
-import static org.dfhu.vpodplayer.Podcasts.safeToast;
+import static org.dfhu.vpodplayer.VPodPlayer.safeToast;
 
 public class SubscribeToFeed {
 

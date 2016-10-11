@@ -12,7 +12,7 @@
         android:name=".VPodPlayerApplication"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Podcasts">
+        <activity android:name=".VPodPlayer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

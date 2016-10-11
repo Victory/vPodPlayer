@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="org.dfhu.vpodplayer.Podcasts">
+    tools:context="org.dfhu.vpodplayer.VPodPlayer">
 
     <include
         android:id="@+id/tool_bar"

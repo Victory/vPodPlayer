@@ -39,7 +39,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.subjects.PublishSubject;
 
-public class Podcasts extends AppCompatActivity
+public class VPodPlayer extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
 
 
