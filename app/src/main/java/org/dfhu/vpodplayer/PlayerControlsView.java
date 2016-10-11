@@ -8,7 +8,6 @@ import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -39,7 +38,7 @@ public class PlayerControlsView extends View {
 
     private final PlayPositionHandler playPositionHandler;
 
-    RectF arcRect;
+    private RectF arcRect = new RectF();
 
     public PlayerControlsView(Context context, final AttributeSet attributeSet) {
         super(context, attributeSet);
@@ -96,19 +95,21 @@ public class PlayerControlsView extends View {
         float bottom = centerY + size;
         float left = centerX - size;
         float right = centerX + size;
-        arcRect = new RectF(left, top, right, bottom);
+        arcRect.set(left, top, right, bottom);
         canvas.drawArc(arcRect, 270, (float) arcLength, true, listenArcPaint);
         canvas.drawCircle(centerX, centerY, size / 4, innerPaint);
 
-        long pos = (long) Math.ceil(playerInfo.currentPosition / 1000.0);
-        long duration = (long) Math.ceil(playerInfo.duration / 1000.0);
+        if (playerInfo.duration <= 0) {
+            return;
+        }
 
+        double percent = arcLength / 360.0;
+        long pos = (long) Math.ceil(percent * playerInfo.duration / 1000.0);
+        long duration = (long) Math.ceil(playerInfo.duration / 1000.0);
         String elapsedTime = DateUtils.formatElapsedTime(pos);
         String totalDuration = DateUtils.formatElapsedTime(duration);
-
         canvas.drawText("position: " + elapsedTime + "/" + totalDuration, 5, 50, textPaint);
-
-        long per = (long) Math.ceil(playerInfo.positionPercent * 100);
+        long per = (long) Math.floor(percent * 100);
         canvas.drawText("percent: " + per + "%", 5, 100, textPaint);
     }
 
@@ -128,7 +129,6 @@ public class PlayerControlsView extends View {
         return isMoving;
     }
 
-    @NonNull
     private void logMotionEvent(MotionEvent event) {
 
         float x = event.getX();
@@ -217,8 +217,8 @@ public class PlayerControlsView extends View {
                     lastDeg = deg;
                     invalidate();
                     double percent = arcLength / 360;
-                    if (onPositionListener != null) {
-                        onPositionListener.positionChange(percent);
+                    if (onPositionDoneListener != null) {
+                        onPositionDoneListener.positionChange(percent);
                     }
 
                     break;
@@ -256,8 +256,8 @@ public class PlayerControlsView extends View {
         onCenterClickListener = listener;
     }
 
-    private OnPositionListener onPositionListener;
-    public interface OnPositionListener {
+    private OnPositionDoneListener onPositionDoneListener;
+    public interface OnPositionDoneListener {
         /**
          * Triggered on MotionEvent.ACTION_UP of position rotation
          *
@@ -265,7 +265,7 @@ public class PlayerControlsView extends View {
          */
         void positionChange(double positionPercent);
     }
-    public void setOnPositionListener(OnPositionListener listener) {
-        onPositionListener = listener;
+    public void setOnPositionDoneListener(OnPositionDoneListener listener) {
+        onPositionDoneListener = listener;
     }
 }

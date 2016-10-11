@@ -77,12 +77,12 @@ public class PlayerFragment extends Fragment {
         Episodes db = new Episodes(getActivity().getApplicationContext());
         final Episode episode = db.getById(episodeId);
 
-        Uri uri = Uri.parse(episode.url);
-        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
+        //Uri uri = Uri.parse(episode.url);
+        Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         podPlayer.startPlayingUri(uri);
         isPlaying = true;
-        subscribeUpdatePositionSubscription();
+        subscribeUpdatePosition();
 
         controls.setOnCenterClickListener(new PlayerControlsView.OnCenterClickListener() {
             @Override
@@ -92,18 +92,18 @@ public class PlayerFragment extends Fragment {
                 if (isPlaying) {
                     podPlayer.setPlayWhenReady(false);
                     playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PAUSE);
-                    unsubscribeUpdatePositionSubscription();
+                    unsubscribeUpdatePosition();
                 } else {
                     podPlayer.setPlayWhenReady(true);
                     playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PLAY);
-                    subscribeUpdatePositionSubscription();
+                    subscribeUpdatePosition();
                 }
 
                 isPlaying = !isPlaying;
             }
         });
 
-        controls.setOnPositionListener(new PlayerControlsView.OnPositionListener() {
+        controls.setOnPositionDoneListener(new PlayerControlsView.OnPositionDoneListener() {
             @Override
             public void positionChange(double positionPercent) {
                 //Log.d("PlayerFragment", "positionPercent: " + positionPercent);
@@ -152,14 +152,14 @@ public class PlayerFragment extends Fragment {
                 });
     }
 
-    public void unsubscribeUpdatePositionSubscription() {
+    public void unsubscribeUpdatePosition() {
         if (updatePositionSubscription != null) {
             updatePositionSubscription.unsubscribe();
         }
         updatePositionSubscription = null;
     }
 
-    public void subscribeUpdatePositionSubscription () {
+    public void subscribeUpdatePosition() {
         updatePositionSubscription =
                 Observable.interval(0, 1000, TimeUnit.MILLISECONDS, Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
