@@ -1,5 +1,6 @@
 package org.dfhu.vpodplayer.fragment;
 
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,14 +18,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 import rx.util.async.Async;
 
 
@@ -34,6 +42,8 @@ public class DownloadFragment extends Fragment {
 
     DownloadManager dm;
     Context context;
+
+    CompositeSubscription subs = new CompositeSubscription();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,9 +71,20 @@ public class DownloadFragment extends Fragment {
             Episodes db = new Episodes(context);
             final Episode episode = db.getById(episodeId);
 
-            startDownload(episode);
+            long downloadId = startDownload(episode);
+
+            if (downloadId > 0) {
+                updateUi(downloadId);
+            }
+
+            //debugDownloadQueue();
         }
 
+
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    private void debugDownloadQueue() {
         DownloadManager.Query q = new DownloadManager.Query();
         Cursor c = dm.query(q);
 
@@ -76,23 +97,33 @@ public class DownloadFragment extends Fragment {
         if (c != null) {
             c.close();
         }
-
-        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onDestroy() {
-        context.unregisterReceiver(onComplete);
-        context.unregisterReceiver(onNotificationClicked);
         super.onDestroy();
     }
 
-    private void startDownload(Episode episode) {
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+    }
+
+    @Override
+    public void onDetach() {
+        context.unregisterReceiver(onComplete);
+        context.unregisterReceiver(onNotificationClicked);
+        subs.unsubscribe();
+        subs = null;
+        super.onDetach();
+    }
+
+    private long startDownload(Episode episode) {
         Log.d(TAG, "startDownload() called with: episode = [" + episode + "]");
         File[] externalMediaDirs = context.getExternalMediaDirs();
 
         if (externalMediaDirs.length == 0) {
-            return;
+            return 0;
         }
 
         //Uri uri = Uri.parse(episode.url);
@@ -120,7 +151,54 @@ public class DownloadFragment extends Fragment {
                 .setTitle(episode.title)
                 .setDestinationUri(destinationUri);
 
-        dm.enqueue(request);
+        return dm.enqueue(request);
+
+    }
+
+    private void updateUi(final long downloadId) {
+
+        Subscription sub = Observable.interval(0, 1, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
+                .flatMap(new Func1<Long, Observable<DownloadRow>>() {
+                    @Override
+                    public Observable<DownloadRow> call(Long aLong) {
+
+                        DownloadManager.Query q = new DownloadManager.Query();
+                        q.setFilterById(downloadId);
+                        Cursor cursor = dm.query(q);
+
+
+                        try {
+                            if (!cursor.moveToFirst()) {
+                                return Observable.error(
+                                        new Throwable("Could not find cursor in download manager"));
+                            }
+                            return Observable.just(new DownloadRow(cursor));
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
+                        }
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<DownloadRow>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "onCompleted() progress");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: progress", e);
+                    }
+
+                    @Override
+                    public void onNext(DownloadRow downloadRow) {
+                        Log.d(TAG, "onNext() called with: downloadRow = [" + downloadRow + "]");
+                    }
+                });
+        subs.add(sub);
     }
 
     BroadcastReceiver onComplete = new BroadcastReceiver() {
@@ -149,8 +227,10 @@ public class DownloadFragment extends Fragment {
                         int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
                         DownloadRow dr = new DownloadRow(cursor);
                         if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                            Toast.makeText(appContext, "Downloaded: " + dr.title, Toast.LENGTH_LONG).show();
                         }
+
+                        subs.unsubscribe();
+
                         return Observable.just(dr);
 
                     } finally {
@@ -172,16 +252,16 @@ public class DownloadFragment extends Fragment {
     /** Represents the values in a curursor download */
     private static class DownloadRow {
 
-        public final String destination;
-        public final String title;
-        public final String description;
-        public final String uri;
-        public final int status;
-        public final Long totalSize;
-        public final Long bytesSoFar;
-        public final String localUri;
-        public final String reason;
-        public final long id;
+        final String destination;
+        final String title;
+        final String description;
+        final String uri;
+        final int status;
+        final Long totalSize;
+        final Long bytesSoFar;
+        final String localUri;
+        final int reason;
+        final long id;
 
         public DownloadRow(Cursor c) {
             id = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_ID));
@@ -193,7 +273,7 @@ public class DownloadFragment extends Fragment {
             totalSize = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
             bytesSoFar = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
             localUri = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
-            reason = c.getString(c.getColumnIndex(DownloadManager.COLUMN_REASON));
+            reason = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON));
         }
 
         @Override
@@ -222,8 +302,35 @@ public class DownloadFragment extends Fragment {
                     s = "running";
                     break;
             }
+
+            String r = "other";
+
+            switch (reason) {
+                case DownloadManager.ERROR_CANNOT_RESUME:
+                    r = "cannot resume";
+                    break;
+                case DownloadManager.ERROR_DEVICE_NOT_FOUND:
+                    r = "device not found";
+                    break;
+                case DownloadManager.ERROR_FILE_ALREADY_EXISTS:
+                    r = "file already exists";
+                    break;
+                case DownloadManager.ERROR_FILE_ERROR:
+                    r = "file error";
+                    break;
+                case DownloadManager.ERROR_HTTP_DATA_ERROR:
+                    r = "http data error";
+                    break;
+                case DownloadManager.ERROR_INSUFFICIENT_SPACE:
+                    r = "insufficient space";
+                    break;
+                case DownloadManager.ERROR_TOO_MANY_REDIRECTS:
+                    r = "too many redirects";
+                    break;
+            }
+
             String msg =
-                  id + " - " +  u + " - " + s + " - " + bsf + "/" + ts + " " + t;
+                  id + " - " +  u + " - " + s + " - " + r + " - " + bsf + "/" + ts + " " + t + " - " + localUri;
             return msg;
         }
     }
