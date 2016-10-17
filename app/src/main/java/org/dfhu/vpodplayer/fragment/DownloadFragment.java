@@ -16,8 +16,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
@@ -32,6 +35,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
 import rx.util.async.Async;
 
@@ -45,6 +49,14 @@ public class DownloadFragment extends Fragment {
 
     CompositeSubscription subs = new CompositeSubscription();
 
+    private static class UpdateProgress {
+        private UpdateProgress() {}
+        private static PublishSubject<DownloadRow> subject = PublishSubject.create();
+
+        static void publish(DownloadRow v) { subject.onNext(v); }
+        static Observable<DownloadRow> getEvents() { return subject; }
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +66,8 @@ public class DownloadFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.fragment_download, container, false);
         context = getActivity().getApplicationContext();
 
         context.registerReceiver(
@@ -75,13 +89,55 @@ public class DownloadFragment extends Fragment {
 
             if (downloadId > 0) {
                 updateUi(downloadId);
+                TextView downloadTitle = (TextView) view.findViewById(R.id.downloadTitle);
+                downloadTitle.setText(episode.title);
             }
 
             //debugDownloadQueue();
         }
 
 
-        return super.onCreateView(inflater, container, savedInstanceState);
+        final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.downloadProgressBar);
+        Subscription sub = UpdateProgress.getEvents()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<DownloadRow>() {
+                    private int lastBytesSoFar = 0;
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "onCompleted() called updateProgress");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "onError() called with updateProgress: e = [" + e + "]");
+                    }
+
+                    @Override
+                    public void onNext(DownloadRow downloadRow) {
+                        Log.d(TAG, "onNext() called with: downloadRow updateProgress = [" + downloadRow + "]");
+
+                        final int bytesSoFar = downloadRow.bytesSoFar;
+                        // don't update progress if the the num bytes hasn't change
+                        if (lastBytesSoFar == bytesSoFar) {
+                            Log.d(TAG, "bytes so far has not changed");
+                            return;
+                        }
+                        lastBytesSoFar = bytesSoFar;
+
+                        final int totalSize = downloadRow.totalSize;
+                        progressBar.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressBar.setMax(totalSize);
+                                progressBar.setProgress(bytesSoFar);
+                            }
+                        });
+                    }
+                });
+
+        subs.add(sub);
+
+        return view;
     }
 
     private void debugDownloadQueue() {
@@ -157,7 +213,7 @@ public class DownloadFragment extends Fragment {
 
     private void updateUi(final long downloadId) {
 
-        Subscription sub = Observable.interval(0, 1, TimeUnit.SECONDS)
+        Subscription sub = Observable.interval(0, 800, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .flatMap(new Func1<Long, Observable<DownloadRow>>() {
                     @Override
@@ -196,6 +252,7 @@ public class DownloadFragment extends Fragment {
                     @Override
                     public void onNext(DownloadRow downloadRow) {
                         Log.d(TAG, "onNext() called with: downloadRow = [" + downloadRow + "]");
+                        UpdateProgress.publish(downloadRow);
                     }
                 });
         subs.add(sub);
@@ -226,6 +283,7 @@ public class DownloadFragment extends Fragment {
 
                         int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
                         DownloadRow dr = new DownloadRow(cursor);
+                        UpdateProgress.publish(dr);
                         if (status == DownloadManager.STATUS_SUCCESSFUL) {
                         }
 
@@ -257,8 +315,8 @@ public class DownloadFragment extends Fragment {
         final String description;
         final String uri;
         final int status;
-        final Long totalSize;
-        final Long bytesSoFar;
+        final Integer totalSize;
+        final Integer bytesSoFar;
         final String localUri;
         final int reason;
         final long id;
@@ -270,8 +328,8 @@ public class DownloadFragment extends Fragment {
             description = c.getString(c.getColumnIndex(DownloadManager.COLUMN_DESCRIPTION));
             uri = c.getString(c.getColumnIndex(DownloadManager.COLUMN_URI));
             status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
-            totalSize = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
-            bytesSoFar = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+            totalSize = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+            bytesSoFar = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
             localUri = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
             reason = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON));
         }
