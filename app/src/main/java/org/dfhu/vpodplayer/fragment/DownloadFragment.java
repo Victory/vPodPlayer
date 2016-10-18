@@ -10,8 +10,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.os.EnvironmentCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,6 +48,8 @@ public class DownloadFragment extends Fragment {
 
     DownloadManager dm;
     Context context;
+    TextView downloadTitle;
+    ProgressBar progressBar;
 
     CompositeSubscription subs = new CompositeSubscription();
 
@@ -58,21 +62,14 @@ public class DownloadFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.context = context;
     }
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
-        View view = inflater.inflate(R.layout.fragment_download, container, false);
-        context = getActivity().getApplicationContext();
-
-        int episodeId = getArguments().getInt("episodeId");
-        Episodes db = new Episodes(context);
-        final Episode episode = db.getById(episodeId);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         context.registerReceiver(
                 onComplete,
@@ -81,80 +78,51 @@ public class DownloadFragment extends Fragment {
         context.registerReceiver(
                 onNotificationClicked,
                 new IntentFilter(DownloadManager.ACTION_NOTIFICATION_CLICKED));
+    }
 
-        if (dm == null) {
-            dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
 
-            if (episode.downloadId > 0) {
-                DownloadManager.Query q = new DownloadManager.Query();
-                q.setFilterById(episode.downloadId);
-                Cursor cursor = dm.query(q);
+        View view = inflater.inflate(R.layout.fragment_download, container, false);
 
-                if (cursor.moveToFirst()) {
-                    DownloadRow dr = new DownloadRow(cursor);
-                    if (dr.status == DownloadManager.STATUS_SUCCESSFUL) {
-                        Log.d(TAG, "onCreateView: already downloaded " + dr);
-                    }
-                }
-            }
-
-            long downloadId = startDownload(episode);
-
-            episode.downloadId = downloadId;
-            db.addOrUpdate(episode);
-
-            if (downloadId > 0) {
-                updateUi(downloadId);
-                TextView downloadTitle = (TextView) view.findViewById(R.id.downloadTitle);
-                downloadTitle.setText(episode.title);
-            }
-
-            //debugDownloadQueue();
-        }
-
-
-        final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.downloadProgressBar);
-        Subscription sub = UpdateProgress.getEvents()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<DownloadRow>() {
-                    private int lastBytesSoFar = 0;
-                    @Override
-                    public void onCompleted() {
-                        Log.d(TAG, "onCompleted() called updateProgress");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG, "onError() called with updateProgress: e = [" + e + "]");
-                    }
-
-                    @Override
-                    public void onNext(DownloadRow downloadRow) {
-                        Log.d(TAG, "onNext() called with: downloadRow updateProgress = [" + downloadRow + "]");
-
-                        final int bytesSoFar = downloadRow.bytesSoFar;
-                        // don't update progress if the the num bytes hasn't change
-                        if (lastBytesSoFar == bytesSoFar) {
-                            Log.d(TAG, "bytes so far has not changed");
-                            return;
-                        }
-                        lastBytesSoFar = bytesSoFar;
-                        progressBar.setIndeterminate(false);
-
-                        final int totalSize = downloadRow.totalSize;
-                        progressBar.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressBar.setMax(totalSize);
-                                progressBar.setProgress(bytesSoFar);
-                            }
-                        });
-                    }
-                });
-
-        subs.add(sub);
+        progressBar = (ProgressBar) view.findViewById(R.id.downloadProgressBar);
+        downloadTitle = (TextView) view.findViewById(R.id.downloadTitle);
 
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        downloadTitle.setText("Initializing ... ");
+
+        progressBar.setIndeterminate(true);
+        progressBar.setMax(0);
+        progressBar.setProgress(0);
+
+        dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        subscribeToUiProgressUpdate();
+        ddq();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        progressBar = null;
+        downloadTitle = null;
     }
 
     private void debugDownloadQueue() {
@@ -177,9 +145,106 @@ public class DownloadFragment extends Fragment {
         super.onDestroy();
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void ddq() {
+        Subscription sub = Observable.just("start")
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "onCompleted() called ddq");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: starting queueDownload", e);
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        queueDownload();
+                    }
+                });
+
+        subs.add(sub);
+    }
+
+    public void queueDownload() {
+        int episodeId = getArguments().getInt("episodeId");
+        Episodes db = new Episodes(context);
+        final Episode episode = db.getById(episodeId);
+
+        if (episode.downloadId > 0) {
+            DownloadManager.Query q = new DownloadManager.Query();
+            q.setFilterById(episode.downloadId);
+            Cursor cursor = dm.query(q);
+
+            if (cursor.moveToFirst()) {
+                DownloadRow dr = new DownloadRow(cursor);
+                if (dr.status == DownloadManager.STATUS_SUCCESSFUL) {
+                    Log.d(TAG, "onCreateView: already downloaded " + dr);
+                    return;
+                }
+            }
+        }
+
+        long downloadId = startDownload(episode);
+
+        episode.downloadId = downloadId;
+        db.addOrUpdate(episode);
+
+        if (downloadId > 0) {
+            updateUi(downloadId);
+        }
+
+        //debugDownloadQueue();
+    }
+
+    private void subscribeToUiProgressUpdate() {
+        Subscription sub = UpdateProgress.getEvents()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<DownloadRow>() {
+                    private int lastBytesSoFar = 0;
+                    private boolean isFirst = true;
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "onCompleted() called updateProgress");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "onError() called with updateProgress: e = [" + e + "]");
+                    }
+
+                    @Override
+                    public void onNext(DownloadRow downloadRow) {
+                        Log.d(TAG, "onNext() called with: downloadRow updateProgress = [" + downloadRow + "]");
+
+                        if (isFirst) {
+                            downloadTitle.setText(downloadRow.title);
+                            isFirst = false;
+                        }
+
+                        final int bytesSoFar = downloadRow.bytesSoFar;
+                        // don't update progress if the the num bytes hasn't change
+                        if (lastBytesSoFar == bytesSoFar) {
+                            Log.d(TAG, "bytes so far has not changed");
+                            return;
+                        }
+                        lastBytesSoFar = bytesSoFar;
+                        progressBar.setIndeterminate(false);
+
+                        final int totalSize = downloadRow.totalSize;
+                        progressBar.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressBar.setMax(totalSize);
+                                progressBar.setProgress(bytesSoFar);
+                            }
+                        });
+                    }
+                });
+
+        subs.add(sub);
     }
 
     @Override
@@ -193,16 +258,12 @@ public class DownloadFragment extends Fragment {
 
     private long startDownload(Episode episode) {
         Log.d(TAG, "startDownload() called with: episode = [" + episode + "]");
-        File[] externalMediaDirs = context.getExternalMediaDirs();
-
-        if (externalMediaDirs.length == 0) {
-            return 0;
-        }
+        File fileDir = context.getExternalFilesDir(null);
 
         //Uri uri = Uri.parse(episode.url);
         Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
-        File dir = new File(externalMediaDirs[0], "episodes");
+        File dir = new File(fileDir, "episodes");
         dir = new File(dir, "test");
         if (!dir.mkdirs()) {
             Log.d("DownloadFragment", "Directory already exists: " + dir.getAbsolutePath());
