@@ -69,6 +69,9 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
         @Override
         public void onClick(View v) {
+            if (episode == null) {
+                throw new NullPointerException("no episode set in ViewHolder");
+            }
             EpisodeClickBus.publish(episode);
         }
     }

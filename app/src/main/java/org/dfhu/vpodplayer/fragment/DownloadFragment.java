@@ -110,7 +110,7 @@ public class DownloadFragment extends Fragment {
     public void onResume() {
         super.onResume();
         subscribeToUiProgressUpdate();
-        ddq();
+        deferDownloadQueue();
     }
 
     @Override
@@ -159,7 +159,8 @@ public class DownloadFragment extends Fragment {
         super.onDestroy();
     }
 
-    public void ddq() {
+    /** async wrapper for queueDownload */
+    public void deferDownloadQueue() {
         Subscription sub = Observable.just("start")
                 .subscribeOn(Schedulers.io())
                 .subscribe(new Subscriber<String>() {
@@ -182,6 +183,7 @@ public class DownloadFragment extends Fragment {
         subs.add(sub);
     }
 
+    /** Checks to see if we are already downloading the file, if not enqueues the file */
     public void queueDownload() {
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(context);

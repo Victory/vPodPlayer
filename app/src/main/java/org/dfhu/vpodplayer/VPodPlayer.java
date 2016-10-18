@@ -2,6 +2,7 @@ package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
 import android.content.Context;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -128,9 +129,10 @@ public class VPodPlayer extends AppCompatActivity
                     public void onNext(Episode episode) {
                         Log.d("episodeClickSub", "onNext: " + episode);
 
-                        //PlayerFragment fragment = new PlayerFragment();
+                        Fragment fragment = (episode.localUri != null) ?
+                                new PlayerFragment() :
+                                new DownloadFragment();
 
-                        DownloadFragment fragment = new DownloadFragment();
                         Bundle args = new Bundle();
                         args.putInt("episodeId", episode.id);
                         fragment.setArguments(args);
@@ -341,12 +343,12 @@ public class VPodPlayer extends AppCompatActivity
         }
 
         FragmentManager fm = getFragmentManager();
-        FetchFeedFragment mFetchFeedFragment = (FetchFeedFragment) fm.findFragmentByTag(TAG_FETCH_FEED_FRAGMENT);
-        if (mFetchFeedFragment == null) {
-            mFetchFeedFragment = new FetchFeedFragment();
-            fm.beginTransaction().add(mFetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
+        FetchFeedFragment fetchFeedFragment = (FetchFeedFragment) fm.findFragmentByTag(TAG_FETCH_FEED_FRAGMENT);
+        if (fetchFeedFragment == null) {
+            fetchFeedFragment = new FetchFeedFragment();
+            fm.beginTransaction().add(fetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
         }
-        addFetchFeedSubscription(mFetchFeedFragment.buildObserver(feedUrl));
+        addFetchFeedSubscription(fetchFeedFragment.buildObserver(feedUrl));
     }
 
     void handleFeed(Feed feed) {
