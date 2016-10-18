@@ -29,7 +29,7 @@ public class SubscribeToFeed {
         }
 
         if (show.url == null) {
-            safeToast("Internal error: Can't add or find local subscription to show.");
+            safeToast("Internal error: Can't addOrUpdate or find local subscription to show.");
             return;
         }
 

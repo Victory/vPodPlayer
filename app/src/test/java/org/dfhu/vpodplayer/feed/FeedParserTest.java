@@ -62,7 +62,7 @@ public class FeedParserTest extends Assert {
         String link = "http://mysite.com/episode1.mp3";
         when(mockItem.getUrl()).thenReturn(link);
 
-        items.add(mockItem);
+        items.addOrUpdate(mockItem);
         Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);
 
         FeedParserResult result = FeedParser.parse(mockFeed);
@@ -81,7 +81,7 @@ public class FeedParserTest extends Assert {
         List<FeedItem> items = new ArrayList<>();
 
         // mock a "bad" item
-        items.add(mock(FeedItem.class));
+        items.addOrUpdate(mock(FeedItem.class));
 
         // mock a "good" item
         mockFeed = mock(Feed.class);
@@ -90,10 +90,10 @@ public class FeedParserTest extends Assert {
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link = "http://mysite.com/episode1.mp3";
         when(mockItem.getUrl()).thenReturn(link);
-        items.add(mockItem);
+        items.addOrUpdate(mockItem);
 
         // mock another "bad" item
-        items.add(mock(FeedItem.class));
+        items.addOrUpdate(mock(FeedItem.class));
         Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);
 
         FeedParserResult result = FeedParser.parse(mockFeed);
@@ -119,7 +119,7 @@ public class FeedParserTest extends Assert {
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link1 = "http://mysite.com/episode1.mp3";
         when(mockItem.getUrl()).thenReturn(link1);
-        items.add(mockItem);
+        items.addOrUpdate(mockItem);
 
         // mock another "good" item
         mockItem = mock(FeedItem.class);
@@ -127,7 +127,7 @@ public class FeedParserTest extends Assert {
         when(mockItem.getTitle()).thenReturn(itemTitle);
         String link2 = "http://mysite.com/episode2.mp3";
         when(mockItem.getUrl()).thenReturn(link2);
-        items.add(mockItem);
+        items.addOrUpdate(mockItem);
 
         mockFeed = mock(Feed.class);
         Mockito.<List<? extends FeedItem>>when(mockFeed.getItems()).thenReturn(items);

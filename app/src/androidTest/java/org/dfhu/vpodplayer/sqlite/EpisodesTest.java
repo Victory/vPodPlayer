@@ -30,7 +30,7 @@ public class EpisodesTest extends AndroidTestCase {
         episode.title = "The title";
         episode.url = "http://example.com/episode1.mp3";
         episode.showId = 1;
-        long id = db.add(episode);
+        long id = db.addOrUpdate(episode);
         assertTrue(id > 0);
 
         List<Episode> all = db.all();
@@ -43,7 +43,7 @@ public class EpisodesTest extends AndroidTestCase {
         episode.title = "The title";
         episode.url = null;
         episode.showId = 1;
-        long result = db.add(episode);
+        long result = db.addOrUpdate(episode);
         assertEquals(-1, result);
     }
 
@@ -52,7 +52,7 @@ public class EpisodesTest extends AndroidTestCase {
         Episode episode = new Episode();
         episode.title = "The title";
         episode.url = "http://example.com/episode1.mp3";
-        long result = db.add(episode);
+        long result = db.addOrUpdate(episode);
         assertEquals(-1, result);
     }
 
@@ -63,21 +63,21 @@ public class EpisodesTest extends AndroidTestCase {
         episode.title = "title 1";
         episode.url = "http://example.com/episode1.mp3";
         episode.showId = 1;
-        long id = db.add(episode);
+        long id = db.addOrUpdate(episode);
         assertTrue(id > 0);
 
         Episode episode2 = new Episode();
         episode2.title = "title 2";
         episode2.url = "http://example.com/episode2.mp3";
         episode2.showId = 1;
-        id = db.add(episode2);
+        id = db.addOrUpdate(episode2);
         assertTrue(id > 0);
 
         Episode otherShow = new Episode();
         otherShow.title = "other show title 1";
         otherShow.url = "http://example.com/other-show/episode1.mp3";
         otherShow.showId = 2;
-        id = db.add(otherShow);
+        id = db.addOrUpdate(otherShow);
         assertTrue(id > 0);
 
         List<Episode> all = db.allForShow(1);

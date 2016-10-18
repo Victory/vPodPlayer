@@ -70,6 +70,10 @@ public class DownloadFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_download, container, false);
         context = getActivity().getApplicationContext();
 
+        int episodeId = getArguments().getInt("episodeId");
+        Episodes db = new Episodes(context);
+        final Episode episode = db.getById(episodeId);
+
         context.registerReceiver(
                 onComplete,
                 new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
@@ -81,11 +85,23 @@ public class DownloadFragment extends Fragment {
         if (dm == null) {
             dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
 
-            int episodeId = getArguments().getInt("episodeId");
-            Episodes db = new Episodes(context);
-            final Episode episode = db.getById(episodeId);
+            if (episode.downloadId > 0) {
+                DownloadManager.Query q = new DownloadManager.Query();
+                q.setFilterById(episode.downloadId);
+                Cursor cursor = dm.query(q);
+
+                if (cursor.moveToFirst()) {
+                    DownloadRow dr = new DownloadRow(cursor);
+                    if (dr.status == DownloadManager.STATUS_SUCCESSFUL) {
+                        Log.d(TAG, "onCreateView: already downloaded " + dr);
+                    }
+                }
+            }
 
             long downloadId = startDownload(episode);
+
+            episode.downloadId = downloadId;
+            db.addOrUpdate(episode);
 
             if (downloadId > 0) {
                 updateUi(downloadId);
@@ -123,6 +139,7 @@ public class DownloadFragment extends Fragment {
                             return;
                         }
                         lastBytesSoFar = bytesSoFar;
+                        progressBar.setIndeterminate(false);
 
                         final int totalSize = downloadRow.totalSize;
                         progressBar.post(new Runnable() {
@@ -213,7 +230,7 @@ public class DownloadFragment extends Fragment {
 
     private void updateUi(final long downloadId) {
 
-        Subscription sub = Observable.interval(0, 800, TimeUnit.MILLISECONDS)
+        Subscription sub = Observable.interval(2000, 800, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .flatMap(new Func1<Long, Observable<DownloadRow>>() {
                     @Override
@@ -222,7 +239,6 @@ public class DownloadFragment extends Fragment {
                         DownloadManager.Query q = new DownloadManager.Query();
                         q.setFilterById(downloadId);
                         Cursor cursor = dm.query(q);
-
 
                         try {
                             if (!cursor.moveToFirst()) {
@@ -263,14 +279,14 @@ public class DownloadFragment extends Fragment {
         public void onReceive(Context context, Intent intent) {
 
             Bundle bundle = intent.getExtras();
-            final long id = bundle.getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
+            final long downloadId = bundle.getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
             final Context appContext = context;
 
             Async.start(new Func0<Observable<DownloadRow>>() {
                 @Override
                 public Observable<DownloadRow> call() {
                     DownloadManager.Query q = new DownloadManager.Query();
-                    q.setFilterById(id);
+                    q.setFilterById(downloadId);
 
                     Cursor cursor = null;
                     try {
@@ -285,6 +301,12 @@ public class DownloadFragment extends Fragment {
                         DownloadRow dr = new DownloadRow(cursor);
                         UpdateProgress.publish(dr);
                         if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                            Episodes db = new Episodes(appContext);
+                            Episode episode = db.getByDownloadId(downloadId);
+                            episode.isDownloaded = true;
+                            episode.localUri = dr.localUri;
+                            episode.sizeInBytes = dr.totalSize;
+                            db.addOrUpdate(episode);
                         }
 
                         subs.unsubscribe();
@@ -303,7 +325,7 @@ public class DownloadFragment extends Fragment {
     BroadcastReceiver onNotificationClicked = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            Log.d(TAG, "onReceive() called with: context = [" + context + "], intent = [" + intent + "]");
         }
     };
 
