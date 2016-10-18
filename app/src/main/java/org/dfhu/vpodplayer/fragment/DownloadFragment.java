@@ -187,10 +187,6 @@ public class DownloadFragment extends Fragment {
         Episodes db = new Episodes(context);
         final Episode episode = db.getById(episodeId);
 
-        for (Episode ep: db.allForShow(1)) {
-            ep.toString();
-        }
-
         if (episode.isDownloaded == 1) {
             Log.d(TAG, "Episode marked as downloaded: " + episode);
             return;

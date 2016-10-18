@@ -150,8 +150,7 @@ public class Episodes extends SQLiteOpenHelper {
      */
     public List<Episode> allForShow(int showId) {
         SQLiteDatabase db = getReadableDatabase();
-        // XXX: LIMIT 10 is for debug
-        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId + " ORDER BY `title` LIMIT 0, 10";
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId + " ORDER BY `title`";
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
