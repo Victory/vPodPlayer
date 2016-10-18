@@ -3,6 +3,7 @@ package org.dfhu.vpodplayer.sqlite;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -106,7 +107,15 @@ public class Episodes extends SQLiteOpenHelper {
         contentValues.put(K_PERCENT_LISTENED, episode.percentListened);
         contentValues.put(K_DOWNLOAD_ID, episode.downloadId);
 
-        return db.insertWithOnConflict(DB_NAME, null, contentValues, SQLiteDatabase.CONFLICT_REPLACE);
+
+        long result;
+        try {
+            result = db.insertOrThrow(DB_NAME, null, contentValues);
+        } catch (SQLException e) {
+            result = db.update(DB_NAME, contentValues, "url = ?", new String[]{episode.url});
+        }
+
+        return result;
     }
 
     /** All episodes in the list */
@@ -132,18 +141,7 @@ public class Episodes extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
-        return hydrator.hydrate(new ConsumeHydrator<Episode>() {
-            @Override
-            public void consume(ColumnCursor cc, List<Episode> items) {
-                Episode episode = new Episode();
-                episode.id = cc.getIntColumn(K_ID);
-                episode.showId = cc.getIntColumn(K_SHOW_ID);
-                episode.title = cc.getStringColumn(K_TITLE);
-                episode.url = cc.getStringColumn(K_URL);
-                episode.description = cc.getStringColumn(K_DESCRIPTION);
-                items.add(episode);
-            }
-        });
+        return hydrator.hydrate(new Hydrator());
     }
 
     /**
@@ -152,7 +150,8 @@ public class Episodes extends SQLiteOpenHelper {
      */
     public List<Episode> allForShow(int showId) {
         SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId + " ORDER BY `title`";
+        // XXX: LIMIT 10 is for debug
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId + " ORDER BY `title` LIMIT 0, 10";
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
@@ -169,6 +168,18 @@ public class Episodes extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `id` = " + episodeId + " LIMIT 1";
         Cursor cursor = db.rawQuery(sql, null);
+        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
+        List<Episode> episodes = hydrator.hydrate(new Hydrator());
+        if (episodes.size() == 0) {
+            return new Episode();
+        }
+        return episodes.get(0);
+    }
+
+    public Episode getByUrl(String url) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `url` = ? LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, new String[]{url});
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
         List<Episode> episodes = hydrator.hydrate(new Hydrator());
         if (episodes.size() == 0) {
@@ -207,6 +218,7 @@ public class Episodes extends SQLiteOpenHelper {
                 episode.localUri = cc.getStringColumn(K_LOCAL_URI);
                 episode.sizeInBytes = cc.getIntColumn(K_SIZE_IN_BYTES);
                 episode.percentListened = cc.getIntColumn(K_PERCENT_LISTENED);
+                episode.isDownloaded = cc.getIntColumn(K_IS_DOWNLOADED);
 
                 items.add(episode);
             }

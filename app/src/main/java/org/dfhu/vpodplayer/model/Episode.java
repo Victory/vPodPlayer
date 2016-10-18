@@ -8,7 +8,7 @@ public class Episode {
     public String description;
     public String url;
     public String localUri;
-    public boolean isDownloaded = false;
+    public int isDownloaded = 0;
     public int percentListened = 0;
     public int sizeInBytes = -1;
     public long downloadId = -1;

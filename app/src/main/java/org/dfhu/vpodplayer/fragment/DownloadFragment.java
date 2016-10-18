@@ -64,7 +64,7 @@ public class DownloadFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     @Override
@@ -140,6 +140,20 @@ public class DownloadFragment extends Fragment {
         }
     }
 
+    private void debugEpisodes() {
+        DownloadManager.Query q = new DownloadManager.Query();
+        Cursor c = dm.query(q);
+
+        if (c.moveToFirst()) {
+            do {
+                DownloadRow downloadRow = new DownloadRow(c);
+                downloadRow.toString();
+            } while (c.moveToNext());
+        }
+        if (c != null) {
+            c.close();
+        }
+    }
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -173,6 +187,15 @@ public class DownloadFragment extends Fragment {
         Episodes db = new Episodes(context);
         final Episode episode = db.getById(episodeId);
 
+        for (Episode ep: db.allForShow(1)) {
+            ep.toString();
+        }
+
+        if (episode.isDownloaded == 1) {
+            Log.d(TAG, "Episode marked as downloaded: " + episode);
+            return;
+        }
+
         if (episode.downloadId > 0) {
             DownloadManager.Query q = new DownloadManager.Query();
             q.setFilterById(episode.downloadId);
@@ -180,15 +203,15 @@ public class DownloadFragment extends Fragment {
 
             if (cursor.moveToFirst()) {
                 DownloadRow dr = new DownloadRow(cursor);
-                if (dr.status == DownloadManager.STATUS_SUCCESSFUL) {
-                    Log.d(TAG, "onCreateView: already downloaded " + dr);
+                if (dr.status != DownloadManager.STATUS_FAILED) {
+                    Log.d(TAG, "onCreateView: already has downloadId " + dr);
                     return;
                 }
             }
         }
 
         long downloadId = startDownload(episode);
-
+        Log.d(TAG, "queueDownload() called: downloadId added: " + downloadId);
         episode.downloadId = downloadId;
         db.addOrUpdate(episode);
 
@@ -217,7 +240,7 @@ public class DownloadFragment extends Fragment {
 
                     @Override
                     public void onNext(DownloadRow downloadRow) {
-                        Log.d(TAG, "onNext() called with: downloadRow updateProgress = [" + downloadRow + "]");
+                        //Log.d(TAG, "onNext() called with: downloadRow updateProgress = [" + downloadRow + "]");
 
                         if (isFirst) {
                             downloadTitle.setText(downloadRow.title);
@@ -328,7 +351,6 @@ public class DownloadFragment extends Fragment {
 
                     @Override
                     public void onNext(DownloadRow downloadRow) {
-                        Log.d(TAG, "onNext() called with: downloadRow = [" + downloadRow + "]");
                         UpdateProgress.publish(downloadRow);
                     }
                 });
@@ -363,8 +385,9 @@ public class DownloadFragment extends Fragment {
                         UpdateProgress.publish(dr);
                         if (status == DownloadManager.STATUS_SUCCESSFUL) {
                             Episodes db = new Episodes(appContext);
+                            Log.d(TAG, "downloadId on BroadcastReceiver:" + downloadId + " downloadRow: " + dr);
                             Episode episode = db.getByDownloadId(downloadId);
-                            episode.isDownloaded = true;
+                            episode.isDownloaded = 1;
                             episode.localUri = dr.localUri;
                             episode.sizeInBytes = dr.totalSize;
                             db.addOrUpdate(episode);
