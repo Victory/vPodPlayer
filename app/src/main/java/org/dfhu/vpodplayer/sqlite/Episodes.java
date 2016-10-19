@@ -28,6 +28,7 @@ public class Episodes extends SQLiteOpenHelper {
     private static final String K_PERCENT_LISTENED = "percentListened";
     private static final String K_SIZE_IN_BYTES = "sizeInBytes";
     private static final String K_DOWNLOAD_ID = "downloadId";
+    private static final String K_PUB_DATE = "pubDate";
 
     private static final String[] COLUMNS = {
             K_ID,
@@ -37,7 +38,8 @@ public class Episodes extends SQLiteOpenHelper {
             K_URL,
             K_IS_DOWNLOADED,
             K_LOCAL_URI,
-            K_DOWNLOAD_ID
+            K_DOWNLOAD_ID,
+            K_PUB_DATE
     };
 
     private static final String CREATE =
@@ -51,7 +53,8 @@ public class Episodes extends SQLiteOpenHelper {
                     "`localUri` TEXT," +
                     "`percentListened` INTEGER," +
                     "`sizeInBytes` INTEGER," +
-                    "`downloadId` INTEGER" +
+                    "`downloadId` INTEGER," +
+                    "`pubDate` STRING" +
                     ")";
 
     public Episodes(Context context) {
@@ -106,6 +109,7 @@ public class Episodes extends SQLiteOpenHelper {
         contentValues.put(K_SIZE_IN_BYTES, episode.sizeInBytes);
         contentValues.put(K_PERCENT_LISTENED, episode.percentListened);
         contentValues.put(K_DOWNLOAD_ID, episode.downloadId);
+        contentValues.put(K_PUB_DATE, episode.pubDate);
 
 
         long result;
@@ -150,7 +154,9 @@ public class Episodes extends SQLiteOpenHelper {
      */
     public List<Episode> allForShow(int showId) {
         SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId + " ORDER BY `title`";
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId
+                + " ORDER BY `pubDate` DESC";
+
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
@@ -167,18 +173,6 @@ public class Episodes extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `id` = " + episodeId + " LIMIT 1";
         Cursor cursor = db.rawQuery(sql, null);
-        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
-        List<Episode> episodes = hydrator.hydrate(new Hydrator());
-        if (episodes.size() == 0) {
-            return new Episode();
-        }
-        return episodes.get(0);
-    }
-
-    public Episode getByUrl(String url) {
-        SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `url` = ? LIMIT 1";
-        Cursor cursor = db.rawQuery(sql, new String[]{url});
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
         List<Episode> episodes = hydrator.hydrate(new Hydrator());
         if (episodes.size() == 0) {
@@ -218,6 +212,7 @@ public class Episodes extends SQLiteOpenHelper {
                 episode.sizeInBytes = cc.getIntColumn(K_SIZE_IN_BYTES);
                 episode.percentListened = cc.getIntColumn(K_PERCENT_LISTENED);
                 episode.isDownloaded = cc.getIntColumn(K_IS_DOWNLOADED);
+                episode.pubDate = cc.getStringColumn(K_PUB_DATE);
 
                 items.add(episode);
             }

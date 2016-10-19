@@ -53,6 +53,7 @@ public class JsoupFeed implements Feed {
             Episode episode = new Episode();
             episode.url = item.getUrl();
             episode.title = item.getTitle();
+            episode.pubDate = item.getPubDate();
             items.add(episode);
         }
 

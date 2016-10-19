@@ -1,11 +1,22 @@
 package org.dfhu.vpodplayer.feed;
 
 
+
+import android.util.Log;
+
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 
 class JsoupFeedItem implements FeedItem {
+
+    private static final String TAG = JsoupFeedItem.class.getSimpleName();
 
     private final Element elm;
 
@@ -37,5 +48,27 @@ class JsoupFeedItem implements FeedItem {
         }
 
         return "";
+    }
+
+    @Override
+    public String getPubDate() {
+        String date = "" + System.currentTimeMillis() / 1000L;
+
+        Elements elms = elm.select("pubDate");
+        if (elms.size() <= 0) {
+            return date;
+        }
+
+        DateFormat fromFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        String pubDate = elms.get(0).text();
+
+        try {
+            Date parsedDate = fromFormat.parse(pubDate);
+            date = "" + parsedDate.getTime() / 1000L;
+        } catch (ParseException e) {
+            Log.e(TAG, "getPubDate could not be parsed: " + pubDate, e);
+        }
+
+        return date;
     }
 }

@@ -12,13 +12,14 @@ public class Episode {
     public int percentListened = 0;
     public int sizeInBytes = -1;
     public long downloadId = -1;
+    public String pubDate;
 
     @Override
     public String toString() {
         String tmpUrl = (url != null) ? url : "NULL";
         String tmpLocalUri = (localUri != null) ? localUri : "NULL";
 
-        return "[id:" + id + " showId:" + showId + " -- " + title + " downloadId: " + downloadId + " " + tmpLocalUri + " " + tmpUrl + "]";
+        return "[id:" + id + " showId:" + showId + " -- " + title + " pubDate:" + pubDate + " downloadId: " + downloadId + " " + tmpLocalUri + " " + tmpUrl + "]";
     }
 
     @Override

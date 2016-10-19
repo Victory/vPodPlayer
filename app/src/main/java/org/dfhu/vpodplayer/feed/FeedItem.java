@@ -5,4 +5,6 @@ interface FeedItem {
     String getTitle();
 
     String getUrl();
+
+    String getPubDate();
 }
