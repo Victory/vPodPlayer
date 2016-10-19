@@ -248,7 +248,7 @@ public class DownloadFragment extends Fragment {
                         final int bytesSoFar = downloadRow.bytesSoFar;
                         // don't update progress if the the num bytes hasn't change
                         if (lastBytesSoFar == bytesSoFar) {
-                            Log.d(TAG, "bytes so far has not changed");
+                            Log.d(TAG, "bytes so far has not changed: " + lastBytesSoFar + " " + bytesSoFar);
                             return;
                         }
                         lastBytesSoFar = bytesSoFar;
@@ -281,8 +281,8 @@ public class DownloadFragment extends Fragment {
         Log.d(TAG, "startDownload() called with: episode = [" + episode + "]");
         File fileDir = context.getExternalFilesDir(null);
 
-        //Uri uri = Uri.parse(episode.url);
-        Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
+        Uri uri = Uri.parse(episode.url);
+        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         File dir = new File(fileDir, "episodes");
         dir = new File(dir, "test");
