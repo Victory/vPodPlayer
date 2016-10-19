@@ -32,10 +32,7 @@ class JsoupFeedItem implements FeedItem {
     @Override
     public String getUrl() {
 
-        Elements elms = elm.select("link");
-        if (elms.size() > 0) {
-            return elms.get(0).text();
-        }
+        Elements elms;
 
         elms = elm.select("enclosure");
         String type;
@@ -45,6 +42,11 @@ class JsoupFeedItem implements FeedItem {
                 continue;
             }
             return elm.attr("url");
+        }
+
+        elms = elm.select("link");
+        if (elms.size() > 0) {
+            return elms.get(0).text();
         }
 
         return "";
