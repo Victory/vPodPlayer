@@ -1,17 +1,18 @@
 package org.dfhu.vpodplayer;
 
-import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
-import android.media.RemoteControlClient;
-import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Handler;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -33,7 +34,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 
 
 public class PodPlayer {
-    private static final String TAG = PodPlayer.class.getName();
+    public static final String TAG = PodPlayer.class.getName();
 
     private final Context context;
     //private final RemoteControlClient remoteControlClient;
@@ -41,30 +42,110 @@ public class PodPlayer {
     private SimpleExoPlayer player;
     private AudioManager audioManager;
 
-    private PodPlayer(Context applicationContext, SimpleExoPlayer player) {
+    private PodPlayer(Context applicationContext, final SimpleExoPlayer player) {
         this.player = player;
         this.context = applicationContext;
         this.audioManager = (AudioManager) this.context.getSystemService(Context.AUDIO_SERVICE);
 
-        mediaSession = new MediaSessionCompat(context, TAG);
-
+        ComponentName componentName = new ComponentName(context, RemoveControlReceiver.class);
+        mediaSession = new MediaSessionCompat(context, TAG, componentName, null);
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            int cnt = 0;
+
             @Override
             public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
                 Log.d(TAG, "onMediaButtonEvent() called with: mediaButtonEvent = [" + mediaButtonEvent + "]");
 
+                String mediaAction = mediaButtonEvent.getAction();
+
+                if (!Intent.ACTION_MEDIA_BUTTON.equals(mediaAction)) {
+                    return false;
+                }
+
+                KeyEvent event =
+                        (KeyEvent) mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+                int keyCode = event.getKeyCode();
+
+                String msg = "other";
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                        setPlayWhenReady(!player.getPlayWhenReady());
+                        msg = "play/pause";
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_STOP:
+                        setPlayWhenReady(false);
+                        msg = "stop";
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_CLOSE:
+                        setPlayWhenReady(false);
+                        msg = "close";
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_EJECT:
+                        setPlayWhenReady(false);
+                        msg = "eject";
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY:
+                        msg = "play";
+                        setPlayWhenReady(true);
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                        msg = "pause";
+                        setPlayWhenReady(false);
+                        break;
+                }
+
+                cnt += 1;
+                Toast.makeText(context, "cnt: " + cnt + " msg: " + msg + " keycode:" + keyCode, Toast.LENGTH_SHORT).show();
                 audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
                 audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_INVALID);
 
-                return super.onMediaButtonEvent(mediaButtonEvent);
+
+                return true;
             }
         });
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
+        mediaSession.setActive(true);
 
-        /*
-        remoteControlClient = new RemoteControlClient(PendingIntent.getBroadcast(context, 0, new Intent(Intent.ACTION_MEDIA_BUTTON), 0));
-        audioManager.registerRemoteControlClient(remoteControlClient);
-        */
+        setPlaybackStateStopped();
+    }
+
+    private void setPlaybackStateStopped() {
+        PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE)
+                .setState(PlaybackStateCompat.STATE_STOPPED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0)
+                .build();
+        mediaSession.setPlaybackState(playbackState);
+    }
+
+    private void setPlaybackStatePaused() {
+        PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_STOP)
+                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0)
+                .build();
+        mediaSession.setPlaybackState(playbackState);
+    }
+
+    private void setPlaybackStatePlaying() {
+        PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_STOP)
+                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0)
+                .build();
+        mediaSession.setPlaybackState(playbackState);
+    }
+
+    public static class RemoveControlReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Toast.makeText(context, "Button pushed before", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "onReceive() called with: context = [" + context + "], intent = [" + intent + "]");
+            if (!Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
+                return;
+            }
+
+            Toast.makeText(context, "Button pushed after", Toast.LENGTH_SHORT).show();
+
+        }
     }
 
     public static class Builder {
@@ -106,22 +187,29 @@ public class PodPlayer {
             return;
         }
 
-        /*
-        RemoteControlClient.MetadataEditor editor = remoteControlClient.editMetadata(true);
-        editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, "Some album");
-        editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, "The Artist");
-        editor.apply();
-        */
+
+        MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "My album")
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "My Title")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "The Artist")
+                .build();
+        mediaSession.setMetadata(mediaMetadataCompat);
 
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, "vPodPlayer");
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
         MediaSource mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
         player.prepare(mediaSource);
-        player.setPlayWhenReady(true);
+        setPlayWhenReady(true);
     }
 
     public void setPlayWhenReady(boolean playWhenReady) {
         player.setPlayWhenReady(playWhenReady);
+
+        if (playWhenReady) {
+            setPlaybackStatePlaying();
+        } else {
+            setPlaybackStatePaused();
+        }
     }
 
     public long getCurrentPosition() {

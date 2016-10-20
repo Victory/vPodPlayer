@@ -2,6 +2,7 @@ package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
 import android.content.Context;
+import android.media.AudioManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -75,6 +76,8 @@ public class VPodPlayer extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
+
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         toolbar = (Toolbar) findViewById(R.id.tool_bar);
         final String nameThis = this.toString();
