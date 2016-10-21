@@ -28,6 +28,7 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
+import rx.subscriptions.CompositeSubscription;
 
 public class PlayerFragment extends Fragment {
 
@@ -36,7 +37,7 @@ public class PlayerFragment extends Fragment {
 
     private boolean isPlaying = false;
     private Subscription updatePositionSubscription;
-    private List<Subscription> subscriptions = new LinkedList<>();
+    private CompositeSubscription subscriptions = new CompositeSubscription();
 
     private static class UpdatePositionBus {
         private UpdatePositionBus() {}
@@ -59,8 +60,8 @@ public class PlayerFragment extends Fragment {
     public void onDestroy() {
         podPlayer.end();
 
-        for (Subscription sub: subscriptions) {
-            sub.unsubscribe();
+        if (subscriptions != null) {
+            subscriptions.unsubscribe();
         }
 
         super.onDestroy();
