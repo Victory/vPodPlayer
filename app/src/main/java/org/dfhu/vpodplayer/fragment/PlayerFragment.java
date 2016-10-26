@@ -16,8 +16,6 @@ import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
