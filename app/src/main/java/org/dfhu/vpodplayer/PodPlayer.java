@@ -188,18 +188,32 @@ public class PodPlayer {
         }
 
 
-        MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "My album")
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "My Title")
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "The Artist")
-                .build();
-        mediaSession.setMetadata(mediaMetadataCompat);
-
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, "vPodPlayer");
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
         MediaSource mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
         player.prepare(mediaSource);
         setPlayWhenReady(true);
+    }
+
+    /**
+     * Set the title to show on the media title
+     * @param title - name of the episode
+     * @return - true if title was set
+     */
+    public boolean setMetaDataTitle(String title) {
+
+        if (mediaSession == null) {
+            return false;
+        }
+
+        MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
+                //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                //.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .build();
+        mediaSession.setMetadata(mediaMetadataCompat);
+
+        return true;
     }
 
     public void setPlayWhenReady(boolean playWhenReady) {
