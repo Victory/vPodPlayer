@@ -25,13 +25,12 @@ import android.widget.Toast;
 
 import org.dfhu.vpodplayer.EpisodesRecyclerViewAdapter;
 import org.dfhu.vpodplayer.R;
-import org.dfhu.vpodplayer.ShowsRecyclerViewAdapter;
-import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -211,6 +210,7 @@ public class DownloadFragment extends Fragment {
                     Log.d(TAG, "onCreateView: already has downloadId " + dr);
                     episode.localUri = dr.localUri;
                     db.addOrUpdate(episode);
+                    showPlayButton(episode);
                     return;
                 }
             }
@@ -225,6 +225,7 @@ public class DownloadFragment extends Fragment {
             updateUi(downloadId);
         }
 
+        playDownloadButton.setTag(downloadId);
         playDownloadButton.setVisibility(View.GONE);
         //debugDownloadQueue();
     }
@@ -417,7 +418,9 @@ public class DownloadFragment extends Fragment {
                             episode.localUri = dr.localUri;
                             episode.sizeInBytes = dr.totalSize;
                             db.addOrUpdate(episode);
-                            showPlayButton(episode);
+                            if ((Long) playDownloadButton.getTag() == downloadId) {
+                                showPlayButton(episode);
+                            }
                         }
 
                         subs.unsubscribe();
