@@ -18,11 +18,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.dfhu.vpodplayer.EpisodesRecyclerViewAdapter;
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.ShowsRecyclerViewAdapter;
 import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
@@ -50,6 +53,7 @@ public class DownloadFragment extends Fragment {
     Context context;
     TextView downloadTitle;
     ProgressBar progressBar;
+    Button playDownloadButton;
 
     CompositeSubscription subs = new CompositeSubscription();
 
@@ -89,6 +93,8 @@ public class DownloadFragment extends Fragment {
 
         progressBar = (ProgressBar) view.findViewById(R.id.downloadProgressBar);
         downloadTitle = (TextView) view.findViewById(R.id.downloadTitle);
+
+        playDownloadButton = (Button) view.findViewById(R.id.playDownloadButton);
 
         return view;
     }
@@ -203,6 +209,8 @@ public class DownloadFragment extends Fragment {
                 DownloadRow dr = new DownloadRow(cursor);
                 if (dr.status != DownloadManager.STATUS_FAILED) {
                     Log.d(TAG, "onCreateView: already has downloadId " + dr);
+                    episode.localUri = dr.localUri;
+                    db.addOrUpdate(episode);
                     return;
                 }
             }
@@ -217,6 +225,7 @@ public class DownloadFragment extends Fragment {
             updateUi(downloadId);
         }
 
+        playDownloadButton.setVisibility(View.GONE);
         //debugDownloadQueue();
     }
 
@@ -355,6 +364,25 @@ public class DownloadFragment extends Fragment {
         subs.add(sub);
     }
 
+
+    public void showPlayButton(final Episode episode) {
+        playDownloadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EpisodesRecyclerViewAdapter.EpisodeClickBus.publish(episode);
+            }
+        });
+
+        playDownloadButton.post(new Runnable() {
+            @Override
+            public void run() {
+                playDownloadButton.setVisibility(View.VISIBLE);
+            }
+        });
+
+    }
+
+
     BroadcastReceiver onComplete = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -389,6 +417,7 @@ public class DownloadFragment extends Fragment {
                             episode.localUri = dr.localUri;
                             episode.sizeInBytes = dr.totalSize;
                             db.addOrUpdate(episode);
+                            showPlayButton(episode);
                         }
 
                         subs.unsubscribe();

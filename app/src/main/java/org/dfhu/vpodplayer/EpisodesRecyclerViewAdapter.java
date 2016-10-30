@@ -16,11 +16,11 @@ import rx.subjects.PublishSubject;
 
 public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRecyclerViewAdapter.ViewHolder> {
 
-    static class EpisodeClickBus {
+    public static class EpisodeClickBus {
         private EpisodeClickBus() {}
         private static PublishSubject<Episode> subject = PublishSubject.create();
 
-        static void publish(Episode v) { subject.onNext(v); }
+        public static void publish(Episode v) { subject.onNext(v); }
         static Observable<Episode> getEvents() { return subject; }
     }
 
