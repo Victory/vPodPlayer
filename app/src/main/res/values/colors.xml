@@ -3,4 +3,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="colorNotDownloaded">#FF8338</color>
+    <color name="colorDownloaded">#8383FF</color>
+    <color name="colorListened">#a3a3FF</color>
+    <color name="colorPartiallyListened">#a3f3FF</color>
 </resources>

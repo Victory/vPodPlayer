@@ -29,4 +29,8 @@ public class Episode {
         }
         return ((Episode) o).url.equals(this.url);
     }
+
+    public boolean isDownloaded() {
+        return isDownloaded == 1;
+    }
 }

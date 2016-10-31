@@ -1,6 +1,8 @@
 package org.dfhu.vpodplayer;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +17,8 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRecyclerViewAdapter.ViewHolder> {
+
+    private Context context;
 
     public static class EpisodeClickBus {
         private EpisodeClickBus() {}
@@ -33,7 +37,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
+        context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.episode_list_item, parent, false);
         return new ViewHolder(view);
@@ -44,6 +48,18 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
         Episode episode = episodes.get(position);
         holder.setEpisode(episode);
         holder.itemEpisodeTitle.setText(episode.title);
+
+        setColorTitleColor(holder.itemEpisodeTitle, episode);
+    }
+
+    private void setColorTitleColor(TextView itemEpisodeTitle, Episode episode) {
+        if (!episode.isDownloaded()) {
+            itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorNotDownloaded));
+            return;
+        } else {
+            itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorDownloaded));
+            return;
+        }
     }
 
     @Override
