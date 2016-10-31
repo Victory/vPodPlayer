@@ -1,8 +1,11 @@
 package org.dfhu.vpodplayer;
 
 import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,16 +52,27 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
         holder.itemEpisodeTitle.setText(episode.title);
 
         setColorTitleColor(holder.itemEpisodeTitle, episode);
+        setDuration(holder.itemEpisodeDuration, episode);
+    }
+
+    private void setDuration(TextView itemEpisodeDuration, Episode episode) {
+        if (!episode.isDownloaded()) {
+            return;
+        }
+
+        // XXX: testing
+        MediaPlayer mediaPlayer = MediaPlayer.create(context, Uri.parse(episode.localUri));
+        String prettyTime = DateUtils.formatElapsedTime(mediaPlayer.getDuration() / 1000);
+        itemEpisodeDuration.setText("Duration: " + prettyTime);
     }
 
     private void setColorTitleColor(TextView itemEpisodeTitle, Episode episode) {
         if (!episode.isDownloaded()) {
             itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorNotDownloaded));
-            return;
         } else {
             itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorDownloaded));
-            return;
         }
+
     }
 
     @Override
@@ -71,11 +85,13 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
         private Episode episode;
         final TextView itemEpisodeTitle;
+        final TextView itemEpisodeDuration;
 
         ViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             itemEpisodeTitle = (TextView) itemView.findViewById(R.id.itemEpisodeTitle);
+            itemEpisodeDuration = (TextView) itemView.findViewById(R.id.itemEpisodeDuration);
         }
 
         public void setEpisode(Episode episode) {
