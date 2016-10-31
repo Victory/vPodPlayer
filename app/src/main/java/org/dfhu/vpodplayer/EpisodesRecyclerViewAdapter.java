@@ -53,14 +53,21 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
         setColorTitleColor(holder.itemEpisodeTitle, episode);
         setDuration(holder.itemEpisodeDuration, episode);
+        setPerecentListened(holder.itemEpisodePercentListened, episode);
+    }
+
+    private void setPerecentListened(TextView itemEpisodePercentListened, Episode episode) {
+        if (!episode.isDownloaded()) {
+            return;
+        }
+        String prettyPercent = episode.percentListened + "%";
+        itemEpisodePercentListened.setText("Listened: " + prettyPercent);
     }
 
     private void setDuration(TextView itemEpisodeDuration, Episode episode) {
         if (!episode.isDownloaded()) {
             return;
         }
-
-
         String prettyTime = DateUtils.formatElapsedTime(episode.duration / 1000);
         itemEpisodeDuration.setText("Duration: " + prettyTime);
     }
@@ -85,12 +92,14 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
         private Episode episode;
         final TextView itemEpisodeTitle;
         final TextView itemEpisodeDuration;
+        final TextView itemEpisodePercentListened;
 
         ViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             itemEpisodeTitle = (TextView) itemView.findViewById(R.id.itemEpisodeTitle);
             itemEpisodeDuration = (TextView) itemView.findViewById(R.id.itemEpisodeDuration);
+            itemEpisodePercentListened = (TextView) itemView.findViewById(R.id.itemEpisodePercentListened);
         }
 
         public void setEpisode(Episode episode) {

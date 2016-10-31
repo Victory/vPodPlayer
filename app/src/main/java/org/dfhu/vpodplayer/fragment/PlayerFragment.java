@@ -1,5 +1,6 @@
 package org.dfhu.vpodplayer.fragment;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -36,8 +37,10 @@ public class PlayerFragment extends Fragment {
     private boolean isPlaying = false;
     private Subscription updatePositionSubscription;
     private CompositeSubscription subscriptions = new CompositeSubscription();
+    private Context applicationContext;
 
     private static class UpdatePositionBus {
+
         private UpdatePositionBus() {}
         private static PublishSubject<Long> subject = PublishSubject.create();
 
@@ -51,7 +54,8 @@ public class PlayerFragment extends Fragment {
         setRetainInstance(true);
         ((VPodPlayerApplication) getActivity().getApplication()).component().inject(this);
 
-        bindToUpdatePositionBus();
+        applicationContext = getContext().getApplicationContext();
+
     }
 
     @Override
@@ -75,6 +79,8 @@ public class PlayerFragment extends Fragment {
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(getActivity().getApplicationContext());
         final Episode episode = db.getById(episodeId);
+
+        bindToUpdatePositionBus(applicationContext, episodeId);
 
         Uri uri = Uri.parse(episode.localUri);
         //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
@@ -116,11 +122,14 @@ public class PlayerFragment extends Fragment {
         return view;
     }
 
-    public void bindToUpdatePositionBus() {
+    public void bindToUpdatePositionBus(final Context context, final int episodeId) {
 
         UpdatePositionBus.getEvents()
+                .onBackpressureLatest()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Long>() {
+                    int count = 0;
+
                     @Override
                     public void onCompleted() {
 
@@ -148,6 +157,14 @@ public class PlayerFragment extends Fragment {
                         playerInfo.currentPosition = (long) position;
                         playerInfo.duration = duration;
                         view.updatePlayer(playerInfo);
+
+                        count += 1;
+                        if (count % 15 == 0) {
+                            Episodes db = new Episodes(context);
+                            Episode episode = db.getById(episodeId);
+                            episode.percentListened = (int) Math.floor(100 * playerInfo.positionPercent);
+                            db.addOrUpdate(episode);
+                        }
                     }
                 });
     }
