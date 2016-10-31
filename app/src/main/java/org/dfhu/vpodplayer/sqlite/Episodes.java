@@ -29,6 +29,7 @@ public class Episodes extends SQLiteOpenHelper {
     private static final String K_SIZE_IN_BYTES = "sizeInBytes";
     private static final String K_DOWNLOAD_ID = "downloadId";
     private static final String K_PUB_DATE = "pubDate";
+    private static final String K_DURATION = "duration";
 
     private static final String[] COLUMNS = {
             K_ID,
@@ -39,7 +40,8 @@ public class Episodes extends SQLiteOpenHelper {
             K_IS_DOWNLOADED,
             K_LOCAL_URI,
             K_DOWNLOAD_ID,
-            K_PUB_DATE
+            K_PUB_DATE,
+            K_DURATION
     };
 
     private static final String CREATE =
@@ -54,7 +56,8 @@ public class Episodes extends SQLiteOpenHelper {
                     "`percentListened` INTEGER," +
                     "`sizeInBytes` INTEGER," +
                     "`downloadId` INTEGER," +
-                    "`pubDate` STRING" +
+                    "`pubDate` STRING," +
+                    "`duration` INTEGER" +
                     ")";
 
     public Episodes(Context context) {
@@ -110,6 +113,7 @@ public class Episodes extends SQLiteOpenHelper {
         contentValues.put(K_PERCENT_LISTENED, episode.percentListened);
         contentValues.put(K_DOWNLOAD_ID, episode.downloadId);
         contentValues.put(K_PUB_DATE, episode.pubDate);
+        contentValues.put(K_DURATION, episode.duration);
 
 
         long result;
@@ -213,6 +217,7 @@ public class Episodes extends SQLiteOpenHelper {
                 episode.percentListened = cc.getIntColumn(K_PERCENT_LISTENED);
                 episode.isDownloaded = cc.getIntColumn(K_IS_DOWNLOADED);
                 episode.pubDate = cc.getStringColumn(K_PUB_DATE);
+                episode.duration = cc.getIntColumn(K_DURATION);
 
                 items.add(episode);
             }

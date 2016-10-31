@@ -60,9 +60,8 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
             return;
         }
 
-        // XXX: testing
-        MediaPlayer mediaPlayer = MediaPlayer.create(context, Uri.parse(episode.localUri));
-        String prettyTime = DateUtils.formatElapsedTime(mediaPlayer.getDuration() / 1000);
+
+        String prettyTime = DateUtils.formatElapsedTime(episode.duration / 1000);
         itemEpisodeDuration.setText("Duration: " + prettyTime);
     }
 

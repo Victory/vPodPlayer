@@ -13,6 +13,7 @@ public class Episode {
     public int sizeInBytes = -1;
     public long downloadId = -1;
     public String pubDate;
+    public int duration;
 
     @Override
     public String toString() {

@@ -1,6 +1,5 @@
 package org.dfhu.vpodplayer.fragment;
 
-import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,10 +9,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.os.EnvironmentCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,16 +18,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.dfhu.vpodplayer.EpisodesRecyclerViewAdapter;
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
+import org.dfhu.vpodplayer.util.MediaDuration;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -386,11 +382,12 @@ public class DownloadFragment extends Fragment {
 
     BroadcastReceiver onComplete = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(final Context context, Intent intent) {
 
             Bundle bundle = intent.getExtras();
             final long downloadId = bundle.getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
             final Context appContext = context;
+            final MediaDuration mediaDuration = new MediaDuration(context);
 
             Async.start(new Func0<Observable<DownloadRow>>() {
                 @Override
@@ -417,6 +414,7 @@ public class DownloadFragment extends Fragment {
                             episode.isDownloaded = 1;
                             episode.localUri = dr.localUri;
                             episode.sizeInBytes = dr.totalSize;
+                            episode.duration = mediaDuration.get(episode.localUri);
                             db.addOrUpdate(episode);
                             if ((Long) playDownloadButton.getTag() == downloadId) {
                                 showPlayButton(episode);
