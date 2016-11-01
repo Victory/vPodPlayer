@@ -82,17 +82,26 @@ public class Shows extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Show> hydrator = new ListHydrator<>(cursor, db);
 
-        return hydrator.hydrate(new ConsumeHydrator<Show>() {
-            @Override
-            public void consume(ColumnCursor cc, List<Show> items) {
-                Show show = new Show();
-                show.id = cc.getIntColumn(K_ID);
-                show.title = cc.getStringColumn(K_TITLE);
-                show.url = cc.getStringColumn(K_URL);
-                show.description = cc.getStringColumn(K_DESCRIPTION);
-                items.add(show);
-            }
-        });
+        return hydrator.hydrate(new Hydrator());
+    }
+
+    /**
+     * Get a show by id or empty show if none found
+     * @param showId - the id of the show to get
+     * @return
+     */
+    public Show getById(int showId) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE id = " + showId + " LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, null);
+        ListHydrator<Show> hydrator = new ListHydrator<>(cursor, db);
+
+        List<Show> shows = hydrator.hydrate(new Hydrator());
+        if (shows.size() == 0) {
+            return new Show();
+        }
+
+        return shows.get(0);
     }
 
     /**
@@ -109,5 +118,17 @@ public class Shows extends SQLiteOpenHelper {
             }
         }
         return new Show();
+    }
+
+    public static class Hydrator implements ConsumeHydrator<Show> {
+        @Override
+        public void consume(ColumnCursor cc, List<Show> items) {
+            Show show = new Show();
+            show.id = cc.getIntColumn(K_ID);
+            show.title = cc.getStringColumn(K_TITLE);
+            show.url = cc.getStringColumn(K_URL);
+            show.description = cc.getStringColumn(K_DESCRIPTION);
+            items.add(show);
+        }
     }
 }

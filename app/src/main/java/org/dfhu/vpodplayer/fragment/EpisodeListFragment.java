@@ -1,5 +1,6 @@
 package org.dfhu.vpodplayer.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -19,7 +20,14 @@ import java.util.List;
 
 public class EpisodeListFragment extends Fragment {
 
+    public static final String TAG = EpisodeListFragment.class.getName();
     private int showId;
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

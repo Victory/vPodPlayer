@@ -19,6 +19,8 @@ import java.util.List;
 
 public class ShowListFragment extends Fragment {
 
+    public static final String TAG = ShowListFragment.class.getName();
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

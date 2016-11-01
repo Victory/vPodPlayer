@@ -63,9 +63,6 @@ public class VPodPlayer extends AppCompatActivity
         static Observable<String> getEvents() { return subject; }
     }
 
-    @Inject
-    Context context;
-
     Toolbar toolbar;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
@@ -91,13 +88,7 @@ public class VPodPlayer extends AppCompatActivity
         subscribeToEpisodeClicked();
 
         if (getSupportFragmentManager().findFragmentByTag(TAG_MAIN_DISPLAY_FRAGMENT) == null) {
-            ShowListFragment fragment = new ShowListFragment();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
-                    .commit();
-
-            showHomeButton(false);
+            setHomeFragment();
         }
     }
 
@@ -285,7 +276,7 @@ public class VPodPlayer extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_refresh_podcast:
-                Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show();
+                refresh();
                 return true;
             case android.R.id.home:
                 setHomeFragment();
@@ -293,6 +284,21 @@ public class VPodPlayer extends AppCompatActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void refresh() {
+        Toast.makeText(this, "refreshing show", Toast.LENGTH_SHORT).show();
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        if (fragment instanceof EpisodeListFragment) {
+            int showId = fragment.getArguments().getInt("showId");
+            getNewEpisodesForShow(showId);
+        }
+    }
+
+    private void getNewEpisodesForShow(int showId) {
+        Shows db = new Shows(getApplicationContext());
+        Show show = db.getById(showId);
+        triggerFetchFeed(show.url);
     }
 
     private void setHomeFragment() {
