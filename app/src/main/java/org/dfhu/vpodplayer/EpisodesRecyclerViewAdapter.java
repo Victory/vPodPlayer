@@ -75,10 +75,13 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
     private void setColorTitleColor(TextView itemEpisodeTitle, Episode episode) {
         if (!episode.isDownloaded()) {
             itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorNotDownloaded));
-        } else {
+        } else if (episode.percentListened < 5) {
             itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorDownloaded));
+        } else if (episode.percentListened >= 5 && episode.percentListened < 95) {
+            itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorPartiallyListened));
+        } else {
+            itemEpisodeTitle.setTextColor(ContextCompat.getColor(context, R.color.colorListened));
         }
-
     }
 
     @Override
