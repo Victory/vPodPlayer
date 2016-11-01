@@ -46,7 +46,7 @@ public class PlayerControlsView extends View {
         textPaint = new Paint();
         textPaint.setColor(Color.parseColor(TEXT_COLOR));
         textPaint.setAntiAlias(true);
-        textPaint.setTextSize(50);
+        textPaint.setTextSize(80);
 
         outerPaint = new Paint();
         outerPaint.setColor(Color.parseColor(LOW_COLOR));
@@ -108,9 +108,9 @@ public class PlayerControlsView extends View {
         long duration = (long) Math.ceil(playerInfo.duration / 1000.0);
         String elapsedTime = DateUtils.formatElapsedTime(pos);
         String totalDuration = DateUtils.formatElapsedTime(duration);
-        canvas.drawText("position: " + elapsedTime + "/" + totalDuration, 5, 50, textPaint);
+        canvas.drawText("position: " + elapsedTime + "/" + totalDuration, 9, 70, textPaint);
         long per = (long) Math.floor(percent * 100);
-        canvas.drawText("percent: " + per + "%", 5, 100, textPaint);
+        canvas.drawText("percent: " + per + "%", 9, 150, textPaint);
     }
 
     @Override
