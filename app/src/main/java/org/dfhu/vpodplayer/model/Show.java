@@ -2,8 +2,8 @@ package org.dfhu.vpodplayer.model;
 
 public class Show {
     public int id;
-    public String title;
-    public String description;
+    public String title = "unknown title";
+    public String description = "Description not found";
     public String url;
 
     @Override

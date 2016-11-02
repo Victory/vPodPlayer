@@ -158,20 +158,24 @@ public class VPodPlayer extends AppCompatActivity
 
                     @Override
                     public void onNext(Show show) {
-                        EpisodeListFragment fragment = new EpisodeListFragment();
-                        Bundle args = new Bundle();
-                        args.putInt("showId", show.id);
-                        fragment.setArguments(args);
-
-                        getSupportFragmentManager()
-                                .beginTransaction()
-                                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
-                                .commit();
-
-                        showHomeButton(true);
+                        setEpisodeFragment(show);
                     }
                 });
         subscriptions.add(sub);
+    }
+
+    public void setEpisodeFragment(Show show) {
+        EpisodeListFragment fragment = new EpisodeListFragment();
+        Bundle args = new Bundle();
+        args.putInt("showId", show.id);
+        fragment.setArguments(args);
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
+                .commit();
+
+        showHomeButton(true);
     }
 
     private void subscribeToToastError() {
@@ -287,7 +291,6 @@ public class VPodPlayer extends AppCompatActivity
     }
 
     private void refresh() {
-        Toast.makeText(this, "refreshing show", Toast.LENGTH_SHORT).show();
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
         if (fragment instanceof EpisodeListFragment) {
             int showId = fragment.getArguments().getInt("showId");
@@ -363,8 +366,10 @@ public class VPodPlayer extends AppCompatActivity
     void handleFeed(Feed feed) {
         Shows showsDb = new Shows(this.getApplicationContext());
         Episodes episodeDb = new Episodes(this.getApplicationContext());
-        SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
-        setHomeFragment();
+        Show show = SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
+
+        setEpisodeFragment(show);
+        Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();
     }
 
     public static void safeToast(String s) {
