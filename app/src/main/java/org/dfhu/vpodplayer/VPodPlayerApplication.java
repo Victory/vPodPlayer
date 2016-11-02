@@ -1,10 +1,12 @@
 package org.dfhu.vpodplayer;
 
 import android.app.Application;
-import android.content.Context;
+import android.app.DownloadManager;
+import android.content.IntentFilter;
 
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
+import org.dfhu.vpodplayer.util.DownloadCompleteBroadcastReceiver;
 
 import javax.inject.Singleton;
 
@@ -28,6 +30,10 @@ public class VPodPlayerApplication extends Application {
                 .androidModule(new AndroidModule(this))
                 .build();
         component.inject(this);
+
+        this.registerReceiver(
+                new DownloadCompleteBroadcastReceiver(),
+                new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
     public ApplicationComponent component() {

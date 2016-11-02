@@ -32,12 +32,10 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
-import rx.util.async.Async;
 
 
 public class DownloadFragment extends Fragment {
@@ -52,12 +50,20 @@ public class DownloadFragment extends Fragment {
 
     CompositeSubscription subs = new CompositeSubscription();
 
-    private static class UpdateProgress {
+    public static class UpdateProgress {
         private UpdateProgress() {}
         private static PublishSubject<DownloadRow> subject = PublishSubject.create();
 
-        static void publish(DownloadRow v) { subject.onNext(v); }
+        public static void publish(DownloadRow v) { subject.onNext(v); }
         static Observable<DownloadRow> getEvents() { return subject; }
+    }
+
+    public static class ShowPlayButton {
+        private ShowPlayButton() {}
+        private static PublishSubject<Episode> subject = PublishSubject.create();
+
+        public static void publish(Episode v) { subject.onNext(v); }
+        static Observable<Episode> getEvents() { return subject; }
     }
 
     @Override
@@ -70,9 +76,12 @@ public class DownloadFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        /*
         context.registerReceiver(
                 onComplete,
                 new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+        */
 
         context.registerReceiver(
                 onNotificationClicked,
@@ -221,6 +230,7 @@ public class DownloadFragment extends Fragment {
         long downloadId = startDownload(episode);
         Log.d(TAG, "queueDownload() called: downloadId added: " + downloadId);
         episode.downloadId = downloadId;
+        subscribeToShowPlayButton(downloadId);
         db.addOrUpdate(episode);
 
         if (downloadId > 0) {
@@ -230,6 +240,32 @@ public class DownloadFragment extends Fragment {
         playDownloadButton.setTag(downloadId);
         playDownloadButton.setVisibility(View.GONE);
         //debugDownloadQueue();
+    }
+
+    private void subscribeToShowPlayButton(final long downloadId) {
+        Subscription sub = ShowPlayButton.getEvents()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Episode>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "onCompleted() called: subscribeToShowPlayButton");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: subscribeToShowPlayButton", e);
+                    }
+
+                    @Override
+                    public void onNext(Episode episode) {
+                        if ((Long) playDownloadButton.getTag() == downloadId) {
+                            showPlayButton(episode);
+                        }
+                    }
+                });
+
+        subs.add(sub);
+
     }
 
     private void subscribeToUiProgressUpdate() {
@@ -282,7 +318,7 @@ public class DownloadFragment extends Fragment {
 
     @Override
     public void onDetach() {
-        context.unregisterReceiver(onComplete);
+        //context.unregisterReceiver(onComplete);
         context.unregisterReceiver(onNotificationClicked);
         subs.unsubscribe();
         subs = null;
@@ -386,59 +422,6 @@ public class DownloadFragment extends Fragment {
     }
 
 
-    BroadcastReceiver onComplete = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, Intent intent) {
-
-            Bundle bundle = intent.getExtras();
-            final long downloadId = bundle.getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
-            final Context appContext = context;
-            final MediaDuration mediaDuration = new MediaDuration(context);
-
-            Async.start(new Func0<Observable<DownloadRow>>() {
-                @Override
-                public Observable<DownloadRow> call() {
-                    DownloadManager.Query q = new DownloadManager.Query();
-                    q.setFilterById(downloadId);
-
-                    Cursor cursor = null;
-                    try {
-                        cursor = dm.query(q);
-
-                        if (!cursor.moveToFirst()) {
-                            Log.e("DownloadFragment", "could not find download by id");
-                            return Observable.error(new Throwable("Could not find download by id"));
-                        }
-
-                        int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
-                        DownloadRow dr = new DownloadRow(cursor);
-                        UpdateProgress.publish(dr);
-                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                            Episodes db = new Episodes(appContext);
-                            Log.d(TAG, "downloadId on BroadcastReceiver:" + downloadId + " downloadRow: " + dr);
-                            Episode episode = db.getByDownloadId(downloadId);
-                            episode.isDownloaded = 1;
-                            episode.localUri = dr.localUri;
-                            episode.sizeInBytes = dr.totalSize;
-                            episode.duration = mediaDuration.get(episode.localUri);
-                            db.addOrUpdate(episode);
-                            if ((Long) playDownloadButton.getTag() == downloadId) {
-                                showPlayButton(episode);
-                            }
-                        }
-
-                        subs.unsubscribe();
-
-                        return Observable.just(dr);
-
-                    } finally {
-                        if (cursor != null) cursor.close();
-                    }
-                }
-            }, Schedulers.io()).subscribe();
-
-        }
-    };
 
     BroadcastReceiver onNotificationClicked = new BroadcastReceiver() {
         @Override
@@ -448,18 +431,18 @@ public class DownloadFragment extends Fragment {
     };
 
     /** Represents the values in a curursor download */
-    private static class DownloadRow {
+    public static class DownloadRow {
 
-        final String destination;
-        final String title;
-        final String description;
-        final String uri;
-        final int status;
-        final Integer totalSize;
-        final Integer bytesSoFar;
-        final String localUri;
-        final int reason;
-        final long id;
+        public final String destination;
+        public final String title;
+        public final String description;
+        public final String uri;
+        public final int status;
+        public final Integer totalSize;
+        public final Integer bytesSoFar;
+        public final String localUri;
+        public final int reason;
+        public final long id;
 
         public DownloadRow(Cursor c) {
             id = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_ID));
