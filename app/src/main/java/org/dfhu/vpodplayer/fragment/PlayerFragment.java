@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.dfhu.vpodplayer.PlayerControlsView;
 import org.dfhu.vpodplayer.PodPlayer;
@@ -100,6 +101,9 @@ public class PlayerFragment extends Fragment {
             public void click(PlayerControlsView playerControlsView) {
 
                 Log.d("PlayerFragment", "clicked: " + episode.title);
+
+                Toast.makeText(getContext(), episode.title, Toast.LENGTH_SHORT).show();
+
                 if (isPlaying) {
                     podPlayer.setPlayWhenReady(false);
                     playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PAUSE);
@@ -124,6 +128,7 @@ public class PlayerFragment extends Fragment {
             }
         });
 
+        Toast.makeText(getContext(), "Playing: " + episode.title, Toast.LENGTH_LONG).show();
         return view;
     }
 
