@@ -129,6 +129,7 @@ public class VPodPlayer extends AppCompatActivity
 
                         Bundle args = new Bundle();
                         args.putInt("episodeId", episode.id);
+                        args.putInt("showId", episode.showId);
                         fragment.setArguments(args);
 
                         getSupportFragmentManager()
@@ -158,25 +159,12 @@ public class VPodPlayer extends AppCompatActivity
 
                     @Override
                     public void onNext(Show show) {
-                        setEpisodeFragment(show);
+                        setEpisodeFragment(show.id);
                     }
                 });
         subscriptions.add(sub);
     }
 
-    public void setEpisodeFragment(Show show) {
-        EpisodeListFragment fragment = new EpisodeListFragment();
-        Bundle args = new Bundle();
-        args.putInt("showId", show.id);
-        fragment.setArguments(args);
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
-                .commit();
-
-        showHomeButton(true);
-    }
 
     private void subscribeToToastError() {
         Subscription sub = ToastErrorBus.getEvents()
@@ -283,10 +271,24 @@ public class VPodPlayer extends AppCompatActivity
                 refresh();
                 return true;
             case android.R.id.home:
-                setHomeFragment();
+                handleHomeButton();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /**
+     * Perform home menu item button action
+     */
+    private void handleHomeButton() {
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+
+        if (fragment instanceof PlayerFragment) {
+            int showId = fragment.getArguments().getInt("showId");
+            setEpisodeFragment(showId);
+        } else {
+            setHomeFragment();
         }
     }
 
@@ -298,12 +300,28 @@ public class VPodPlayer extends AppCompatActivity
         }
     }
 
-    private void getNewEpisodesForShow(int showId) {
-        Shows db = new Shows(getApplicationContext());
-        Show show = db.getById(showId);
-        triggerFetchFeed(show.url);
+
+    /**
+     * Display the fragment with the list of episodes for a show
+     * @param showId - id of the show to display
+     */
+    public void setEpisodeFragment(int showId) {
+        EpisodeListFragment fragment = new EpisodeListFragment();
+        Bundle args = new Bundle();
+        args.putInt("showId", showId);
+        fragment.setArguments(args);
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment, TAG_MAIN_DISPLAY_FRAGMENT)
+                .commit();
+
+        showHomeButton(true);
     }
 
+    /**
+     * Display the list of shows (the "home" fragment)
+     */
     private void setHomeFragment() {
         ShowListFragment fragment = new ShowListFragment();
 
@@ -363,12 +381,18 @@ public class VPodPlayer extends AppCompatActivity
         addFetchFeedSubscription(fetchFeedFragment.buildObserver(feedUrl));
     }
 
+    private void getNewEpisodesForShow(int showId) {
+        Shows db = new Shows(getApplicationContext());
+        Show show = db.getById(showId);
+        triggerFetchFeed(show.url);
+    }
+
     void handleFeed(Feed feed) {
         Shows showsDb = new Shows(this.getApplicationContext());
         Episodes episodeDb = new Episodes(this.getApplicationContext());
         Show show = SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
 
-        setEpisodeFragment(show);
+        setEpisodeFragment(show.id);
         Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();
     }
 
