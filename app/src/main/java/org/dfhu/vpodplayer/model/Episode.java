@@ -13,7 +13,9 @@ public class Episode {
     public int sizeInBytes = -1;
     public long downloadId = -1;
     public String pubDate;
-    public int duration;
+
+    /** null if not set so can be populated on first pass */
+    public Integer duration = null;
 
     @Override
     public String toString() {

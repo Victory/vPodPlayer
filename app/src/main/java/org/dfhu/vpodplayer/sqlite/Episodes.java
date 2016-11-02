@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
+import org.dfhu.vpodplayer.util.MediaDuration;
 
 import java.util.List;
 
@@ -85,14 +86,21 @@ public class Episodes extends SQLiteOpenHelper {
     public long addOrUpdate(Episode episode) {
         SQLiteDatabase db = getWritableDatabase();
         try {
-            return addNoClose(episode, db);
+            return addNoClose(episode, db, true);
         } finally {
             db.close();
         }
     }
 
 
-    private long addNoClose(Episode episode, SQLiteDatabase db) {
+    /**
+     * Add a record but don't close the database
+     * @param episode - episode to add
+     * @param db - opend database connection
+     * @param shouldUpdate - true if we should update an existing record, false if we should ignore
+     * @return
+     */
+    private long addNoClose(Episode episode, SQLiteDatabase db, boolean shouldUpdate) {
         if (episode.showId <= 0) {
             Log.d("Episodes", "episode.url == null: " + episode);
             return -1;
@@ -120,19 +128,27 @@ public class Episodes extends SQLiteOpenHelper {
         try {
             result = db.insertOrThrow(DB_NAME, null, contentValues);
         } catch (SQLException e) {
-            result = db.update(DB_NAME, contentValues, "url = ?", new String[]{episode.url});
+            if (shouldUpdate) {
+                result = db.update(DB_NAME, contentValues, "url = ?", new String[]{episode.url});
+            } else {
+                return -1;
+            }
         }
 
         return result;
     }
 
-    /** All episodes in the list */
+    /**
+     * Add episodes for show with showId
+     * @param episodes - epiodes to add
+     * @param showId
+     */
     public void addAllForShow(List<Episode> episodes, int showId) {
         SQLiteDatabase db = getWritableDatabase();
         try {
             for (Episode episode : episodes) {
                 episode.showId = showId;
-                addNoClose(episode, db);
+                addNoClose(episode, db, false);
             }
         } finally {
             db.close();

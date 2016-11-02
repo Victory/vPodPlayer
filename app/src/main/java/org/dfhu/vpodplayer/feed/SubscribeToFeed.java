@@ -5,6 +5,7 @@ import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
+import org.dfhu.vpodplayer.util.MediaDuration;
 
 import java.util.List;
 
