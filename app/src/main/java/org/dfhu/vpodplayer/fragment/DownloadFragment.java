@@ -205,8 +205,14 @@ public class DownloadFragment extends Fragment {
                 if (dr.status != DownloadManager.STATUS_FAILED) {
                     Log.d(TAG, "onCreateView: already has downloadId " + dr);
                     episode.localUri = dr.localUri;
+                    episode.isDownloaded = 1;
+                    episode.localUri = dr.localUri;
+                    episode.sizeInBytes = dr.totalSize;
+                    MediaDuration mediaDuration = new MediaDuration(context);
+                    episode.duration = mediaDuration.get(episode.localUri);
                     db.addOrUpdate(episode);
                     showPlayButton(episode);
+                    UpdateProgress.publish(dr);
                     return;
                 }
             }
