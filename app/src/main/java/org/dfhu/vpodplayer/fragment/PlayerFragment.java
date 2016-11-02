@@ -85,7 +85,12 @@ public class PlayerFragment extends Fragment {
         Uri uri = Uri.parse(episode.localUri);
         //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
+
         podPlayer.startPlayingUri(uri);
+        long seekTo = episode.getPlayPosition();
+        if (seekTo > 0) {
+            podPlayer.seekTo(seekTo);
+        }
         podPlayer.setMetaDataTitle(episode.title);
         isPlaying = true;
         subscribeUpdatePosition();
@@ -129,6 +134,7 @@ public class PlayerFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Long>() {
                     int count = 0;
+                    double lastPosition = 0;
 
                     @Override
                     public void onCompleted() {
@@ -149,6 +155,12 @@ public class PlayerFragment extends Fragment {
                         double duration = podPlayer.getDuration();
                         double position = podPlayer.getCurrentPosition();
                         double positionPercent = position / duration;
+
+                        // don't update if paused
+                        if (lastPosition == position) {
+                            return;
+                        }
+                        lastPosition = position;
 
                         //Log.d("PlayerFragement", "positionInfo: " + positionPercent + " - " + position);
 

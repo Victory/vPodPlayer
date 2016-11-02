@@ -36,4 +36,13 @@ public class Episode {
     public boolean isDownloaded() {
         return isDownloaded == 1;
     }
+
+    /**
+     * The last recorded play position in Ms
+     * @return
+     */
+    public long getPlayPosition() {
+        return (int) Math.floor((duration) * (percentListened / 100.0));
+    }
+
 }
