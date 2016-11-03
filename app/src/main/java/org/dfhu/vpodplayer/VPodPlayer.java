@@ -32,7 +32,6 @@ import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Observer;
@@ -285,6 +284,9 @@ public class VPodPlayer extends AppCompatActivity
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
 
         if (fragment instanceof PlayerFragment) {
+            int showId = fragment.getArguments().getInt("showId");
+            setEpisodeFragment(showId);
+        } else if (fragment instanceof DownloadFragment) {
             int showId = fragment.getArguments().getInt("showId");
             setEpisodeFragment(showId);
         } else {

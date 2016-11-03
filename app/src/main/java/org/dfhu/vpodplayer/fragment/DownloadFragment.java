@@ -258,6 +258,8 @@ public class DownloadFragment extends Fragment {
 
                     @Override
                     public void onNext(Episode episode) {
+                        if (playDownloadButton == null) return;
+
                         if ((Long) playDownloadButton.getTag() == downloadId) {
                             showPlayButton(episode);
                         }
