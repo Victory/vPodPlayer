@@ -15,6 +15,8 @@ import java.util.List;
 
 public class Episodes extends SQLiteOpenHelper {
 
+    public static final String TAG = Episodes.class.getName();
+
     private static final String DB_NAME = "episodes";
     private static final int DB_VERSION = 1;
 
@@ -218,6 +220,24 @@ public class Episodes extends SQLiteOpenHelper {
         return episodes.get(0);
     }
 
+    /**
+     * Update the percentListened of this episode
+     *
+     * @param episode - episode with percentListened set to new value
+     */
+    public void updatePercentListened(Episode episode) {
+        SQLiteDatabase writableDatabase = getWritableDatabase();
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(K_PERCENT_LISTENED, episode.percentListened);
+            writableDatabase.update(DB_NAME, contentValues, "id = ?", episodeWhereClause(episode.id));
+        } catch (Throwable e) {
+            Log.e(TAG, "updatePercentListened: could not update", e);
+        } finally {
+            writableDatabase.close();
+        }
+    }
+
     private static class Hydrator implements ConsumeHydrator<Episode> {
             @Override
             public void consume(ColumnCursor cc, List<Episode> items) {
@@ -238,4 +258,13 @@ public class Episodes extends SQLiteOpenHelper {
                 items.add(episode);
             }
         }
+
+    /**
+     * Return episode where clause for id = ?
+     * @param episodeId - id of episode to search
+     * @return
+     */
+    private String[] episodeWhereClause(int episodeId) {
+        return new String[]{"" + episodeId};
+    }
 }

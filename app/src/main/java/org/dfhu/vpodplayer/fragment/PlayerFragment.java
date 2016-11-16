@@ -180,7 +180,7 @@ public class PlayerFragment extends Fragment {
                             Episodes db = new Episodes(context);
                             Episode episode = db.getById(episodeId);
                             episode.percentListened = (int) Math.floor(100 * playerInfo.positionPercent);
-                            db.addOrUpdate(episode);
+                            db.updatePercentListened(episode);
                         }
                     }
                 });
