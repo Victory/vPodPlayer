@@ -1,5 +1,6 @@
 package org.dfhu.vpodplayer;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +19,8 @@ import rx.subjects.PublishSubject;
 
 public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRecyclerViewAdapter.ViewHolder> {
 
+    private final int highlightedEpisode;
+    private final List<Episode> episodes;
     private Context context;
 
     public static class EpisodeClickBus {
@@ -29,10 +32,10 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
     }
 
 
-    private final List<Episode> episodes;
 
-    public EpisodesRecyclerViewAdapter(List<Episode> episodes) {
+    public EpisodesRecyclerViewAdapter(List<Episode> episodes, int highlightedEpisode) {
         this.episodes = episodes;
+        this.highlightedEpisode = highlightedEpisode;
     }
 
     @Override
@@ -52,6 +55,13 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
         setColorTitleColor(holder.itemEpisodeTitle, episode);
         setDuration(holder.itemEpisodeDuration, episode);
         setPerecentListened(holder.itemEpisodePercentListened, episode);
+
+        if (highlightedEpisode > 0 && position == highlightedEpisode) {
+            ObjectAnimator opacity = ObjectAnimator.ofFloat(holder.itemEpisodeTitle, "alpha", 0.0f, 1.0f);
+            opacity.setDuration(800);
+            opacity.setRepeatCount(3);
+            opacity.start();
+        }
     }
 
     private void setPerecentListened(TextView itemEpisodePercentListened, Episode episode) {

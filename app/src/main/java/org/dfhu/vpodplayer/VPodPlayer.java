@@ -158,7 +158,7 @@ public class VPodPlayer extends AppCompatActivity
 
                     @Override
                     public void onNext(Show show) {
-                        setEpisodeFragment(show.id);
+                        setEpisodeFragment(show.id, 0);
                     }
                 });
         subscriptions.add(sub);
@@ -285,10 +285,12 @@ public class VPodPlayer extends AppCompatActivity
 
         if (fragment instanceof PlayerFragment) {
             int showId = fragment.getArguments().getInt("showId");
-            setEpisodeFragment(showId);
+            int episodeId = fragment.getArguments().getInt("episodeId");
+
+            setEpisodeFragment(showId, episodeId);
         } else if (fragment instanceof DownloadFragment) {
             int showId = fragment.getArguments().getInt("showId");
-            setEpisodeFragment(showId);
+            setEpisodeFragment(showId, 0);
         } else {
             setHomeFragment();
         }
@@ -306,11 +308,13 @@ public class VPodPlayer extends AppCompatActivity
     /**
      * Display the fragment with the list of episodes for a show
      * @param showId - id of the show to display
+     * @param episodeId - id of the episode to scroll to
      */
-    public void setEpisodeFragment(int showId) {
+    public void setEpisodeFragment(int showId, int episodeId) {
         EpisodeListFragment fragment = new EpisodeListFragment();
         Bundle args = new Bundle();
         args.putInt("showId", showId);
+        args.putInt("episodeId", episodeId);
         fragment.setArguments(args);
 
         getSupportFragmentManager()
@@ -394,7 +398,7 @@ public class VPodPlayer extends AppCompatActivity
         Episodes episodeDb = new Episodes(this.getApplicationContext());
         Show show = SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
 
-        setEpisodeFragment(show.id);
+        setEpisodeFragment(show.id, 0);
         Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();
     }
 

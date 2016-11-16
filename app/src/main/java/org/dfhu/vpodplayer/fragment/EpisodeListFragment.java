@@ -21,7 +21,6 @@ import java.util.List;
 public class EpisodeListFragment extends Fragment {
 
     public static final String TAG = EpisodeListFragment.class.getName();
-    private int showId;
 
 
     @Override
@@ -42,16 +41,41 @@ public class EpisodeListFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_episodes, container, false);
 
-        showId = getArguments().getInt("showId");
+        int showId = getArguments().getInt("showId");
+        int episodeId = getArguments().getInt("episodeId");
 
         Episodes db = new Episodes(getActivity().getApplicationContext());
         List<Episode> episodes = db.allForShow(showId);
-        EpisodesRecyclerViewAdapter adapter = new EpisodesRecyclerViewAdapter(episodes);
+        int episodeScrollPosition = findEpisodeScrollPosition(episodes, episodeId);
+        EpisodesRecyclerViewAdapter adapter = new EpisodesRecyclerViewAdapter(episodes, episodeScrollPosition);
 
         RecyclerView showsRecyclerView = (RecyclerView) view.findViewById(R.id.episodesRecyclerView);
         showsRecyclerView.setAdapter(adapter);
-        showsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.scrollToPosition(episodeScrollPosition - 3);
+        showsRecyclerView.setLayoutManager(linearLayoutManager);
 
         return view;
+    }
+
+    /**
+     * Get position to scroll to for the given episode
+     *
+     * @param episodes - all episodes in order
+     * @param episodeId - target episode id
+     * @return
+     */
+    private int findEpisodeScrollPosition(List<Episode> episodes, int episodeId) {
+        if (episodeId == 0) {
+            return 0;
+        }
+
+        for (int ii = 0; ii < episodes.size(); ii++) {
+            if (episodes.get(ii).id == episodeId) {
+                return ii;
+            }
+        }
+
+        return 0;
     }
 }
