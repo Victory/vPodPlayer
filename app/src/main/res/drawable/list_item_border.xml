@@ -11,12 +11,4 @@
             <solid android:color="@color/listItemBorder" />
         </shape>
     </item>
-
-    <!--
-    <item android:top="20dp" android:right="0dp" android:bottom="5dp"  android:left="0dp">
-        <shape android:shape="rectangle" >
-            <solid android:color="#FF0000" />
-        </shape>
-    </item>
-    -->
 </layer-list>
