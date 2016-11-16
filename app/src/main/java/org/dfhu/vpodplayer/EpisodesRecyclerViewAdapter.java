@@ -56,6 +56,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
     private void setPerecentListened(TextView itemEpisodePercentListened, Episode episode) {
         if (!episode.isDownloaded()) {
+            itemEpisodePercentListened.setVisibility(View.GONE);
             return;
         }
         String prettyPercent = episode.percentListened + "%";
@@ -64,6 +65,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
     private void setDuration(TextView itemEpisodeDuration, Episode episode) {
         if (!episode.isDownloaded()) {
+            itemEpisodeDuration.setVisibility(View.GONE);
             return;
         }
         String prettyTime = DateUtils.formatElapsedTime(episode.duration / 1000);
