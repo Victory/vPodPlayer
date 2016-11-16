@@ -15,6 +15,7 @@
         android:id="@+id/itemEpisodeTitle"
         android:textSize="30dp"
         android:textColor="@color/colorAccent"
+        android:maxLines="3"
         />
 
     <TextView

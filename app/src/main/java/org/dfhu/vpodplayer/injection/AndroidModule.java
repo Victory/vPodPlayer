@@ -4,6 +4,7 @@ import android.content.Context;
 
 import org.dfhu.vpodplayer.PodPlayer;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
+import org.dfhu.vpodplayer.util.ColorResource;
 
 import javax.inject.Singleton;
 
@@ -32,5 +33,11 @@ public class AndroidModule {
         return PodPlayer.builder()
                 .context(provideApplicationContext())
                 .build();
+    }
+
+    @Provides
+    @Singleton
+    public ColorResource provideColorResource() {
+        return new ColorResource(provideApplicationContext());
     }
 }

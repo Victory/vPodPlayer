@@ -6,6 +6,7 @@ import android.content.IntentFilter;
 
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
+import org.dfhu.vpodplayer.util.ColorResource;
 import org.dfhu.vpodplayer.util.DownloadCompleteBroadcastReceiver;
 
 import javax.inject.Singleton;
@@ -19,6 +20,7 @@ public class VPodPlayerApplication extends Application {
     public interface  ApplicationComponent {
         void inject(VPodPlayerApplication application);
         void inject(PlayerFragment playerFragment);
+        void inject(PlayerControlsView playerControlsView);
     }
 
     private ApplicationComponent component;

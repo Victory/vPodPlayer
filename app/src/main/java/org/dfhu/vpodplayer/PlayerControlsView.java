@@ -2,68 +2,62 @@ package org.dfhu.vpodplayer;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
+import org.dfhu.vpodplayer.util.ColorResource;
+
+import javax.inject.Inject;
+
 
 public class PlayerControlsView extends View {
 
-    public static final String LOW_COLOR = "#558899";
-    public static final String INNER_COLOR_PLAY = "#AA33AA";
-    public static final String INNER_COLOR_PAUSE = "#660066";
-    public static final String LISTENED_ARC_COLOR = "#00FF00";
-    public static final String TEXT_COLOR = "#008800";
-    public static final String DEBUG_COLOR = "#FF0000";
-    private final Paint outerPaint;
-    private final Paint innerPaint;
-    private final Paint listenArcPaint;
-    private final Paint debugPaint;
-    private final Paint textPaint;
-    private float size;
-    private float centerX;
-    private float centerY;
-    private float width;
-    private float height;
+    @Inject
+    ColorResource colorResource;
+
+    final Paint outerPaint;
+    final Paint innerPaint;
+    final Paint listenArcPaint;
+    final Paint textPaint;
+    float size;
+    float centerX;
+    float centerY;
+    float width;
+    float height;
     double arcLength = 1;
-    private PlayerInfo playerInfo = new PlayerInfo();
+    PlayerInfo playerInfo = new PlayerInfo();
 
-    private boolean isMoving = false;
+    boolean isMoving = false;
 
-    private final PlayPositionHandler playPositionHandler;
+    final PlayPositionHandler playPositionHandler;
 
-    private RectF arcRect = new RectF();
+    RectF arcRect = new RectF();
 
     public PlayerControlsView(Context context, final AttributeSet attributeSet) {
         super(context, attributeSet);
+        ((VPodPlayerApplication) context.getApplicationContext()).component().inject(this);
 
         textPaint = new Paint();
-        textPaint.setColor(Color.parseColor(TEXT_COLOR));
         textPaint.setAntiAlias(true);
         textPaint.setTextSize(80);
+        textPaint.setColor(colorResource.get(R.color.colorDownloaded));
 
         outerPaint = new Paint();
-        outerPaint.setColor(Color.parseColor(LOW_COLOR));
+        outerPaint.setColor(colorResource.get(R.color.colorPartiallyListened));
         outerPaint.setAntiAlias(true);
 
         innerPaint = new Paint();
-        innerPaint.setColor(Color.parseColor(INNER_COLOR_PLAY));
+        innerPaint.setColor(colorResource.get(R.color.colorListened));
         innerPaint.setAntiAlias(true);
 
-
         listenArcPaint = new Paint();
-        listenArcPaint.setColor(Color.parseColor(LISTENED_ARC_COLOR));
+        listenArcPaint.setColor(colorResource.get(R.color.colorAccent));
         listenArcPaint.setAntiAlias(true);
-
-        debugPaint = new Paint();
-        debugPaint.setColor(Color.parseColor(DEBUG_COLOR));
-        debugPaint.setAntiAlias(true);
 
         playPositionHandler = new PlayPositionHandler();
 
@@ -108,9 +102,8 @@ public class PlayerControlsView extends View {
         long duration = (long) Math.ceil(playerInfo.duration / 1000.0);
         String elapsedTime = DateUtils.formatElapsedTime(pos);
         String totalDuration = DateUtils.formatElapsedTime(duration);
-        canvas.drawText("position: " + elapsedTime + "/" + totalDuration, 9, 70, textPaint);
         long per = (long) Math.floor(percent * 100);
-        canvas.drawText("percent: " + per + "%", 9, 150, textPaint);
+        canvas.drawText(elapsedTime + "/" + totalDuration + "(" + per + "%)", 9, 70, textPaint);
     }
 
     @Override
@@ -123,7 +116,6 @@ public class PlayerControlsView extends View {
 
     /**
      * return true if between ACTION_DOWN and ACTION_UP events
-     * @return
      */
     public boolean getIsMoving() {
         return isMoving;
@@ -141,7 +133,7 @@ public class PlayerControlsView extends View {
                 isMoving = true;
                 isOuterAction = isOuterAction(x, y);
                 if (isCenterAction) {
-                    handleCenterClick(x, y, event);
+                    handleCenterClick();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -156,11 +148,10 @@ public class PlayerControlsView extends View {
         if (isOuterAction) {
             playPositionHandler.handle(x, y, event);
         }
-        //Log.d("touch-event", x + "X" + y + " percent " + percent + " - " + actionString);
     }
 
-    public void setCenterColor(String hexColor) {
-        innerPaint.setColor(Color.parseColor(hexColor));
+    public void setCenterColor(int colorId) {
+        innerPaint.setColor(colorResource.get(colorId));
         invalidate();
     }
 
@@ -175,9 +166,7 @@ public class PlayerControlsView extends View {
 
     public void updatePlayer(PlayerInfo info) {
         playerInfo = info;
-        //Log.d("PlayerControlsView", "updatePlayer: " + playerInfo.positionPercent);
-        double deg = 360 * playerInfo.positionPercent;
-        arcLength = deg;
+        arcLength = 360 * playerInfo.positionPercent;
         invalidate();
     }
 
@@ -186,7 +175,10 @@ public class PlayerControlsView extends View {
         double lastDeg = 0;
         double downDeg;
 
-        public void handle(float x, float y, MotionEvent event) {
+        PlayPositionHandler() {
+        }
+
+        void handle(float x, float y, MotionEvent event) {
 
             float cfx = x - centerX;
             float cfy = y - centerY;
@@ -236,10 +228,7 @@ public class PlayerControlsView extends View {
         float cfx = x - centerX;
         float cfy = y - centerY;
         double z = Math.sqrt(cfx*cfx + cfy*cfy);
-        if (z > size / 4) {
-            return false;
-        }
-        return true;
+        return z <= size / 4;
     }
 
     public boolean isOuterAction(float x, float y) {
@@ -250,14 +239,11 @@ public class PlayerControlsView extends View {
         float cfx = x - centerX;
         float cfy = y - centerY;
         double z = Math.sqrt(cfx*cfx + cfy*cfy);
-        if (z > size) {
-            return false;
-        }
+        return z <= size;
 
-        return true;
     }
 
-    public boolean handleCenterClick(float x, float y, MotionEvent event) {
+    public boolean handleCenterClick() {
         if (onCenterClickListener == null) {
             return false;
         }
@@ -274,12 +260,12 @@ public class PlayerControlsView extends View {
         onCenterClickListener = listener;
     }
 
-    private OnPositionDoneListener onPositionDoneListener;
+    OnPositionDoneListener onPositionDoneListener;
     public interface OnPositionDoneListener {
         /**
          * Triggered on MotionEvent.ACTION_UP of position rotation
          *
-         * @param positionPercent - the perecent of arc filled
+         * @param positionPercent - the percent of arc filled
          */
         void positionChange(double positionPercent);
     }

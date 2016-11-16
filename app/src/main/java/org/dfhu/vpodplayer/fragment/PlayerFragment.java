@@ -106,11 +106,11 @@ public class PlayerFragment extends Fragment {
 
                 if (isPlaying) {
                     podPlayer.setPlayWhenReady(false);
-                    playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PAUSE);
+                    playerControlsView.setCenterColor(R.color.colorFarBack);
                     unsubscribeUpdatePosition();
                 } else {
                     podPlayer.setPlayWhenReady(true);
-                    playerControlsView.setCenterColor(PlayerControlsView.INNER_COLOR_PLAY);
+                    playerControlsView.setCenterColor(R.color.colorListened);
                     subscribeUpdatePosition();
                 }
 
