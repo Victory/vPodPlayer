@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#CF84BE</color>
+    <color name="colorPrimaryDark">#680953</color>
+    <color name="colorAccent">#A484C5</color>
+    <color name="colorFarBack">#831C6D</color>
 
-    <color name="colorNotDownloaded">#FF8338</color>
-    <color name="colorDownloaded">#8383FF</color>
-    <color name="colorListened">#445a33</color>
-    <color name="colorPartiallyListened">#778877</color>
+    <color name="colorNotDownloaded">#E66C82</color>
+    <color name="colorDownloaded">#FFFFFF</color>
+    <color name="colorListened">#7D55A5</color>
+    <color name="colorPartiallyListened">#E66C82</color>
+
+    <color name="listItemInner">#993483</color>
+    <color name="listItemBorder">#680953</color>
 </resources>
+

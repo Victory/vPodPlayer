@@ -2,24 +2,32 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingRight="10dp"
+    android:paddingBottom="8dp"
+    android:paddingLeft="10dp"
+    android:background="@drawable/list_item_border">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/itemEpisodeTitle"
         android:textSize="20dp"
-        android:paddingTop="5dp" />
+        android:textColor="@color/colorAccent"
+        />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/itemEpisodeDuration"
+        android:textColor="@color/colorAccent"
         />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/itemEpisodePercentListened"
+        android:textColor="@color/colorAccent"
         />
 </LinearLayout>
