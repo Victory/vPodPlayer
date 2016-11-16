@@ -6,6 +6,6 @@
 
     <color name="colorNotDownloaded">#FF8338</color>
     <color name="colorDownloaded">#8383FF</color>
-    <color name="colorListened">#778877</color>
-    <color name="colorPartiallyListened">#445a33</color>
+    <color name="colorListened">#445a33</color>
+    <color name="colorPartiallyListened">#778877</color>
 </resources>
