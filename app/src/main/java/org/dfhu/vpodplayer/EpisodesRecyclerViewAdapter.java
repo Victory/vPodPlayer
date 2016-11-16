@@ -54,7 +54,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
 
         setColorTitleColor(holder.itemEpisodeTitle, episode);
         setDuration(holder.itemEpisodeDuration, episode);
-        setPerecentListened(holder.itemEpisodePercentListened, episode);
+        setPercentListened(holder.itemEpisodePercentListened, episode);
 
         if (highlightedEpisode > 0 && position == highlightedEpisode) {
             ObjectAnimator opacity = ObjectAnimator.ofFloat(holder.itemEpisodeTitle, "alpha", 0.0f, 1.0f);
@@ -64,7 +64,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
         }
     }
 
-    private void setPerecentListened(TextView itemEpisodePercentListened, Episode episode) {
+    private void setPercentListened(TextView itemEpisodePercentListened, Episode episode) {
         if (!episode.isDownloaded()) {
             itemEpisodePercentListened.setVisibility(View.GONE);
             return;
