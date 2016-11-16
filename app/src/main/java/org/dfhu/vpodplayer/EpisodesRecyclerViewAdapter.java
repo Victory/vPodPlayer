@@ -78,8 +78,8 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
             itemEpisodePercentListened.setVisibility(View.GONE);
             return;
         }
-        String prettyPercent = episode.percentListened + "%";
-        itemEpisodePercentListened.setText("Listened: " + prettyPercent);
+        itemEpisodePercentListened.setText(
+                context.getString(R.string.episodeItemPercentListened, episode.percentListened));
     }
 
     private void setDuration(TextView itemEpisodeDuration, Episode episode) {
@@ -88,7 +88,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
             return;
         }
         String prettyTime = DateUtils.formatElapsedTime(episode.duration / 1000);
-        itemEpisodeDuration.setText("Duration: " + prettyTime);
+        itemEpisodeDuration.setText(context.getString(R.string.episodeItemDuration, prettyTime));
     }
 
     private void setColorTitleColor(TextView itemEpisodeTitle, Episode episode) {
