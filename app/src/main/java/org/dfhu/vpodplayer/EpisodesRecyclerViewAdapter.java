@@ -31,11 +31,20 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
         static Observable<Episode> getEvents() { return subject; }
     }
 
-
-
     public EpisodesRecyclerViewAdapter(List<Episode> episodes, int highlightedEpisode) {
         this.episodes = episodes;
         this.highlightedEpisode = highlightedEpisode;
+        setHasStableIds(true);
+    }
+
+    /**
+     * The id is just the position
+     * @param position - position
+     * @return - super
+     */
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
     }
 
     @Override
