@@ -52,7 +52,7 @@ public class EpisodeListFragment extends Fragment {
         RecyclerView showsRecyclerView = (RecyclerView) view.findViewById(R.id.episodesRecyclerView);
         showsRecyclerView.setAdapter(adapter);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        linearLayoutManager.scrollToPosition(episodeScrollPosition - 3);
+        linearLayoutManager.scrollToPosition(episodeScrollPosition - 1);
         showsRecyclerView.setLayoutManager(linearLayoutManager);
 
         return view;
