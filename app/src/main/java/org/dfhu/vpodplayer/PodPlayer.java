@@ -178,13 +178,19 @@ public class PodPlayer {
         return new Builder();
     }
 
-    public void startPlayingUri(Uri uri) {
+    /**
+     * Start playing the mp3 with the given url
+     *
+     * @param uri - mp3 to play
+     * @return - true if not already playing and start play state is true
+     */
+    public boolean startPlayingUri(Uri uri) {
         if (player == null) {
             player = Builder.getExoPlayer(context);
         }
 
         if (player.getPlaybackState() == ExoPlayer.STATE_READY) {
-            return;
+            return false;
         }
 
 
@@ -193,6 +199,8 @@ public class PodPlayer {
         MediaSource mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
         player.prepare(mediaSource);
         setPlayWhenReady(true);
+
+        return true;
     }
 
     /**

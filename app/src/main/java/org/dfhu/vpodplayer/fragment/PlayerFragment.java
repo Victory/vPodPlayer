@@ -87,9 +87,9 @@ public class PlayerFragment extends Fragment {
         //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
 
-        podPlayer.startPlayingUri(uri);
+        boolean started = podPlayer.startPlayingUri(uri);
         long seekTo = episode.getPlayPosition();
-        if (seekTo > 0) {
+        if (started && seekTo > 0) {
             podPlayer.seekTo(seekTo);
         }
         podPlayer.setMetaDataTitle(episode.title);
