@@ -44,7 +44,7 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
      */
     @Override
     public long getItemId(int position) {
-        return super.getItemId(position);
+        return position;
     }
 
     @Override
@@ -78,6 +78,8 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
             itemEpisodePercentListened.setVisibility(View.GONE);
             return;
         }
+
+        itemEpisodePercentListened.setVisibility(View.VISIBLE);
         itemEpisodePercentListened.setText(
                 context.getString(R.string.episodeItemPercentListened, episode.percentListened));
     }
@@ -87,6 +89,8 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
             itemEpisodeDuration.setVisibility(View.GONE);
             return;
         }
+
+        itemEpisodeDuration.setVisibility(View.VISIBLE);
         String prettyTime = DateUtils.formatElapsedTime(episode.duration / 1000);
         itemEpisodeDuration.setText(context.getString(R.string.episodeItemDuration, prettyTime));
     }
