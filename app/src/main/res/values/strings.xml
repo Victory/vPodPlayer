@@ -3,4 +3,5 @@
     <string name="action_search">Podcast Url</string>
     <string name="episodeItemPercentListened">"Listened: %1$d%%"</string>
     <string name="episodeItemDuration">"Duration: %1s"</string>
+    <string name="initializing">"Initializing … "</string>
 </resources>

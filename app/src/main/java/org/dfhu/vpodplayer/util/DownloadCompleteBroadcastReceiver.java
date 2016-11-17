@@ -26,7 +26,6 @@ public class DownloadCompleteBroadcastReceiver extends BroadcastReceiver {
 
         Bundle bundle = intent.getExtras();
         final long downloadId = bundle.getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
-        final Context appContext = context;
         final MediaDuration mediaDuration = new MediaDuration(context);
 
         Async.start(new Func0<Observable<DownloadFragment.DownloadRow>>() {
@@ -49,7 +48,7 @@ public class DownloadCompleteBroadcastReceiver extends BroadcastReceiver {
                     DownloadFragment.DownloadRow dr = new DownloadFragment.DownloadRow(cursor);
                     DownloadFragment.UpdateProgress.publish(dr);
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        Episodes db = new Episodes(appContext);
+                        Episodes db = new Episodes(context);
                         Log.d(TAG, "downloadId on BroadcastReceiver:" + downloadId + " downloadRow: " + dr);
                         Episode episode = db.getByDownloadId(downloadId);
                         episode.isDownloaded = 1;
@@ -57,7 +56,6 @@ public class DownloadCompleteBroadcastReceiver extends BroadcastReceiver {
                         episode.sizeInBytes = dr.totalSize;
                         episode.duration = mediaDuration.get(episode.localUri);
                         db.addOrUpdate(episode);
-                        DownloadFragment.ShowPlayButton.publish(episode);
                     }
 
                     return Observable.just(dr);

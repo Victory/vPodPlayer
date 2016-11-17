@@ -40,13 +40,14 @@ import rx.subscriptions.CompositeSubscription;
 
 public class DownloadFragment extends Fragment {
 
-    private static final String TAG = DownloadFragment.class.getSimpleName();
+    public static final String TAG = DownloadFragment.class.getSimpleName();
 
     DownloadManager dm;
     Context context;
     TextView downloadTitle;
     ProgressBar progressBar;
     Button playDownloadButton;
+    long downloadId;
 
     CompositeSubscription subs = new CompositeSubscription();
 
@@ -62,7 +63,7 @@ public class DownloadFragment extends Fragment {
         private ShowPlayButton() {}
         private static PublishSubject<Episode> subject = PublishSubject.create();
 
-        public static void publish(Episode v) { subject.onNext(v); }
+        static void publish(Episode v) { subject.onNext(v); }
         static Observable<Episode> getEvents() { return subject; }
     }
 
@@ -76,12 +77,11 @@ public class DownloadFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        /*
-        context.registerReceiver(
-                onComplete,
-                new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
-        */
+        if (savedInstanceState != null) {
+            downloadId = savedInstanceState.getLong("downloadId");
+            subscribeToShowPlayButton(downloadId);
+            updateUi(downloadId);
+        }
 
         context.registerReceiver(
                 onNotificationClicked,
@@ -107,24 +107,30 @@ public class DownloadFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        downloadTitle.setText("Initializing ... ");
+        downloadTitle.setText(R.string.initializing);
 
         progressBar.setIndeterminate(true);
         progressBar.setMax(0);
         progressBar.setProgress(0);
 
         dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+
+        playDownloadButton.setTag(downloadId);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         subscribeToUiProgressUpdate();
-        deferDownloadQueue();
+        // this is a new download not a configuration change
+        if (downloadId == 0) {
+            deferDownloadQueue();
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        outState.putLong("downloadId", downloadId);
         super.onSaveInstanceState(outState);
     }
 
@@ -135,35 +141,6 @@ public class DownloadFragment extends Fragment {
         downloadTitle = null;
     }
 
-    private void debugDownloadQueue() {
-        DownloadManager.Query q = new DownloadManager.Query();
-        Cursor c = dm.query(q);
-
-        if (c.moveToFirst()) {
-            do {
-                DownloadRow downloadRow = new DownloadRow(c);
-                downloadRow.toString();
-            } while (c.moveToNext());
-        }
-        if (c != null) {
-            c.close();
-        }
-    }
-
-    private void debugEpisodes() {
-        DownloadManager.Query q = new DownloadManager.Query();
-        Cursor c = dm.query(q);
-
-        if (c.moveToFirst()) {
-            do {
-                DownloadRow downloadRow = new DownloadRow(c);
-                downloadRow.toString();
-            } while (c.moveToNext());
-        }
-        if (c != null) {
-            c.close();
-        }
-    }
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -195,6 +172,8 @@ public class DownloadFragment extends Fragment {
 
     /** Checks to see if we are already downloading the file, if not enqueues the file */
     public void queueDownload() {
+
+
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(context);
         final Episode episode = db.getById(episodeId);
@@ -227,7 +206,7 @@ public class DownloadFragment extends Fragment {
             }
         }
 
-        long downloadId = startDownload(episode);
+        downloadId = startDownload(episode);
         Log.d(TAG, "queueDownload() called: downloadId added: " + downloadId);
         episode.downloadId = downloadId;
         subscribeToShowPlayButton(downloadId);
@@ -239,7 +218,6 @@ public class DownloadFragment extends Fragment {
 
         playDownloadButton.setTag(downloadId);
         playDownloadButton.setVisibility(View.GONE);
-        //debugDownloadQueue();
     }
 
     private void subscribeToShowPlayButton(final long downloadId) {
@@ -298,7 +276,7 @@ public class DownloadFragment extends Fragment {
                         final int bytesSoFar = downloadRow.bytesSoFar;
                         // don't update progress if the the num bytes hasn't change
                         if (lastBytesSoFar == bytesSoFar) {
-                            Log.d(TAG, "bytes so far has not changed: " + lastBytesSoFar + " " + bytesSoFar);
+                            Log.d(TAG, "bytes so far has not changed: " + lastBytesSoFar + " " + bytesSoFar + " " + downloadRow.totalSize);
                             return;
                         }
                         lastBytesSoFar = bytesSoFar;
@@ -312,6 +290,13 @@ public class DownloadFragment extends Fragment {
                                 progressBar.setProgress(bytesSoFar);
                             }
                         });
+
+                        if (totalSize == bytesSoFar) {
+                            unsubscribe();
+                            Episodes db = new Episodes(context);
+                            Episode episode = db.getByDownloadId(downloadRow.id);
+                            ShowPlayButton.publish(episode);
+                        }
                     }
                 });
 
@@ -435,16 +420,17 @@ public class DownloadFragment extends Fragment {
     /** Represents the values in a curursor download */
     public static class DownloadRow {
 
-        public final String destination;
-        public final String title;
-        public final String description;
-        public final String uri;
-        public final int status;
-        public final Integer totalSize;
-        public final Integer bytesSoFar;
-        public final String localUri;
-        public final int reason;
         public final long id;
+        public final String localUri;
+        public final Integer totalSize;
+
+        final String destination;
+        public final String title;
+        final String description;
+        final String uri;
+        final int status;
+        final Integer bytesSoFar;
+        final int reason;
 
         public DownloadRow(Cursor c) {
             id = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_ID));
@@ -512,9 +498,8 @@ public class DownloadFragment extends Fragment {
                     break;
             }
 
-            String msg =
-                  id + " - " +  u + " - " + s + " - " + r + " - " + bsf + "/" + ts + " " + t + " - " + localUri;
-            return msg;
+            return id + " - " +  u + " - " + s + " - " + r + " - " +
+                    bsf + "/" + ts + " " + t + " - " + localUri;
         }
     }
 }
