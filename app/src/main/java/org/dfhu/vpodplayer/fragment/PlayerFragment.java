@@ -39,6 +39,7 @@ public class PlayerFragment extends Fragment {
     private Subscription updatePositionSubscription;
     private CompositeSubscription subscriptions;
     private Context applicationContext;
+    private PlayerControlsView controls;
 
     private static class UpdatePositionBus {
 
@@ -76,7 +77,7 @@ public class PlayerFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
-        PlayerControlsView controls = (PlayerControlsView) view.findViewById(R.id.playerControls);
+        controls = (PlayerControlsView) view.findViewById(R.id.playerControls);
 
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(getActivity().getApplicationContext());
@@ -135,6 +136,20 @@ public class PlayerFragment extends Fragment {
                 UpdatePositionBus.publish(-1L);
             }
         });
+    }
+
+    /**
+     * Set the play position to 0
+     */
+    public void restartEpisode() {
+        if (controls == null) {
+            return;
+        }
+        PlayerControlsView.OnPositionDoneListener onPositionDoneListener = controls.getOnPositionDoneListener();
+        if (onPositionDoneListener == null) {
+            return;
+        }
+        onPositionDoneListener.positionChange(0);
     }
 
     /**

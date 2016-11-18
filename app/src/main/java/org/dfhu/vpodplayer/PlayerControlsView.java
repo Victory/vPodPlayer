@@ -292,4 +292,8 @@ public class PlayerControlsView extends View {
     public void setOnPositionDoneListener(OnPositionDoneListener listener) {
         onPositionDoneListener = listener;
     }
+
+    public OnPositionDoneListener getOnPositionDoneListener() {
+        return onPositionDoneListener;
+    }
 }

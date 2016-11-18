@@ -1,7 +1,6 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
-import android.content.Context;
 import android.media.AudioManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -77,7 +76,6 @@ public class VPodPlayer extends AppCompatActivity
 
         toolbar = (Toolbar) findViewById(R.id.tool_bar);
         final String nameThis = this.toString();
-        Log.d("test-title", "on create activity: " + nameThis);
         setSupportActionBar(toolbar);
         showHomeButton(true);
 
@@ -158,7 +156,7 @@ public class VPodPlayer extends AppCompatActivity
 
                     @Override
                     public void onNext(Show show) {
-                        setEpisodeFragment(show.id, 0);
+                        setEpisodeListFragment(show.id, 0);
                     }
                 });
         subscriptions.add(sub);
@@ -286,11 +284,10 @@ public class VPodPlayer extends AppCompatActivity
         if (fragment instanceof PlayerFragment) {
             int showId = fragment.getArguments().getInt("showId");
             int episodeId = fragment.getArguments().getInt("episodeId");
-
-            setEpisodeFragment(showId, episodeId);
+            setEpisodeListFragment(showId, episodeId);
         } else if (fragment instanceof DownloadFragment) {
             int showId = fragment.getArguments().getInt("showId");
-            setEpisodeFragment(showId, 0);
+            setEpisodeListFragment(showId, 0);
         } else {
             setHomeFragment();
         }
@@ -301,6 +298,8 @@ public class VPodPlayer extends AppCompatActivity
         if (fragment instanceof EpisodeListFragment) {
             int showId = fragment.getArguments().getInt("showId");
             getNewEpisodesForShow(showId);
+        } else if (fragment instanceof PlayerFragment) {
+            ((PlayerFragment) fragment).restartEpisode();
         }
     }
 
@@ -310,7 +309,7 @@ public class VPodPlayer extends AppCompatActivity
      * @param showId - id of the show to display
      * @param episodeId - id of the episode to scroll to
      */
-    public void setEpisodeFragment(int showId, int episodeId) {
+    public void setEpisodeListFragment(int showId, int episodeId) {
         EpisodeListFragment fragment = new EpisodeListFragment();
         Bundle args = new Bundle();
         args.putInt("showId", showId);
@@ -398,7 +397,7 @@ public class VPodPlayer extends AppCompatActivity
         Episodes episodeDb = new Episodes(this.getApplicationContext());
         Show show = SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
 
-        setEpisodeFragment(show.id, 0);
+        setEpisodeListFragment(show.id, 0);
         Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();
     }
 

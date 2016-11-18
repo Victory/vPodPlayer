@@ -5,18 +5,18 @@
     tools:context=".VPodPlayer"
     >
 
-    <!--
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="action settings"
         app:showAsAction="never" />
-    -->
+
     <item android:title="refresh"
         android:orderInCategory="200"
         app:showAsAction="always"
         android:icon="@android:drawable/ic_menu_rotate"
         android:id="@+id/menu_refresh_podcast" />ic_search
+
     <item
         android:id="@+id/menu_subscribe"
         app:actionViewClass="org.dfhu.vpodplayer.SubscribeActionView"
