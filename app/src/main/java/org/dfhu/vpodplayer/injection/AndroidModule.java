@@ -5,6 +5,7 @@ import android.content.Context;
 import org.dfhu.vpodplayer.PodPlayer;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.util.ColorResource;
+import org.dfhu.vpodplayer.util.DateUtil;
 
 import javax.inject.Singleton;
 
@@ -39,5 +40,11 @@ public class AndroidModule {
     @Singleton
     public ColorResource provideColorResource() {
         return new ColorResource(provideApplicationContext());
+    }
+
+    @Provides
+    @Singleton
+    public DateUtil provideDateUtil() {
+        return new DateUtil(provideApplicationContext());
     }
 }

@@ -13,6 +13,7 @@ public class Episode {
     public int sizeInBytes = -1;
     public long downloadId = -1;
     public String pubDate;
+    public long lastListened;
 
     /** null if not set so can be populated on first pass */
     public Integer duration = null;
@@ -39,7 +40,6 @@ public class Episode {
 
     /**
      * The last recorded play position in Ms
-     * @return
      */
     public long getPlayPosition() {
         return (int) Math.floor((duration) * (percentListened / 100.0));

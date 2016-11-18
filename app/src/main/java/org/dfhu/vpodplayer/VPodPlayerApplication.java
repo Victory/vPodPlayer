@@ -21,6 +21,7 @@ public class VPodPlayerApplication extends Application {
         void inject(VPodPlayerApplication application);
         void inject(PlayerFragment playerFragment);
         void inject(PlayerControlsView playerControlsView);
+        void inject(EpisodesRecyclerViewAdapter episodesRecyclerViewAdapter);
     }
 
     private ApplicationComponent component;

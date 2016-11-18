@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
-import org.dfhu.vpodplayer.util.MediaDuration;
 
 import java.util.List;
 
@@ -18,7 +17,7 @@ public class Episodes extends SQLiteOpenHelper {
     public static final String TAG = Episodes.class.getName();
 
     private static final String DB_NAME = "episodes";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
 
     // Column keys
     private static final String K_ID = "id";
@@ -33,6 +32,7 @@ public class Episodes extends SQLiteOpenHelper {
     private static final String K_DOWNLOAD_ID = "downloadId";
     private static final String K_PUB_DATE = "pubDate";
     private static final String K_DURATION = "duration";
+    private static final String K_LAST_LISTENED = "lastListened";
 
     private static final String[] COLUMNS = {
             K_ID,
@@ -44,7 +44,8 @@ public class Episodes extends SQLiteOpenHelper {
             K_LOCAL_URI,
             K_DOWNLOAD_ID,
             K_PUB_DATE,
-            K_DURATION
+            K_DURATION,
+            K_LAST_LISTENED
     };
 
     private static final String CREATE =
@@ -60,7 +61,8 @@ public class Episodes extends SQLiteOpenHelper {
                     "`sizeInBytes` INTEGER," +
                     "`downloadId` INTEGER," +
                     "`pubDate` STRING," +
-                    "`duration` INTEGER" +
+                    "`duration` INTEGER," +
+                    "`lastListened` INTEGER" +
                     ")";
 
     public Episodes(Context context) {
@@ -74,9 +76,9 @@ public class Episodes extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS `" + DB_NAME + "`");
-            this.onCreate(db);
+        if (oldVersion < 2) {
+            String sql = "ALTER TABLE `" + DB_NAME + "` ADD COLUMN `lastListened` INTEGER";
+            db.execSQL(sql);
         }
     }
 
@@ -98,7 +100,7 @@ public class Episodes extends SQLiteOpenHelper {
     /**
      * Add a record but don't close the database
      * @param episode - episode to add
-     * @param db - opend database connection
+     * @param db - opened database connection
      * @param shouldUpdate - true if we should update an existing record, false if we should ignore
      * @return
      */
@@ -124,6 +126,7 @@ public class Episodes extends SQLiteOpenHelper {
         contentValues.put(K_DOWNLOAD_ID, episode.downloadId);
         contentValues.put(K_PUB_DATE, episode.pubDate);
         contentValues.put(K_DURATION, episode.duration);
+        contentValues.put(K_LAST_LISTENED, episode.lastListened);
 
 
         long result;
@@ -230,6 +233,7 @@ public class Episodes extends SQLiteOpenHelper {
         try {
             ContentValues contentValues = new ContentValues();
             contentValues.put(K_PERCENT_LISTENED, episode.percentListened);
+            contentValues.put(K_LAST_LISTENED, System.currentTimeMillis());
             writableDatabase.update(DB_NAME, contentValues, "id = ?", episodeWhereClause(episode.id));
         } catch (Throwable e) {
             Log.e(TAG, "updatePercentListened: could not update", e);
@@ -254,6 +258,7 @@ public class Episodes extends SQLiteOpenHelper {
                 episode.isDownloaded = cc.getIntColumn(K_IS_DOWNLOADED);
                 episode.pubDate = cc.getStringColumn(K_PUB_DATE);
                 episode.duration = cc.getIntColumn(K_DURATION);
+                episode.lastListened = cc.getLongColumn(K_LAST_LISTENED);
 
                 items.add(episode);
             }

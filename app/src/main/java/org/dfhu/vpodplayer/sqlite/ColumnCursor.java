@@ -16,4 +16,8 @@ public class ColumnCursor {
     public int getIntColumn(String key) {
         return cursor.getInt(cursor.getColumnIndex(key));
     }
+
+    public long getLongColumn(String key) {
+        return cursor.getLong(cursor.getColumnIndex(key));
+    }
 }

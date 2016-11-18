@@ -11,8 +11,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.dfhu.vpodplayer.model.Episode;
+import org.dfhu.vpodplayer.util.DateUtil;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -22,6 +25,9 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
     private final int highlightedEpisode;
     private final List<Episode> episodes;
     private Context context;
+
+    @Inject
+    DateUtil dateUtil;
 
     public static class EpisodeClickBus {
         private EpisodeClickBus() {}
@@ -50,6 +56,9 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         context = parent.getContext();
+
+        ((VPodPlayerApplication) context.getApplicationContext()).component().inject(this);
+
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.episode_list_item, parent, false);
         return new ViewHolder(view);
@@ -74,14 +83,17 @@ public class EpisodesRecyclerViewAdapter extends RecyclerView.Adapter<EpisodesRe
     }
 
     private void setPercentListened(TextView itemEpisodePercentListened, Episode episode) {
-        if (!episode.isDownloaded()) {
+        if (!episode.isDownloaded() || episode.lastListened == 0) {
             itemEpisodePercentListened.setVisibility(View.GONE);
             return;
         }
 
         itemEpisodePercentListened.setVisibility(View.VISIBLE);
+        String prettyLastListened = dateUtil.localFromUnixTime(episode.lastListened);
         itemEpisodePercentListened.setText(
-                context.getString(R.string.episodeItemPercentListened, episode.percentListened));
+                context.getString(R.string.episodeItemPercentListened,
+                        episode.percentListened,
+                        prettyLastListened));
     }
 
     private void setDuration(TextView itemEpisodeDuration, Episode episode) {
