@@ -158,7 +158,7 @@ public class PlayerControlsView extends View {
     private class PlayPositionHandler {
         double deg = 0;
         double lastDeg = 0;
-        double downDeg;
+        int doubleClickState = 0;
 
         PlayPositionHandler() {
         }
@@ -173,7 +173,6 @@ public class PlayerControlsView extends View {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     isMoving = true;
-                    downDeg = deg;
                     lastDeg = deg;
                     break;
                 case MotionEvent.ACTION_MOVE:
@@ -182,6 +181,7 @@ public class PlayerControlsView extends View {
                     if (Math.abs(mdd) > 300) {
                         mdd = 0;
                     }
+
                     arcLength += mdd;
 
                     if (arcLength + mdd >= 360) {
@@ -195,13 +195,53 @@ public class PlayerControlsView extends View {
                     invalidate();
                     break;
                 case MotionEvent.ACTION_UP:
+
+                    // done moving
                     isMoving = false;
-                    double percent = arcLength / 360;
+
+                    if (handleDoubleClick(event)) return;
+
+                    // see if we should inform the listener
                     if (onPositionDoneListener != null) {
+                        double percent = arcLength / 360;
                         onPositionDoneListener.positionChange(percent);
                     }
                     break;
             }
+        }
+
+        /**
+         *
+         * Move arcLength +5 deg if double click on right hand size, -5 if on left hand side.
+         *
+         * @param event - current event
+         * @return - true if this is first of a possible double click, else false
+         */
+        private boolean handleDoubleClick(MotionEvent event) {
+            long dt = event.getEventTime() - event.getDownTime();
+            if (dt < 100) {
+                doubleClickState += 1;
+            } else {
+                doubleClickState = 0;
+            }
+            if (doubleClickState == 2) {
+                doubleClickState = 0;
+                double ticTime = playerInfo.duration / 360;
+                double degForSeconds = 15 / (ticTime / 1000);
+                double tmpLength = arcLength;
+                tmpLength += lastDeg < 180 ? -degForSeconds : degForSeconds;
+                if (tmpLength < 0) {
+                    arcLength = 0;
+                } else if (tmpLength > 360) {
+                    arcLength = 360;
+                } else {
+                    arcLength = tmpLength;
+                }
+            } else if (doubleClickState == 1) { // first click of a double click
+                                                // or accidental tap (nothing to do)
+                return true;
+            }
+            return false;
         }
     }
 
