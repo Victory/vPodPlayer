@@ -35,9 +35,9 @@ public class PlayerFragment extends Fragment {
     @Inject
     PodPlayer podPlayer;
 
-    private boolean isPlaying = false;
+    boolean isPlaying = false;
     private Subscription updatePositionSubscription;
-    private CompositeSubscription subscriptions = new CompositeSubscription();
+    private CompositeSubscription subscriptions;
     private Context applicationContext;
 
     private static class UpdatePositionBus {
@@ -62,17 +62,18 @@ public class PlayerFragment extends Fragment {
     @Override
     public void onDestroy() {
         podPlayer.end();
-
-        if (subscriptions != null) {
-            subscriptions.unsubscribe();
-        }
-
+        subscriptions.unsubscribe();
         super.onDestroy();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (subscriptions != null) {
+            subscriptions.unsubscribe();
+        }
+        subscriptions = new CompositeSubscription();
+
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
         PlayerControlsView controls = (PlayerControlsView) view.findViewById(R.id.playerControls);
@@ -84,8 +85,6 @@ public class PlayerFragment extends Fragment {
         bindToUpdatePositionBus(applicationContext, episodeId);
 
         Uri uri = Uri.parse(episode.localUri);
-        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
-
 
         boolean started = podPlayer.startPlayingUri(uri);
         long seekTo = episode.getPlayPosition();
@@ -96,12 +95,19 @@ public class PlayerFragment extends Fragment {
         isPlaying = true;
         subscribeUpdatePosition();
 
+        setControlsListeners(controls, episode);
+
+        Toast.makeText(getContext(), "Playing: " + episode.title, Toast.LENGTH_LONG).show();
+        return view;
+    }
+
+    /**
+     * Set the listeners for controls view
+     */
+    private void setControlsListeners(PlayerControlsView controls, final Episode episode) {
         controls.setOnCenterClickListener(new PlayerControlsView.OnCenterClickListener() {
             @Override
             public void click(PlayerControlsView playerControlsView) {
-
-                Log.d("PlayerFragment", "clicked: " + episode.title);
-
                 Toast.makeText(getContext(), episode.title, Toast.LENGTH_SHORT).show();
 
                 if (isPlaying) {
@@ -123,22 +129,24 @@ public class PlayerFragment extends Fragment {
             public void positionChange(double positionPercent) {
                 //Log.d("PlayerFragment", "positionPercent: " + positionPercent);
                 long duration = podPlayer.getDuration();
-                double seek = duration * positionPercent;
-                podPlayer.seekTo((long) seek);
+                long seek = (long) (duration * positionPercent);
+                podPlayer.seekTo(seek);
+
+                UpdatePositionBus.publish(-1L);
             }
         });
-
-        Toast.makeText(getContext(), "Playing: " + episode.title, Toast.LENGTH_LONG).show();
-        return view;
     }
 
+    /**
+     * Bind to the "ticks" of the player controller
+     */
     public void bindToUpdatePositionBus(final Context context, final int episodeId) {
-
-        UpdatePositionBus.getEvents()
+        Subscription sub = UpdatePositionBus.getEvents()
                 .onBackpressureLatest()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Long>() {
                     int count = 0;
+                    final int numEventsPerSave = 15;
                     double lastPosition = 0;
 
                     @Override
@@ -151,8 +159,17 @@ public class PlayerFragment extends Fragment {
 
                     }
 
+                    /**
+                     * Update position in view and save periodically
+                     *
+                     * @param saveIndicator - if < 0 save immediately else ignore
+                     */
                     @Override
-                    public void onNext(Long aLong) {
+                    public void onNext(Long saveIndicator) {
+                        if (getView() == null) {
+                            return;
+                        }
+
                         PlayerControlsView view = (PlayerControlsView) getView().findViewById(R.id.playerControls);
                         if (view.getIsMoving()) {
                             return;
@@ -161,13 +178,11 @@ public class PlayerFragment extends Fragment {
                         double position = podPlayer.getCurrentPosition();
                         double positionPercent = position / duration;
 
-                        // don't update if paused
-                        if (lastPosition == position) {
+                        // don't update if paused except for first run
+                        if (count > numEventsPerSave && lastPosition == position && saveIndicator > 0) {
                             return;
                         }
                         lastPosition = position;
-
-                        //Log.d("PlayerFragement", "positionInfo: " + positionPercent + " - " + position);
 
                         PlayerControlsView.PlayerInfo playerInfo = new PlayerControlsView.PlayerInfo();
                         playerInfo.positionPercent = positionPercent;
@@ -176,14 +191,23 @@ public class PlayerFragment extends Fragment {
                         view.updatePlayer(playerInfo);
 
                         count += 1;
-                        if (count % 15 == 0) {
+                        if (saveIndicator < 0 || count % numEventsPerSave == 0) {
                             Episodes db = new Episodes(context);
                             Episode episode = db.getById(episodeId);
                             episode.percentListened = (int) Math.floor(100 * playerInfo.positionPercent);
+
+                            // corner cases of start and end of episode
+                            if (episode.percentListened >= 98) {
+                                episode.percentListened = 100;
+                            } else if (episode.percentListened <= 2) {
+                                episode.percentListened = 0;
+                            }
                             db.updatePercentListened(episode);
                         }
                     }
                 });
+
+        subscriptions.add(sub);
     }
 
     public void unsubscribeUpdatePosition() {

@@ -103,12 +103,12 @@ public class PlayerControlsView extends View {
         String elapsedTime = DateUtils.formatElapsedTime(pos);
         String totalDuration = DateUtils.formatElapsedTime(duration);
         long per = (long) Math.floor(percent * 100);
-        canvas.drawText(elapsedTime + "/" + totalDuration + "(" + per + "%)", 9, 70, textPaint);
+        canvas.drawText(elapsedTime + "/" + totalDuration + " (" + per + "%)", 9, 70, textPaint);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        logMotionEvent(event);
+        handleTouchEvent(event);
         super.onTouchEvent(event);
         return true;
     }
@@ -121,31 +121,16 @@ public class PlayerControlsView extends View {
         return isMoving;
     }
 
-    boolean isOuterAction;
-    private void logMotionEvent(MotionEvent event) {
+    private void handleTouchEvent(MotionEvent event) {
 
         float x = event.getX();
         float y = event.getY();
 
-        boolean isCenterAction = isCenterAction(x, y);
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                isMoving = true;
-                isOuterAction = isOuterAction(x, y);
-                if (isCenterAction) {
-                    handleCenterClick();
-                }
-                break;
-            case MotionEvent.ACTION_MOVE:
-                break;
-            case MotionEvent.ACTION_UP:
-                isMoving = false;
-                isOuterAction = false;
-                break;
-        }
-
-
-        if (isOuterAction) {
+        if (isCenterAction(x, y)) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                handleCenterClick();
+            }
+        } else if (isOuterAction(x, y)) {
             playPositionHandler.handle(x, y, event);
         }
     }
@@ -187,6 +172,7 @@ public class PlayerControlsView extends View {
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
+                    isMoving = true;
                     downDeg = deg;
                     lastDeg = deg;
                     break;
@@ -194,33 +180,28 @@ public class PlayerControlsView extends View {
                     double mdd = deg - lastDeg;
 
                     if (Math.abs(mdd) > 300) {
-                        //Log.d("motion-event", "DISCONTINUOUS");
                         mdd = 0;
                     }
                     arcLength += mdd;
 
                     if (arcLength + mdd >= 360) {
                         arcLength = 360;
-                        //Log.d("motion-event", "TOO BIG");
                     } else if (arcLength + mdd <= 0) {
                         arcLength = 0;
-                        //Log.d("motion-event", "TOO SMALL");
                     } else {
                         arcLength += mdd;
                     }
-                    //Log.d("move-event", "mdd: " + mdd + " deg: " + deg + " lastDeg:" + lastDeg);
                     lastDeg = deg;
                     invalidate();
+                    break;
+                case MotionEvent.ACTION_UP:
+                    isMoving = false;
                     double percent = arcLength / 360;
                     if (onPositionDoneListener != null) {
                         onPositionDoneListener.positionChange(percent);
                     }
-
-                    break;
-                case MotionEvent.ACTION_UP:
                     break;
             }
-
         }
     }
 
@@ -231,11 +212,10 @@ public class PlayerControlsView extends View {
         return z <= size / 4;
     }
 
+    /**
+     * Check if this action is within the outer circle (including inner circle)
+     */
     public boolean isOuterAction(float x, float y) {
-        if (isCenterAction(x, y)) {
-            return false;
-        }
-
         float cfx = x - centerX;
         float cfy = y - centerY;
         double z = Math.sqrt(cfx*cfx + cfy*cfy);
