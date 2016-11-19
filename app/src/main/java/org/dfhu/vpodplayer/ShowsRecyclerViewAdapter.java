@@ -3,6 +3,7 @@ package org.dfhu.vpodplayer;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +54,7 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener {
+            implements View.OnClickListener, View.OnCreateContextMenuListener {
 
         final TextView itemShowTitle;
 
@@ -67,12 +68,21 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
             super(itemView);
             itemView.setOnClickListener(this);
             itemShowTitle = (TextView) itemView.findViewById(R.id.itemShowTitle);
+
+            itemView.setOnCreateContextMenuListener(this);
         }
 
         @Override
         public void onClick(View v) {
             Log.d("ShowsRecylerViewAdapter", "onClick - position:" + getLayoutPosition() + " id:" + show.id);
             ShowClickBus.publish(show);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+            menu.setHeaderTitle(show.title);
+            menu.add(0, view.getId(), 0, "Delete old");
+            menu.add(0, view.getId(), 0, "Unsubscribe");
         }
     }
 }

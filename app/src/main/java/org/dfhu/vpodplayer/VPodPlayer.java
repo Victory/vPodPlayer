@@ -43,10 +43,8 @@ import rx.subjects.PublishSubject;
 public class VPodPlayer extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
 
-
-
-    private static class FetchBus {
-        private FetchBus() {}
+    private static class FetchFeedBus {
+        private FetchFeedBus() {}
         private static PublishSubject<Feed> subject = PublishSubject.create();
 
         static void publish(Feed v) { subject.onNext(v); }
@@ -63,7 +61,7 @@ public class VPodPlayer extends AppCompatActivity
 
     Toolbar toolbar;
 
-    private static final String TAG_FETCH_FEED_FRAGMENT = "fetch-feed-fragment";
+    private static final String TAG_FETCH_FEED_FRAGMENT = "TAG_FETCH_FEED_FRAGMENT";
     public static final String TAG_MAIN_DISPLAY_FRAGMENT = "TAG_MAIN_DISPLAY_FRAGMENT";
     private List<Subscription> subscriptions = new LinkedList<>();
 
@@ -185,13 +183,12 @@ public class VPodPlayer extends AppCompatActivity
         subscriptions.add(sub);
     }
 
-
     /**
      * Subscribe the the results of fetching a feed
      * @param nameThis - debugging
      */
     private void subscribeToFetch(final String nameThis) {
-        Subscription sub = FetchBus.getEvents()
+        Subscription sub = FetchFeedBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Feed>() {
                     @Override
@@ -236,7 +233,6 @@ public class VPodPlayer extends AppCompatActivity
         inflater.inflate(R.menu.main_menu, menu);
 
         bindSubscribeMenuItem(menu);
-
         return true;
     }
 
@@ -305,7 +301,6 @@ public class VPodPlayer extends AppCompatActivity
         }
     }
 
-
     /**
      * Display the fragment with the list of episodes for a show
      * @param showId - id of the show to display
@@ -368,7 +363,7 @@ public class VPodPlayer extends AppCompatActivity
         @Override
         public void onNext(Feed feed) {
             Log.d("test-title", "onNext: "+ feed.getTitle());
-            FetchBus.publish(feed);
+            FetchFeedBus.publish(feed);
         }
     }
 
