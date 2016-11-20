@@ -7,6 +7,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -43,5 +44,13 @@ public class ShowListFragment extends Fragment {
         showsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         return view;
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if (item.getGroupId() != R.id.ShowListFragmentContextMenuId) {
+            return false;
+        }
+        return true;
     }
 }

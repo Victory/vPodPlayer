@@ -5,8 +5,10 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.dfhu.vpodplayer.model.Show;
@@ -64,25 +66,46 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
             this.show = show;
         }
 
-        ViewHolder(View itemView) {
+        ViewHolder(final View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             itemShowTitle = (TextView) itemView.findViewById(R.id.itemShowTitle);
 
+            setViewFacade(itemView);
+
             itemView.setOnCreateContextMenuListener(this);
+        }
+
+        /**
+         * Because the layout is nested to for the ripple we build a facade to pass along clicks
+         * @param itemView
+         */
+        private void setViewFacade(final View itemView) {
+            View facedForClicks = itemView.findViewById(R.id.showClickable);
+            facedForClicks.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ViewHolder.this.onClick(itemView);
+                }
+            });
+            facedForClicks.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+                @Override
+                public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+                    // no-op but passes up to the ViewHolder
+                }
+            });
         }
 
         @Override
         public void onClick(View v) {
-            Log.d("ShowsRecylerViewAdapter", "onClick - position:" + getLayoutPosition() + " id:" + show.id);
             ShowClickBus.publish(show);
         }
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
             menu.setHeaderTitle(show.title);
-            menu.add(0, view.getId(), 0, "Delete old");
-            menu.add(0, view.getId(), 0, "Unsubscribe");
+            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 1, "Delete Listened");
+            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 2, "Unsubscribe");
         }
     }
 }
