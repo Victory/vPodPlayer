@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.text.format.Formatter;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
@@ -130,8 +131,9 @@ public class DeleteEpisodeFilesService extends IntentService {
 
         private void updateNotification(DeleteResult deleteResult) {
 
+            String prettyFreed = Formatter.formatFileSize(applicationContext, deleteResult.totalFree);
             String msg = "Deleted " + deleteResult.totalDeleted +
-                    " freed " + deleteResult.totalFree + " bytes";
+                    " freed " + prettyFreed;
 
              Notification notification = new Notification.Builder(applicationContext)
                     .setContentTitle(deleteResult.show.title)
