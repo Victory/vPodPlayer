@@ -118,7 +118,7 @@ public class VPodPlayer extends AppCompatActivity
                     public void onNext(Episode episode) {
                         Log.d("episodeClickSub", "onNext: " + episode);
 
-                        Fragment fragment = (episode.localUri != null) ?
+                        Fragment fragment = (episode.isReadyToPlay()) ?
                                 new PlayerFragment() :
                                 new DownloadFragment();
 

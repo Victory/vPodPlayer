@@ -242,6 +242,21 @@ public class Episodes extends SQLiteOpenHelper {
         }
     }
 
+    public void updateToDeleted(Episode episode) {
+        SQLiteDatabase writableDatabase = getWritableDatabase();
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.putNull(K_LOCAL_URI);
+            contentValues.put(K_IS_DOWNLOADED, false);
+            contentValues.put(K_DOWNLOAD_ID, 0);
+            writableDatabase.update(DB_NAME, contentValues, "id = ?", episodeWhereClause(episode.id));
+        } catch (Throwable e) {
+            Log.e(TAG, "updateToDeleted: could not mark deleted: " + episode, e);
+        } finally {
+            writableDatabase.close();
+        }
+    }
+
     private static class Hydrator implements ConsumeHydrator<Episode> {
             @Override
             public void consume(ColumnCursor cc, List<Episode> items) {

@@ -45,4 +45,17 @@ public class Episode {
         return (int) Math.floor((duration) * (percentListened / 100.0));
     }
 
+    /**
+     * @return - true if is downloaded and the localUri is not null, else false
+     */
+    public boolean isReadyToPlay() {
+        return isDownloaded() && localUri != null && !localUri.isEmpty();
+    }
+
+    /**
+     * @return - true we could play this but more than 95% listened, else false
+     */
+    public boolean isReadyToDelete() {
+       return isReadyToPlay() && percentListened > 95;
+    }
 }

@@ -178,8 +178,8 @@ public class DownloadFragment extends Fragment {
         Episodes db = new Episodes(context);
         final Episode episode = db.getById(episodeId);
 
-        if (episode.isDownloaded == 1) {
-            Log.d(TAG, "Episode marked as downloaded: " + episode);
+        if (episode.isReadyToPlay()) {
+            Log.d(TAG, "Episode marked ready to play: " + episode);
             return;
         }
 

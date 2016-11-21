@@ -18,6 +18,10 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
+        <service
+            android:name=".service.DeleteEpisodeFilesService"
+            android:exported="false">
+        </service>
         <activity android:name=".VPodPlayer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
