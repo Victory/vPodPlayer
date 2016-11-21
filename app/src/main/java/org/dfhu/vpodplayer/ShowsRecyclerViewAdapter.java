@@ -78,7 +78,6 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
 
         /**
          * Because the layout is nested to for the ripple we build a facade to pass along clicks
-         * @param itemView
          */
         private void setViewFacade(final View itemView) {
             View facedForClicks = itemView.findViewById(R.id.showClickable);
@@ -103,9 +102,13 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+            Context context = view.getContext().getApplicationContext();
             menu.setHeaderTitle(show.title);
-            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 1, "Delete Listened");
-            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 2, "Unsubscribe");
+
+            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 1,
+                    context.getString(R.string.contextMenuDeleteListened));
+            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 2,
+                    context.getString(R.string.contextMenuUnsubscribe));
         }
     }
 }
