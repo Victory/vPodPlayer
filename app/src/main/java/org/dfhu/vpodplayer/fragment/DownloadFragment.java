@@ -26,6 +26,7 @@ import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.util.MediaDuration;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
@@ -36,6 +37,7 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
+import rx.util.async.Async;
 
 
 public class DownloadFragment extends Fragment {
@@ -63,7 +65,7 @@ public class DownloadFragment extends Fragment {
         private ShowPlayButton() {}
         private static PublishSubject<Episode> subject = PublishSubject.create();
 
-        static void publish(Episode v) { subject.onNext(v); }
+        public static void publish(Episode v) { subject.onNext(v); }
         static Observable<Episode> getEvents() { return subject; }
     }
 
@@ -125,6 +127,8 @@ public class DownloadFragment extends Fragment {
         // this is a new download not a configuration change
         if (downloadId == 0) {
             deferDownloadQueue();
+        } else {
+            showPlayButtonIfReadyToPlay();
         }
     }
 
@@ -170,9 +174,23 @@ public class DownloadFragment extends Fragment {
         subs.add(sub);
     }
 
+    private void showPlayButtonIfReadyToPlay() {
+        Async.fromCallable(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                Episodes db = new Episodes(context);
+                Episode episode = db.getByDownloadId(downloadId);
+                if (episode.isReadyToPlay()) {
+                    ShowPlayButton.publish(episode);
+                }
+                return null;
+            }
+        }).subscribe();
+    }
+
+
     /** Checks to see if we are already downloading the file, if not enqueues the file */
     public void queueDownload() {
-
 
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(context);
@@ -293,9 +311,6 @@ public class DownloadFragment extends Fragment {
 
                         if (totalSize == bytesSoFar) {
                             unsubscribe();
-                            Episodes db = new Episodes(context);
-                            Episode episode = db.getByDownloadId(downloadRow.id);
-                            ShowPlayButton.publish(episode);
                         }
                     }
                 });

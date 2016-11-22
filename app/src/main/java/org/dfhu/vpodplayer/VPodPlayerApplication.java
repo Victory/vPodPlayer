@@ -6,8 +6,7 @@ import android.content.IntentFilter;
 
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
-import org.dfhu.vpodplayer.util.ColorResource;
-import org.dfhu.vpodplayer.util.DownloadCompleteBroadcastReceiver;
+import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
 
 import javax.inject.Singleton;
 

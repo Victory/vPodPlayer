@@ -1,4 +1,4 @@
-package org.dfhu.vpodplayer.util;
+package org.dfhu.vpodplayer.broadcastreceiver;
 
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
@@ -11,6 +11,7 @@ import android.util.Log;
 import org.dfhu.vpodplayer.fragment.DownloadFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
+import org.dfhu.vpodplayer.util.MediaDuration;
 
 import rx.Observable;
 import rx.functions.Func0;
@@ -56,6 +57,7 @@ public class DownloadCompleteBroadcastReceiver extends BroadcastReceiver {
                         episode.sizeInBytes = dr.totalSize;
                         episode.duration = mediaDuration.get(episode.localUri);
                         db.addOrUpdate(episode);
+                        DownloadFragment.ShowPlayButton.publish(episode);
                     }
 
                     return Observable.just(dr);

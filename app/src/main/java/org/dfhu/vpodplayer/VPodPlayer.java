@@ -27,10 +27,8 @@ import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 import rx.Observable;
 import rx.Observer;
