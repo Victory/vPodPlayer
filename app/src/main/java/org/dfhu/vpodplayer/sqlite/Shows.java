@@ -10,7 +10,7 @@ import org.dfhu.vpodplayer.model.Show;
 
 import java.util.List;
 
-public class Shows extends SQLiteOpenHelper {
+public class Shows extends VicSQLiteOpenHelper {
 
     private static final int DB_VERSION = 1;
     private static final String DB_NAME = "shows";
@@ -118,6 +118,15 @@ public class Shows extends SQLiteOpenHelper {
             }
         }
         return new Show();
+    }
+
+    public void deleteById(int showId) {
+        SQLiteDatabase writableDatabase = getWritableDatabase();
+        try {
+            writableDatabase.delete(DB_NAME, "id = ?", idWhereClause(showId));
+        } finally {
+            writableDatabase.close();
+        }
     }
 
     public static class Hydrator implements ConsumeHydrator<Show> {

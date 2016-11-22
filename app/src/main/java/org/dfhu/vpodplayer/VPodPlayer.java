@@ -69,7 +69,6 @@ public class VPodPlayer extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_podcasts);
-
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         toolbar = (Toolbar) findViewById(R.id.tool_bar);

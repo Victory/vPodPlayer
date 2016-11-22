@@ -36,7 +36,8 @@ public class DeleteEpisodeFilesService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         String dataString = intent.getDataString();
         if (!dataString.equals(URI_DELETE_LISTENED_STRING)) {
-            Log.e(TAG, "Wrong dataString passed: " + dataString);
+            Log.e(TAG, "Could not handle intent bad dataString:" + dataString);
+            return;
         }
         final int showId = intent.getExtras().getInt("showId");
 

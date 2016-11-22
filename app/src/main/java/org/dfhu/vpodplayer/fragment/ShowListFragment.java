@@ -1,10 +1,7 @@
 package org.dfhu.vpodplayer.fragment;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -21,6 +18,7 @@ import org.dfhu.vpodplayer.ShowsRecyclerViewAdapter;
 import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.service.DeleteEpisodeFilesService;
+import org.dfhu.vpodplayer.service.UnsubscribeService;
 import org.dfhu.vpodplayer.sqlite.Shows;
 
 import java.util.List;
@@ -62,13 +60,15 @@ public class ShowListFragment extends Fragment {
         Context context = getContext().getApplicationContext();
         if (context.getString(R.string.contextMenuDeleteListened).equals(clickedTitle)) {
             startDeleteListenedService(item.getItemId());
-        //} else if (context.getString(R.string.contextMenuDeleteListened).equals(clickedTitle)) {
+        } else if (context.getString(R.string.contextMenuUnsubscribe).equals(clickedTitle)) {
+            startUnsubscribeService(item.getItemId());
         } else {
             VPodPlayer.safeToast("Not implemented");
         }
 
         return true;
     }
+
 
     /**
      * Start the service that deletes listened episodes for this showId
@@ -79,8 +79,16 @@ public class ShowListFragment extends Fragment {
         intent.setData(DeleteEpisodeFilesService.URI_DELETE_LISTENED);
         intent.putExtra("showId", showId);
         getActivity().startService(intent);
-
-
     }
 
+    /**
+     * Start a service that unsubscribe from a show
+     * @param showId - target show id
+     */
+    private void startUnsubscribeService(int showId) {
+        Intent intent = new Intent(getActivity(), UnsubscribeService.class);
+        intent.setData(UnsubscribeService.URI_UNSUBSCRIBE);
+        intent.putExtra("showId", showId);
+        getActivity().startService(intent);
+    }
 }

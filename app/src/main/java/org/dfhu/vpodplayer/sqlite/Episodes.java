@@ -12,7 +12,7 @@ import org.dfhu.vpodplayer.model.Episode;
 
 import java.util.List;
 
-public class Episodes extends SQLiteOpenHelper {
+public class Episodes extends VicSQLiteOpenHelper {
 
     public static final String TAG = Episodes.class.getName();
 
@@ -234,7 +234,7 @@ public class Episodes extends SQLiteOpenHelper {
             ContentValues contentValues = new ContentValues();
             contentValues.put(K_PERCENT_LISTENED, episode.percentListened);
             contentValues.put(K_LAST_LISTENED, System.currentTimeMillis());
-            writableDatabase.update(DB_NAME, contentValues, "id = ?", episodeWhereClause(episode.id));
+            writableDatabase.update(DB_NAME, contentValues, "id = ?", idWhereClause(episode.id));
         } catch (Throwable e) {
             Log.e(TAG, "updatePercentListened: could not update", e);
         } finally {
@@ -249,9 +249,20 @@ public class Episodes extends SQLiteOpenHelper {
             contentValues.putNull(K_LOCAL_URI);
             contentValues.put(K_IS_DOWNLOADED, false);
             contentValues.put(K_DOWNLOAD_ID, 0);
-            writableDatabase.update(DB_NAME, contentValues, "id = ?", episodeWhereClause(episode.id));
+            writableDatabase.update(DB_NAME, contentValues, "id = ?", idWhereClause(episode.id));
         } catch (Throwable e) {
             Log.e(TAG, "updateToDeleted: could not mark deleted: " + episode, e);
+        } finally {
+            writableDatabase.close();
+        }
+    }
+
+    public void deleteAllForShow(int showId) {
+        SQLiteDatabase writableDatabase = getWritableDatabase();
+        try {
+            writableDatabase.delete(DB_NAME, "showId = ?", idWhereClause(showId));
+        } catch (Throwable e) {
+            Log.e(TAG, "deleteById: could not delete rows for showId " + showId, e);
         } finally {
             writableDatabase.close();
         }
@@ -279,12 +290,4 @@ public class Episodes extends SQLiteOpenHelper {
             }
         }
 
-    /**
-     * Return episode where clause for id = ?
-     * @param episodeId - id of episode to search
-     * @return
-     */
-    private String[] episodeWhereClause(int episodeId) {
-        return new String[]{"" + episodeId};
-    }
 }
