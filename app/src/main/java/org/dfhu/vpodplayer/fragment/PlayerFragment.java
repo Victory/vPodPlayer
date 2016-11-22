@@ -235,6 +235,7 @@ public class PlayerFragment extends Fragment {
     public void subscribeUpdatePosition() {
         updatePositionSubscription =
                 Observable.interval(0, 1000, TimeUnit.MILLISECONDS, Schedulers.newThread())
+                        .onBackpressureDrop()
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Subscriber<Long>() {
                             @Override
@@ -250,7 +251,7 @@ public class PlayerFragment extends Fragment {
 
                             @Override
                             public void onNext(Long aLong) {
-                               UpdatePositionBus.publish(aLong);
+                                UpdatePositionBus.publish(aLong);
                             }
                         });
 
