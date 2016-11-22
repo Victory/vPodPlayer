@@ -298,7 +298,6 @@ public class DownloadFragment extends Fragment {
                         final int bytesSoFar = downloadRow.bytesSoFar;
                         // don't update progress if the the num bytes hasn't change
                         if (lastBytesSoFar == bytesSoFar) {
-                            Log.d(TAG, "bytes so far has not changed: " + lastBytesSoFar + " " + bytesSoFar + " " + downloadRow.totalSize);
                             return;
                         }
                         lastBytesSoFar = bytesSoFar;
@@ -339,7 +338,7 @@ public class DownloadFragment extends Fragment {
         //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         File dir = new File(fileDir, "episodes");
-        dir = new File(dir, "test");
+        dir = new File(dir, "show-" + episode.showId);
         if (!dir.mkdirs()) {
             Log.d("DownloadFragment", "Directory already exists: " + dir.getAbsolutePath());
         }
