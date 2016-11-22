@@ -49,6 +49,7 @@ public class DownloadFragment extends Fragment {
     TextView downloadTitle;
     ProgressBar progressBar;
     Button playDownloadButton;
+
     long downloadId;
 
     CompositeSubscription subs = new CompositeSubscription();
@@ -285,6 +286,9 @@ public class DownloadFragment extends Fragment {
                     @Override
                     public void onNext(DownloadRow downloadRow) {
                         //Log.d(TAG, "onNext() called with: downloadRow updateProgress = [" + downloadRow + "]");
+                        if (downloadRow.id != downloadId) {
+                            return;
+                        }
 
                         if (isFirst) {
                             downloadTitle.setText(downloadRow.title);
@@ -407,6 +411,9 @@ public class DownloadFragment extends Fragment {
 
 
     public void showPlayButton(final Episode episode) {
+        if (episode.downloadId != downloadId) {
+            return;
+        }
         playDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

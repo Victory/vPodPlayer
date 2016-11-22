@@ -280,7 +280,8 @@ public class VPodPlayer extends AppCompatActivity
             setEpisodeListFragment(showId, episodeId);
         } else if (fragment instanceof DownloadFragment) {
             int showId = fragment.getArguments().getInt("showId");
-            setEpisodeListFragment(showId, 0);
+            int episodeId = fragment.getArguments().getInt("episodeId");
+            setEpisodeListFragment(showId, episodeId);
         } else {
             setHomeFragment();
         }
