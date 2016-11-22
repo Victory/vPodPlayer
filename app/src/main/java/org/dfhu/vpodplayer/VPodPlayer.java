@@ -43,6 +43,8 @@ import rx.subjects.PublishSubject;
 public class VPodPlayer extends AppCompatActivity
         implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
 
+    public static final String TAG = VPodPlayer.class.getName();
+
     private static class FetchFeedBus {
         private FetchFeedBus() {}
         private static PublishSubject<Feed> subject = PublishSubject.create();
@@ -73,11 +75,10 @@ public class VPodPlayer extends AppCompatActivity
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         toolbar = (Toolbar) findViewById(R.id.tool_bar);
-        final String nameThis = this.toString();
         setSupportActionBar(toolbar);
         showHomeButton(true);
 
-        subscribeToFetch(nameThis);
+        subscribeToFetch();
         subscribeToToastError();
         subscribeToShowClicked();
         subscribeToEpisodeClicked();
@@ -185,25 +186,23 @@ public class VPodPlayer extends AppCompatActivity
 
     /**
      * Subscribe the the results of fetching a feed
-     * @param nameThis - debugging
      */
-    private void subscribeToFetch(final String nameThis) {
+    private void subscribeToFetch() {
         Subscription sub = FetchFeedBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Feed>() {
                     @Override
                     public void onCompleted() {
-                        Log.d("test-title", "busy onCompleted");
+                        Log.d(TAG, "busy onCompleted");
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.d("test-title", "busy onError", e);
+                        Log.d(TAG, "busy onError", e);
                     }
 
                     @Override
                     public void onNext(Feed feed) {
-                        Log.d("test-title", "on busy setting title: " + nameThis);
                         handleFeed(feed);
                     }
                 });

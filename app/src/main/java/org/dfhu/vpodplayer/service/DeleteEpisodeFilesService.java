@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.text.format.Formatter;
 import android.util.Log;
 
+import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
@@ -72,8 +73,9 @@ public class DeleteEpisodeFilesService extends IntentService {
         }
 
         private void showNotification(String showTitle) {
+            String appName = applicationContext.getResources().getString(R.string.app_name);
             Notification notification = new Notification.Builder(applicationContext)
-                    .setContentTitle("VPodPlayer")
+                    .setContentTitle(appName)
                     .setContentText("Deleting listened episodes for: " + showTitle)
                     .setSmallIcon(android.R.drawable.ic_menu_rotate)
                     .build();
@@ -144,12 +146,25 @@ public class DeleteEpisodeFilesService extends IntentService {
             notificationManager.notify(1, notification);
         }
 
+        private void errorNotification() {
+            String appName = applicationContext.getResources().getString(R.string.app_name);
+            String msg = "Error deleting files.";
+             Notification notification = new Notification.Builder(applicationContext)
+                    .setContentTitle(appName)
+                    .setContentText(msg)
+                    .setSmallIcon(android.R.drawable.ic_menu_rotate)
+                    .build();
+
+            notificationManager.notify(1, notification);
+        }
+
         @Override
         public void onCompleted() {
         }
 
         @Override
         public void onError(Throwable e) {
+            errorNotification();
             Log.e(TAG, "onError", e);
         }
 
