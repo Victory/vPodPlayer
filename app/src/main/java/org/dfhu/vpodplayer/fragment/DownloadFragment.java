@@ -335,7 +335,6 @@ public class DownloadFragment extends Fragment {
         File fileDir = context.getExternalFilesDir(null);
 
         Uri uri = Uri.parse(episode.url);
-        //Uri uri = Uri.parse("http://192.168.1.6:3000/pm.mp3");
 
         File dir = new File(fileDir, "episodes");
         dir = new File(dir, "show-" + episode.showId);

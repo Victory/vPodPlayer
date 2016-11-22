@@ -367,11 +367,6 @@ public class VPodPlayer extends AppCompatActivity
 
     @Override
     public void triggerFetchFeed(String feedUrl) {
-        // prefix with http
-        if (!feedUrl.startsWith("http://")) {
-            feedUrl = "http://192.168.1.6:3000/" + feedUrl;
-        }
-
         FragmentManager fm = getFragmentManager();
         FetchFeedFragment fetchFeedFragment = (FetchFeedFragment) fm.findFragmentByTag(TAG_FETCH_FEED_FRAGMENT);
         if (fetchFeedFragment == null) {
