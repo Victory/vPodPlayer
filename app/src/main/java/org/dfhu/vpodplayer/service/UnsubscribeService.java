@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
+import org.dfhu.vpodplayer.VPodPlayer;
+import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
@@ -40,19 +42,19 @@ public class UnsubscribeService extends IntentService {
         Unsubscriber unsubscriber = new Unsubscriber(showId, getApplicationContext());
         Observable.fromCallable(unsubscriber)
                 .subscribeOn(Schedulers.io())
-                .subscribe(new UnsubscriberSubscriber(getApplicationContext()));
+                .subscribe(new UnsubscriberSubscriber());
     }
 
     static class UnsubscriberResults {
-        public int totalDeleted;
-        public int totalFree;
+        int totalDeleted;
+        int totalFree;
     }
 
     static class Unsubscriber implements Callable<UnsubscriberResults> {
         private final int showId;
         private final Context applicationContext;
 
-        public Unsubscriber(int showId, Context applicationContext) {
+        Unsubscriber(int showId, Context applicationContext) {
             this.showId = showId;
             this.applicationContext = applicationContext;
         }
@@ -91,12 +93,6 @@ public class UnsubscribeService extends IntentService {
 
 
     static class UnsubscriberSubscriber extends Subscriber<UnsubscriberResults> {
-        private final Context applicationContext;
-
-        public UnsubscriberSubscriber(Context applicationContext) {
-            this.applicationContext = applicationContext;
-        }
-
         @Override
         public void onCompleted() {
 
@@ -109,7 +105,7 @@ public class UnsubscribeService extends IntentService {
 
         @Override
         public void onNext(UnsubscriberResults unsubscriberResults) {
-            Log.d(TAG, "onNext: " + unsubscriberResults);
+            VPodPlayer.RefreshFragmentBus.publish(ShowListFragment.class);
         }
     }
 }

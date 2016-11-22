@@ -59,6 +59,14 @@ public class VPodPlayer extends AppCompatActivity
         static Observable<String> getEvents() { return subject; }
     }
 
+    public static class RefreshFragmentBus {
+        private RefreshFragmentBus() {}
+        private static PublishSubject<Class> subject = PublishSubject.create();
+
+        public static void publish(Class v) { subject.onNext(v); }
+        static Observable<Class> getEvents() { return subject; }
+    }
+
     Toolbar toolbar;
 
     private static final String TAG_FETCH_FEED_FRAGMENT = "TAG_FETCH_FEED_FRAGMENT";
@@ -79,9 +87,10 @@ public class VPodPlayer extends AppCompatActivity
         subscribeToToastError();
         subscribeToShowClicked();
         subscribeToEpisodeClicked();
+        subscribeToRefreshFragment();
 
         if (getSupportFragmentManager().findFragmentByTag(TAG_MAIN_DISPLAY_FRAGMENT) == null) {
-            setHomeFragment();
+            setShowListFragment();
         }
     }
 
@@ -96,6 +105,33 @@ public class VPodPlayer extends AppCompatActivity
         }
         supportActionBar.setHomeButtonEnabled(show);
         supportActionBar.setDisplayHomeAsUpEnabled(show);
+    }
+
+    private void subscribeToRefreshFragment() {
+        Subscription sub = RefreshFragmentBus.getEvents()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Class>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: trying to refresh", e);
+                    }
+
+                    @Override
+                    public void onNext(Class cls) {
+                        Fragment fragment =
+                                getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+                        if (cls == ShowListFragment.class && fragment instanceof ShowListFragment) {
+                            setShowListFragment();
+                        } else {
+                            safeToast("Not implemented");
+                        }
+                    }
+                });
+        subscriptions.add(sub);
     }
 
     private void subscribeToEpisodeClicked() {
@@ -282,7 +318,7 @@ public class VPodPlayer extends AppCompatActivity
             int episodeId = fragment.getArguments().getInt("episodeId");
             setEpisodeListFragment(showId, episodeId);
         } else {
-            setHomeFragment();
+            setShowListFragment();
         }
     }
 
@@ -321,7 +357,7 @@ public class VPodPlayer extends AppCompatActivity
     /**
      * Display the list of shows (the "home" fragment)
      */
-    private void setHomeFragment() {
+    void setShowListFragment() {
         ShowListFragment fragment = new ShowListFragment();
 
         getSupportFragmentManager()
