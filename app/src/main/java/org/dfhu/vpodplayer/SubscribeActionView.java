@@ -5,10 +5,12 @@ import android.support.v7.view.CollapsibleActionView;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import org.dfhu.vpodplayer.FeedFetcher;
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.fragment.ShowListFragment;
 
 
 public class SubscribeActionView extends LinearLayoutCompat implements CollapsibleActionView {
@@ -40,7 +42,14 @@ public class SubscribeActionView extends LinearLayoutCompat implements Collapsib
                 }
 
                 if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+
+                    // Close the open soft keyboard
+                    InputMethodManager inputMethodManager =
+                            (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+
                     feedFetcher.triggerFetchFeed(subscribeUrl.getText().toString());
+                    return true;
                 }
                 return false;
             }
