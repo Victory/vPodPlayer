@@ -1,10 +1,14 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.media.AudioManager;
+import android.net.Uri;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -88,10 +92,45 @@ public class VPodPlayer extends AppCompatActivity
         subscribeToShowClicked();
         subscribeToEpisodeClicked();
         subscribeToRefreshFragment();
+        handleIntentFromBrowserLink();
+
 
         if (getSupportFragmentManager().findFragmentByTag(TAG_MAIN_DISPLAY_FRAGMENT) == null) {
             setShowListFragment();
         }
+    }
+
+    /**
+     * If we get an intent from a browser link, this should be a url
+     * this creates an alert dialogue to confirm the subscription
+     */
+    private AlertDialog subscribeConfirmationAlertDialog;
+    private void handleIntentFromBrowserLink() {
+        final String dataString = getIntent().getDataString();
+
+        if (dataString == null || dataString.isEmpty() || !dataString.startsWith("http")) {
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        subscribeConfirmationAlertDialog = builder
+                .setTitle("Subscribe to Podcast")
+                .setMessage("Would you like to subscribe to: " + dataString + "?")
+                .setPositiveButton("Subscribe", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        getIntent().setData(Uri.EMPTY);
+                        triggerFetchFeed(dataString);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        getIntent().setData(Uri.EMPTY);
+                    }
+                })
+                .show();
+
     }
 
     /**
@@ -257,6 +296,10 @@ public class VPodPlayer extends AppCompatActivity
     @Override
     public void onPause() {
         super.onPause();
+        if (subscribeConfirmationAlertDialog != null) {
+            subscribeConfirmationAlertDialog.dismiss();
+            subscribeConfirmationAlertDialog = null;
+        }
     }
 
     @Override

@@ -8,10 +8,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
-import org.dfhu.vpodplayer.FeedFetcher;
-import org.dfhu.vpodplayer.R;
-import org.dfhu.vpodplayer.fragment.ShowListFragment;
-
 
 public class SubscribeActionView extends LinearLayoutCompat implements CollapsibleActionView {
 
