@@ -47,6 +47,8 @@ public class VPodPlayer extends AppCompatActivity
 
     public static final String TAG = VPodPlayer.class.getName();
 
+    private AlertDialog subscribeConfirmationAlertDialog;
+
     private static class FetchFeedBus {
         private FetchFeedBus() {}
         private static PublishSubject<Feed> subject = PublishSubject.create();
@@ -104,7 +106,6 @@ public class VPodPlayer extends AppCompatActivity
      * If we get an intent from a browser link, this should be a url
      * this creates an alert dialogue to confirm the subscription
      */
-    private AlertDialog subscribeConfirmationAlertDialog;
     private void handleIntentFromBrowserLink() {
         final String dataString = getIntent().getDataString();
 
