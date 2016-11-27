@@ -6,6 +6,8 @@ import org.dfhu.vpodplayer.PodPlayer;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.util.ColorResource;
 import org.dfhu.vpodplayer.util.DateUtil;
+import org.dfhu.vpodplayer.util.StringsProvider;
+import org.dfhu.vpodplayer.util.StringsProviderFromContext;
 
 import javax.inject.Singleton;
 
@@ -46,5 +48,11 @@ public class AndroidModule {
     @Singleton
     public DateUtil provideDateUtil() {
         return new DateUtil(provideApplicationContext());
+    }
+
+    @Provides
+    @Singleton
+    public StringsProvider provideStringsProvider () {
+        return StringsProviderFromContext.getInstance(provideApplicationContext());
     }
 }

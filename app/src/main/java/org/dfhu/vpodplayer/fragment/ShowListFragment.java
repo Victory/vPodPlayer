@@ -20,6 +20,7 @@ import org.dfhu.vpodplayer.ShowsRecyclerViewAdapter;
 import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.service.DeleteEpisodeFilesService;
+import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 import org.dfhu.vpodplayer.service.UnsubscribeService;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
@@ -147,6 +148,12 @@ public class ShowListFragment extends Fragment {
         Intent intent = new Intent(getActivity(), UnsubscribeService.class);
         intent.setData(UnsubscribeService.URI_UNSUBSCRIBE);
         intent.putExtra("showId", showId);
+        getActivity().startService(intent);
+    }
+
+    public void refreshAllEpisodes() {
+        Intent intent = new Intent(getActivity(), RefreshAllShowsService.class);
+        intent.setData(RefreshAllShowsService.URI_REFRESH_ALL);
         getActivity().startService(intent);
     }
 }

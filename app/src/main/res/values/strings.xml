@@ -7,4 +7,7 @@
 
     <string name="contextMenuDeleteListened">Delete Listened</string>
     <string name="contextMenuUnsubscribe">Unsubscribe</string>
+    <string name="updatingFeed">Updating feed %1$s</string>
+    <string name="ellipsis">…</string>
+    <string name="numShowsUpdated">Updated all %1$d Shows</string>
 </resources>

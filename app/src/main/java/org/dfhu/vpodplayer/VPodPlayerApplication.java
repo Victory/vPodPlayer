@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
 import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
+import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 
 import javax.inject.Singleton;
 
@@ -21,6 +22,7 @@ public class VPodPlayerApplication extends Application {
         void inject(PlayerFragment playerFragment);
         void inject(PlayerControlsView playerControlsView);
         void inject(EpisodesRecyclerViewAdapter episodesRecyclerViewAdapter);
+        void inject(RefreshAllShowsService refreshAllShowsService);
     }
 
     private ApplicationComponent component;

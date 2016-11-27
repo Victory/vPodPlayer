@@ -373,6 +373,8 @@ public class VPodPlayer extends AppCompatActivity
             getNewEpisodesForShow(showId);
         } else if (fragment instanceof PlayerFragment) {
             ((PlayerFragment) fragment).restartEpisode();
+        } else if (fragment instanceof ShowListFragment) {
+            ((ShowListFragment) fragment).refreshAllEpisodes();
         } else {
             safeToast("Not implemented");
         }
