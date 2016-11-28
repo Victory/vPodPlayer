@@ -1,7 +1,6 @@
 package org.dfhu.vpodplayer.service;
 
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.util.Log;
@@ -11,6 +10,7 @@ import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -20,8 +20,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import rx.observers.TestSubscriber;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -29,6 +34,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 public class RefreshAllShowsLogicTest extends Assert {
+
+    private static final int SUBSCRIBE_TIMEOUT_MILLI = 13000;
+
     @Mock
     Context mockContext;
 
@@ -44,39 +52,143 @@ public class RefreshAllShowsLogicTest extends Assert {
     @Mock
     RefreshAllShowsService.RefreshAllShowsServiceNotification mockRefreshAllShowsServiceNotification;
 
-    @Test
-    @PrepareForTest(Log.class)
-    public void allShowsIsCalled() {
-        PowerMockito.mockStatic(Log.class);
+    private TestSubscriber<RefreshAllShowsLogic.RefreshResults> testSubscriber;
 
+    @Before
+    public void setUp() {
         mockContext = mock(Context.class);
-        mockNotificationManager = mock(NotificationManager.class);
         mockShowsDb = mock(Shows.class);
         stringsProvider = mock(StringsProvider.class);
         mockRefreshAllShowsServiceNotification = mock(RefreshAllShowsService.RefreshAllShowsServiceNotification.class);
+        testSubscriber = new TestSubscriber<>();
+    }
 
-        mock(Notification.Builder.class);
-
+    private void tenShows() {
         List<Show> shows = new LinkedList<>();
-        shows.add(new Show());
-        shows.get(0).title = "title 1";
-        shows.get(0).url = "http://example.com/1.mp3";
-        shows.get(0).description = "description 1";
-        shows.get(0).id = 100;
+        for (int ii = 0; ii < 10; ii++) {
+            shows.add(new Show());
+            shows.get(ii).title = "title " + ii;
+            shows.get(ii).url = "http://example.com/" + ii;
+            shows.get(ii).description = "description " + ii;
+            shows.get(ii).id = 100 + ii;
+        }
         when(mockShowsDb.all()).thenReturn(shows);
+    }
+
+    private RefreshAllShowsLogic buildRefreshAllShowLogic() {
+        RefreshAllShowsLogic.Builder builder = new RefreshAllShowsLogic.Builder();
+        return builder
+                .refreshAllShowsServiceNotification(mockRefreshAllShowsServiceNotification)
+                .showsDb(mockShowsDb)
+                .stringsProvider(stringsProvider)
+                .subscriber(testSubscriber)
+                .build();
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void showsDbAllIsCalled() {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
 
         when(stringsProvider.getString(any(Integer.class))).thenReturn("MOCKED STRING");
         when(stringsProvider.getString(any(Integer.class), any(Object.class))).thenReturn("MOCKED STRING WITH ARGS");
 
-        RefreshAllShowsLogic.Builder builder = new RefreshAllShowsLogic.Builder();
-        RefreshAllShowsLogic logic = builder
-                .refreshAllShowsServiceNotification(mockRefreshAllShowsServiceNotification)
-                .showsDb(mockShowsDb)
-                .stringsProvider(stringsProvider)
-                .build();
-
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
         logic.handleIntent();
 
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+
         verify(mockShowsDb, times(1)).all();
+
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void showNotificationsIsCalledForEachShowAndBeforeAndAfter() {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
+
+        when(stringsProvider.getString(any(Integer.class))).thenReturn("MOCKED STRING");
+        when(stringsProvider.getString(any(Integer.class), any(Object.class))).thenReturn("MOCKED STRING WITH ARGS");
+
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+
+        verify(mockRefreshAllShowsServiceNotification, times(12))
+                .show(any(String.class), any(String.class));
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void showNotificationsIsCalledBeforeAndAfter() {
+        PowerMockito.mockStatic(Log.class);
+
+        when(stringsProvider.getString(R.string.app_name)).thenReturn("appname");
+        when(stringsProvider.getString(R.string.numShowsUpdated, 0)).thenReturn("none-updated");
+        when(stringsProvider.getString(eq(R.string.updatingFeed), any(String.class))).thenReturn("3dots");
+
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+
+        verify(mockRefreshAllShowsServiceNotification, times(1))
+                .show(eq("appname"), eq("3dots"));
+
+        verify(mockRefreshAllShowsServiceNotification, times(1))
+                .show(eq("appname"), eq("none-updated"));
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void showNotificationsShowsTitle() {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
+
+        when(stringsProvider.getString(R.string.app_name)).thenReturn("appname");
+        when(stringsProvider.getString(eq(R.string.updatingFeed), eq("title 5"))).thenReturn("update show 5");
+
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI * 50, TimeUnit.MILLISECONDS);
+
+        verify(mockRefreshAllShowsServiceNotification, atLeastOnce())
+                .show(eq("appname"), eq("update show 5"));
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void correctNumberOfShowsUpdate() {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
+
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+        testSubscriber.assertTerminalEvent();
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
+        List<RefreshAllShowsLogic.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
+        RefreshAllShowsLogic.RefreshResults refreshResults = onNextEvents.get(0);
+        assertTrue(refreshResults.numShowsUpdated.get() == 10);
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void onNextIsOnlyCalledOnce() {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
+
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+        testSubscriber.assertTerminalEvent();
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
+        List<RefreshAllShowsLogic.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
+        assertTrue("onNext should only be called once", onNextEvents.size() == 1);
     }
 }
