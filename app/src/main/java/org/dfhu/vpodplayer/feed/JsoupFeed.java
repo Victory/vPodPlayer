@@ -30,11 +30,6 @@ public class JsoupFeed implements Feed {
     }
 
     @Override
-    public String getId() {
-        return "V1-" + getUrl().toLowerCase().replaceAll("[^a-zA-Z0-9]", "-");
-    }
-
-    @Override
     public String getUrl() {
         return url;
     }

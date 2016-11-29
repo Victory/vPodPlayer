@@ -5,7 +5,6 @@ import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
-import org.dfhu.vpodplayer.util.MediaDuration;
 
 import java.util.List;
 
@@ -15,7 +14,7 @@ public class SubscribeToFeed {
 
     private SubscribeToFeed() {}
 
-    /** Store show and episdoes from the feed in the database */
+    /** Store show and episodes from the feed in the database */
     public static Show subscribe(Feed feed, Shows showsDb, Episodes episodesDb) {
 
         Show show = new Show();
