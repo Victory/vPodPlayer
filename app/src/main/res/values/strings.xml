@@ -9,5 +9,8 @@
     <string name="contextMenuUnsubscribe">Unsubscribe</string>
     <string name="updatingFeed">Updating feed %1$s</string>
     <string name="ellipsis">…</string>
-    <string name="numShowsUpdated">Updated all %1$d Shows</string>
+    <plurals name="numShowsUpdated">
+        <item quantity="one">Updated %1$d Show.</item>
+        <item quantity="other">Updated %1$d Shows.</item>
+    </plurals>
 </resources>

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.feed.SubscribeToFeed;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
@@ -18,6 +19,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +54,9 @@ public class RefreshAllShowsLogicTest extends Assert {
     @Mock
     RefreshAllShowsService.RefreshAllShowsServiceNotification mockRefreshAllShowsServiceNotification;
 
+    @Mock
+    SubscribeToFeed mockSubscribeToFeed;
+
     private TestSubscriber<RefreshAllShowsLogic.RefreshResults> testSubscriber;
 
     @Before
@@ -60,6 +65,7 @@ public class RefreshAllShowsLogicTest extends Assert {
         mockShowsDb = mock(Shows.class);
         stringsProvider = mock(StringsProvider.class);
         mockRefreshAllShowsServiceNotification = mock(RefreshAllShowsService.RefreshAllShowsServiceNotification.class);
+        mockSubscribeToFeed = mock(SubscribeToFeed.class);
         testSubscriber = new TestSubscriber<>();
     }
 
@@ -80,6 +86,7 @@ public class RefreshAllShowsLogicTest extends Assert {
         return builder
                 .refreshAllShowsServiceNotification(mockRefreshAllShowsServiceNotification)
                 .showsDb(mockShowsDb)
+                .subscribeToFeed(mockSubscribeToFeed)
                 .stringsProvider(stringsProvider)
                 .subscriber(testSubscriber)
                 .build();
@@ -126,7 +133,7 @@ public class RefreshAllShowsLogicTest extends Assert {
         PowerMockito.mockStatic(Log.class);
 
         when(stringsProvider.getString(R.string.app_name)).thenReturn("appname");
-        when(stringsProvider.getString(R.string.numShowsUpdated, 0)).thenReturn("none-updated");
+        when(stringsProvider.getQuantityString(R.plurals.numShowsUpdated, 0, 0)).thenReturn("none-updated");
         when(stringsProvider.getString(eq(R.string.updatingFeed), any(String.class))).thenReturn("3dots");
 
         RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
@@ -191,4 +198,31 @@ public class RefreshAllShowsLogicTest extends Assert {
         List<RefreshAllShowsLogic.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
         assertTrue("onNext should only be called once", onNextEvents.size() == 1);
     }
+
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void subscribeCalledForEachUrl() throws IOException {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+        verify(mockSubscribeToFeed, times(10)).fetchNew(any(String.class));
+        verify(mockSubscribeToFeed, times(1)).fetchNew("http://example.com/5");
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void pluralsForResultsPresent() throws IOException {
+        PowerMockito.mockStatic(Log.class);
+        tenShows();
+
+        when(stringsProvider.getQuantityString(R.plurals.numShowsUpdated, 10, 10)).thenReturn("ten updated");
+        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+        logic.handleIntent();
+        testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
+        verify(stringsProvider, times(1)).getQuantityString(R.plurals.numShowsUpdated, 10, 10);
+    }
+
 }

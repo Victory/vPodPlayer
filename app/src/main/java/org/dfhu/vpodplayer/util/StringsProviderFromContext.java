@@ -26,4 +26,9 @@ public class StringsProviderFromContext implements StringsProvider {
     public String getString(int resourceId, Object... formatArgs) {
         return context.getResources().getString(resourceId, formatArgs);
     }
+
+    @Override
+    public String getQuantityString(int resourceId, int count, Object... formatArgs) {
+       return context.getResources().getQuantityString(resourceId, count, formatArgs);
+    }
 }

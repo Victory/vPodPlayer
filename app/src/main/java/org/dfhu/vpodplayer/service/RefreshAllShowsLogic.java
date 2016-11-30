@@ -3,11 +3,13 @@ package org.dfhu.vpodplayer.service;
 import android.support.annotation.NonNull;
 
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.feed.SubscribeToFeed;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
 import org.dfhu.vpodplayer.util.StringsProvider;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -23,27 +25,37 @@ import rx.schedulers.Schedulers;
 class RefreshAllShowsLogic {
     private final RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification;
     private final Shows showsDb;
+    private final SubscribeToFeed subscribeToFeed;
     private final StringsProvider stringsProvider;
     private final Subscriber<RefreshResults> subscriber;
 
     @SuppressWarnings("WeakerAccess")
     public static final int NUM_NETWORK_THREADS = 3;
 
+    private static final Object guard = new Object();
+
     private RefreshAllShowsLogic(
             @NonNull RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification,
             @NonNull Shows showsDb,
-            @NonNull StringsProvider stringsProvider, Subscriber<RefreshResults> subscriber) {
+            @NonNull SubscribeToFeed subscribeToFeed,
+            @NonNull Subscriber<RefreshResults> subscriber,
+            @NonNull StringsProvider stringsProvider) {
         this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
         this.showsDb = showsDb;
+        this.subscribeToFeed = subscribeToFeed;
         this.stringsProvider = stringsProvider;
         this.subscriber = subscriber;
     }
 
     static class Builder {
-        private RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification;
-        private Shows showsDb;
-        private StringsProvider stringsProvider;
-        private Subscriber<RefreshResults> subscriber;
+        private RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification = null;
+        private Shows showsDb = null;
+        private SubscribeToFeed subscribeToFeed = null;
+        private StringsProvider stringsProvider = null;
+        private Subscriber<RefreshResults> subscriber = null;
+
+        Builder() {
+        }
 
         Builder refreshAllShowsServiceNotification(RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification) {
             this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
@@ -55,12 +67,17 @@ class RefreshAllShowsLogic {
             return this;
         }
 
-        Builder stringsProvider(StringsProvider stringsProvider) {
+        Builder subscribeToFeed(@NonNull SubscribeToFeed subscribeToFeed) {
+            this.subscribeToFeed = subscribeToFeed;
+            return this;
+        }
+
+        Builder stringsProvider(@NonNull StringsProvider stringsProvider) {
             this.stringsProvider = stringsProvider;
             return this;
         }
 
-        Builder subscriber(Subscriber<RefreshResults> subscriber) {
+        Builder subscriber(@NonNull Subscriber<RefreshResults> subscriber) {
             this.subscriber = subscriber;
             return this;
         }
@@ -70,8 +87,10 @@ class RefreshAllShowsLogic {
             return new RefreshAllShowsLogic(
                     this.refreshAllShowsServiceNotification,
                     this.showsDb,
-                    this.stringsProvider,
-                    this.subscriber);
+                    this.subscribeToFeed,
+                    this.subscriber,
+                    this.stringsProvider
+            );
         }
 
     }
@@ -89,7 +108,8 @@ class RefreshAllShowsLogic {
 
     void handleIntent() {
         ConnectableObservable<RefreshResults> connectable =
-                ConnectableObservable.fromCallable(new RefreshAllShows(refreshAllShowsServiceNotification, showsDb, stringsProvider))
+                ConnectableObservable.fromCallable(
+                        new RefreshAllShows(refreshAllShowsServiceNotification, showsDb, subscribeToFeed, stringsProvider))
                         .subscribeOn(Schedulers.io())
                 .publish();
 
@@ -109,36 +129,49 @@ class RefreshAllShowsLogic {
         private final Shows showsDb;
         private final StringsProvider stringsProvider;
         private final RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification;
+        private final SubscribeToFeed subscribeToFeed;
 
         RefreshAllShows(RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification,
                         Shows showsDb,
+                        SubscribeToFeed subscribeToFeed,
                         StringsProvider stringsProvider) {
             this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
             this.showsDb = showsDb;
+            this.subscribeToFeed = subscribeToFeed;
             this.stringsProvider = stringsProvider;
         }
 
         @Override
         public RefreshResults call() throws Exception {
             showNotification(stringsProvider.getString(R.string.ellipsis));
-
             return updateEachShow();
         }
 
         private RefreshResults updateEachShow() throws InterruptedException {
             final RefreshResults refreshResults = new RefreshResults();
+            final SubscribeToFeed threadSubscribeToFeed = subscribeToFeed;
+
             final List<Show> showList = showsDb.all();
             ExecutorService pool = Executors.newFixedThreadPool(NUM_NETWORK_THREADS);
 
             List<Callable<Object>> showsTodo = new ArrayList<>(showList.size());
 
             for (Show show: showList) {
-                final String title = show.title;
+                final String showUrl = show.url;
+                final String showTitle = show.title;
                 showsTodo.add(Executors.callable(new Runnable() {
                     @Override
                     public void run() {
-                        showNotification(title);
-                        //debugSleep();
+                        synchronized (guard) {
+                            showNotification(showTitle);
+                        }
+                        try {
+                            threadSubscribeToFeed.fetchNew(showUrl);
+                        } catch (IOException e) {
+                            // TODO
+                            e.printStackTrace();
+                            return;
+                        }
                         refreshResults.numShowsUpdated.incrementAndGet();
                     }
                 }));
@@ -175,7 +208,9 @@ class RefreshAllShowsLogic {
 
         private void showNotification(RefreshResults refreshResults) {
             String appName = stringsProvider.getString(R.string.app_name);
-            String info = stringsProvider.getString(R.string.numShowsUpdated, refreshResults.numShowsUpdated.get());
+            int numUpdated = refreshResults.numShowsUpdated.get();
+            String info =
+                    stringsProvider.getQuantityString(R.plurals.numShowsUpdated, numUpdated, numUpdated);
             refreshAllShowsServiceNotification.show(appName, info);
         }
     }

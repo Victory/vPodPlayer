@@ -1,17 +1,19 @@
 package org.dfhu.vpodplayer.sqlite;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
 
 import java.util.List;
 
+@SuppressWarnings("TryFinallyCanBeTryWithResources")
 public class Episodes extends VicSQLiteOpenHelper {
 
     public static final String TAG = Episodes.class.getName();
@@ -102,7 +104,7 @@ public class Episodes extends VicSQLiteOpenHelper {
      * @param episode - episode to add
      * @param db - opened database connection
      * @param shouldUpdate - true if we should update an existing record, false if we should ignore
-     * @return
+     * @return - row id on success, -1 on error
      */
     private long addNoClose(Episode episode, SQLiteDatabase db, boolean shouldUpdate) {
         if (episode.showId <= 0) {
@@ -128,25 +130,31 @@ public class Episodes extends VicSQLiteOpenHelper {
         contentValues.put(K_DURATION, episode.duration);
         contentValues.put(K_LAST_LISTENED, episode.lastListened);
 
+        // look for the row before decided if we should add or update
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `url` = ? LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, new String[]{episode.url});
+        boolean foundEpisode = cursor.moveToFirst();
+        cursor.close();
 
-        long result;
-        try {
-            result = db.insertOrThrow(DB_NAME, null, contentValues);
-        } catch (SQLException e) {
-            if (shouldUpdate) {
-                result = db.update(DB_NAME, contentValues, "url = ?", new String[]{episode.url});
-            } else {
-                return -1;
-            }
+        if (foundEpisode && shouldUpdate) { // update
+            return db.update(DB_NAME, contentValues, "url = ?", new String[]{episode.url});
+        } else if (foundEpisode && !shouldUpdate) { // found but shouldn't update
+            return -1;
         }
 
-        return result;
+        // handle new row
+        try {
+            return db.insertOrThrow(DB_NAME, null, contentValues);
+        } catch (SQLException e) {
+            Log.e(TAG, "addNoClose: throw on insert", e);
+            return -1;
+        }
     }
 
     /**
      * Add episodes for show with showId
      * @param episodes - epiodes to add
-     * @param showId
+     * @param showId - target id
      */
     public void addAllForShow(List<Episode> episodes, int showId) {
         SQLiteDatabase db = getWritableDatabase();
@@ -167,6 +175,8 @@ public class Episodes extends VicSQLiteOpenHelper {
     public List<Episode> all() {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` ORDER BY `title`";
+
+        @SuppressLint("Recycle")
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
@@ -182,6 +192,7 @@ public class Episodes extends VicSQLiteOpenHelper {
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE showId = " + showId
                 + " ORDER BY `pubDate` DESC";
 
+        @SuppressLint("Recycle")
         Cursor cursor = db.rawQuery(sql, null);
         ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
 
@@ -192,35 +203,35 @@ public class Episodes extends VicSQLiteOpenHelper {
     /**
      * Get episode by id, or empty episode if none found
      * @param episodeId - the id of the episode
-     * @return
+     * @return - found episode or null
      */
+    @Nullable
     public Episode getById(int episodeId) {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `id` = " + episodeId + " LIMIT 1";
         Cursor cursor = db.rawQuery(sql, null);
-        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
-        List<Episode> episodes = hydrator.hydrate(new Hydrator());
-        if (episodes.size() == 0) {
-            return new Episode();
-        }
-        return episodes.get(0);
+        return getFirst(db, cursor);
     }
 
     /**
      *  Find an episode by downloadId, returns null if not found
-     * @param downloadId
-     * @return
+     * @param downloadId - target download id
+     * @return - found episode or null
      */
+    @Nullable
     public Episode getByDownloadId(long downloadId) {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `downloadId` = " + downloadId + " LIMIT 1";
         Cursor cursor = db.rawQuery(sql, null);
-        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
-        List<Episode> episodes = hydrator.hydrate(new Hydrator());
-        if (episodes.size() == 0) {
-            return null;
-        }
-        return episodes.get(0);
+        return getFirst(db, cursor);
+    }
+
+
+    public Episode getByUrl(final String url) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `url` = ? LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, new String[]{url});
+        return getFirst(db, cursor);
     }
 
     /**
@@ -268,7 +279,19 @@ public class Episodes extends VicSQLiteOpenHelper {
         }
     }
 
-    private static class Hydrator implements ConsumeHydrator<Episode> {
+
+    /** Get the first matched episode */
+    @Nullable
+    private Episode getFirst(SQLiteDatabase db, Cursor cursor) {
+        ListHydrator<Episode> hydrator = new ListHydrator<>(cursor, db);
+        List<Episode> episodes = hydrator.hydrate(new Hydrator());
+        if (episodes.size() == 0) {
+            return null;
+        }
+        return episodes.get(0);
+    }
+
+     static class Hydrator implements ConsumeHydrator<Episode> {
             @Override
             public void consume(ColumnCursor cc, List<Episode> items) {
                 Episode episode = new Episode();
