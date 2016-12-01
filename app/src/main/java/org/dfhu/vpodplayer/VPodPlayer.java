@@ -4,7 +4,6 @@ import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -20,7 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
-import org.dfhu.vpodplayer.feed.SubscribeToFeed;
+import org.dfhu.vpodplayer.feed.SubscriptionManager;
 import org.dfhu.vpodplayer.fragment.DownloadFragment;
 import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
@@ -466,7 +465,7 @@ public class VPodPlayer extends AppCompatActivity
     void handleFeed(Feed feed) {
         Shows showsDb = new Shows(this.getApplicationContext());
         Episodes episodeDb = new Episodes(this.getApplicationContext());
-        Show show = SubscribeToFeed.subscribe(feed, showsDb, episodeDb);
+        Show show = SubscriptionManager.subscribe(feed, showsDb, episodeDb);
 
         setEpisodeListFragment(show.id, 0);
         Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();

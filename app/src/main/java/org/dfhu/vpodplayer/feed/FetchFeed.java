@@ -16,6 +16,7 @@ public class FetchFeed {
     private FetchFeed() {}
 
     @NonNull
+    @Deprecated
     public static InputStream getInputStreamSync(VicURL feedUrl) throws IOException {
         URLConnection connection = feedUrl.openConnection();
         return new BufferedInputStream(connection.getInputStream());

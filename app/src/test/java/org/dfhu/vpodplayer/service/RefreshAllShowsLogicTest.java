@@ -6,8 +6,12 @@ import android.content.Context;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.R;
-import org.dfhu.vpodplayer.feed.SubscribeToFeed;
+import org.dfhu.vpodplayer.feed.Feed;
+import org.dfhu.vpodplayer.feed.FeedFactory;
+import org.dfhu.vpodplayer.feed.SubscriptionManager;
+import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
 import org.junit.Assert;
@@ -19,15 +23,19 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import rx.observers.TestSubscriber;
 
+import static org.dfhu.vpodplayer.feed.SubscriptionManagerTest.TEST_FEED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,13 +57,16 @@ public class RefreshAllShowsLogicTest extends Assert {
     Shows mockShowsDb;
 
     @Mock
+    Episodes mockEpisodesDb;
+
+    @Mock
     StringsProvider stringsProvider;
 
     @Mock
     RefreshAllShowsService.RefreshAllShowsServiceNotification mockRefreshAllShowsServiceNotification;
 
     @Mock
-    SubscribeToFeed mockSubscribeToFeed;
+    FeedFactory mockFeedFactory;
 
     private TestSubscriber<RefreshAllShowsLogic.RefreshResults> testSubscriber;
 
@@ -63,13 +74,16 @@ public class RefreshAllShowsLogicTest extends Assert {
     public void setUp() {
         mockContext = mock(Context.class);
         mockShowsDb = mock(Shows.class);
+        mockEpisodesDb = mock(Episodes.class);
         stringsProvider = mock(StringsProvider.class);
         mockRefreshAllShowsServiceNotification = mock(RefreshAllShowsService.RefreshAllShowsServiceNotification.class);
-        mockSubscribeToFeed = mock(SubscribeToFeed.class);
         testSubscriber = new TestSubscriber<>();
+        mockFeedFactory = mock(FeedFactory.class);
     }
 
     private void tenShows() {
+
+        InputStream inputStream = new ByteArrayInputStream(TEST_FEED.getBytes());
         List<Show> shows = new LinkedList<>();
         for (int ii = 0; ii < 10; ii++) {
             shows.add(new Show());
@@ -77,16 +91,31 @@ public class RefreshAllShowsLogicTest extends Assert {
             shows.get(ii).url = "http://example.com/" + ii;
             shows.get(ii).description = "description " + ii;
             shows.get(ii).id = 100 + ii;
+
+            try {
+                Feed feed = new FeedFactory().fromInputStream("http://example.com/" + ii, inputStream);
+                when(mockFeedFactory.fromUrl("http://example.com/" + ii)).thenReturn(feed);
+            } catch (IOException e) {
+                fail("IO exception in mocking feed factory");
+            }
         }
+
         when(mockShowsDb.all()).thenReturn(shows);
     }
 
     private RefreshAllShowsLogic buildRefreshAllShowLogic() {
         RefreshAllShowsLogic.Builder builder = new RefreshAllShowsLogic.Builder();
+
+        SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
+                .showsDb(mockShowsDb)
+                .feedFactory(mockFeedFactory)
+                .episodesDb(mockEpisodesDb)
+                .build();
+
         return builder
                 .refreshAllShowsServiceNotification(mockRefreshAllShowsServiceNotification)
                 .showsDb(mockShowsDb)
-                .subscribeToFeed(mockSubscribeToFeed)
+                .subscriptionManager(subscriptionManager)
                 .stringsProvider(stringsProvider)
                 .subscriber(testSubscriber)
                 .build();
@@ -205,11 +234,22 @@ public class RefreshAllShowsLogicTest extends Assert {
     public void subscribeCalledForEachUrl() throws IOException {
         PowerMockito.mockStatic(Log.class);
         tenShows();
-        RefreshAllShowsLogic logic = buildRefreshAllShowLogic();
+
+        SubscriptionManager mockSubscriptionManager = mock(SubscriptionManager.class);
+
+        RefreshAllShowsLogic logic =
+                new RefreshAllShowsLogic.Builder()
+                        .refreshAllShowsServiceNotification(mockRefreshAllShowsServiceNotification)
+                        .showsDb(mockShowsDb)
+                        .subscriptionManager(mockSubscriptionManager)
+                        .stringsProvider(stringsProvider)
+                        .subscriber(testSubscriber)
+                        .build();
+
         logic.handleIntent();
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
-        verify(mockSubscribeToFeed, times(10)).fetchNew(any(String.class));
-        verify(mockSubscribeToFeed, times(1)).fetchNew("http://example.com/5");
+        verify(mockSubscriptionManager, times(10)).refreshFeed(any(String.class));
+        verify(mockSubscriptionManager, times(1)).refreshFeed("http://example.com/5");
     }
 
     @Test

@@ -1,6 +1,9 @@
 package org.dfhu.vpodplayer.feed;
 
 
+import android.support.annotation.NonNull;
+
+import org.dfhu.vpodplayer.FeedFetcher;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
@@ -11,19 +14,50 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.List;
 
 import static org.dfhu.vpodplayer.VPodPlayer.safeToast;
 
-public class SubscribeToFeed {
+public class SubscriptionManager {
 
     private final Shows showsDb;
     private final Episodes episodesDb;
-    public SubscribeToFeed(Shows showsDb, Episodes episodesDb) {
+    private final FeedFactory feedFactory;
+
+    private SubscriptionManager(FeedFactory feedFactory, Shows showsDb, Episodes episodesDb) {
         this.showsDb = showsDb;
         this.episodesDb = episodesDb;
+        this.feedFactory = feedFactory;
+    }
+
+    public static class Builder {
+        private Shows showsDb;
+        private Episodes episodesDb;
+        private FeedFactory feedFactory;
+
+        public Builder showsDb(@NonNull Shows showsDb) {
+            this.showsDb = showsDb;
+            return this;
+        }
+
+        public Builder episodesDb(@NonNull Episodes episodesDb) {
+            this.episodesDb = episodesDb;
+            return this;
+        }
+
+        public Builder feedFactory(@NonNull FeedFactory feedFactory) {
+            this.feedFactory = feedFactory;
+            return this;
+        }
+
+        public SubscriptionManager build() {
+            return new SubscriptionManager(this.feedFactory, this.showsDb, this.episodesDb);
+        }
+
     }
 
     /** Store show and episodes from the feed in the database */
@@ -52,11 +86,9 @@ public class SubscribeToFeed {
         return show;
     }
 
-    public void fetchNew(String url) throws IOException {
-        VicURL vicURL = VicURLProvider.newInstance(url);
-        InputStream inputStream = FetchFeed.getInputStreamSync(vicURL);
-        Document doc = Jsoup.parse(inputStream, "UTF-8", "", Parser.xmlParser());
-        JsoupFeed feed = new JsoupFeed(url, doc);
-        SubscribeToFeed.subscribe(feed, showsDb, episodesDb);
+    /** Get list of new episodes */
+    public void refreshFeed(String url) throws IOException {
+        Feed feed = feedFactory.fromUrl(url);
+        SubscriptionManager.subscribe(feed, showsDb, episodesDb);
     }
 }

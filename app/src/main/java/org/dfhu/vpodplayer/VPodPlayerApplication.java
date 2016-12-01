@@ -8,6 +8,7 @@ import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
 import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
+import org.dfhu.vpodplayer.service.SubscribeToShowService;
 
 import javax.inject.Singleton;
 
@@ -23,6 +24,7 @@ public class VPodPlayerApplication extends Application {
         void inject(PlayerControlsView playerControlsView);
         void inject(EpisodesRecyclerViewAdapter episodesRecyclerViewAdapter);
         void inject(RefreshAllShowsService refreshAllShowsService);
+        void inject(SubscribeToShowService subscribeToShowService);
     }
 
     private ApplicationComponent component;

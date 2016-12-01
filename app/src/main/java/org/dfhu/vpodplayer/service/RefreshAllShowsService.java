@@ -9,7 +9,8 @@ import android.net.Uri;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.VPodPlayerApplication;
-import org.dfhu.vpodplayer.feed.SubscribeToFeed;
+import org.dfhu.vpodplayer.feed.FeedFactory;
+import org.dfhu.vpodplayer.feed.SubscriptionManager;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
@@ -48,11 +49,15 @@ public class RefreshAllShowsService extends IntentService {
         Shows showsDb = new Shows(applicationContext);
         Episodes episodesDb = new Episodes(applicationContext);
 
-        SubscribeToFeed subscribeToFeed = new SubscribeToFeed(showsDb, episodesDb);
+        SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
+                .episodesDb(episodesDb)
+                .feedFactory(new FeedFactory())
+                .showsDb(showsDb)
+                .build();
 
         RefreshAllShowsLogic logic = builder
                 .showsDb(showsDb)
-                .subscribeToFeed(subscribeToFeed)
+                .subscriptionManager(subscriptionManager)
                 .refreshAllShowsServiceNotification(refreshAllShowsServiceNotification)
                 .stringsProvider(stringsProvider)
                 .build();
