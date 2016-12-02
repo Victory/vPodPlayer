@@ -1,11 +1,16 @@
 package org.dfhu.vpodplayer.service;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.VPodPlayerApplication;
+import org.dfhu.vpodplayer.feed.FeedFactory;
+import org.dfhu.vpodplayer.feed.SubscriptionManager;
+import org.dfhu.vpodplayer.sqlite.Episodes;
+import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
 
 import javax.inject.Inject;
@@ -33,7 +38,28 @@ public class SubscribeToShowService extends IntentService {
             return;
         }
 
+        Context applicationContext = getApplicationContext();
+        Episodes episodesDb = new Episodes(applicationContext);
+        Shows showsDb = new Shows(applicationContext);
+
+        FeedFactory feedFactory = new FeedFactory();
+
+        SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
+                .episodesDb(episodesDb)
+                .showsDb(showsDb)
+                .feedFactory(feedFactory)
+                .build();
+
+
         SubscribeToShowLogic.Builder builder = new SubscribeToShowLogic.Builder();
-        SubscribeToShowLogic subscribeToShowLogic = builder.build();
+        SubscribeToShowLogic subscribeToShowLogic = builder
+                .showsDb(showsDb)
+                .episodesDb(episodesDb)
+                .subscriptionManager(subscriptionManager)
+                .stringsProvider(stringsProvider)
+                .build();
+
+        subscribeToShowLogic.handleIntent();
+
     }
 }
