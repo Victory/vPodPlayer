@@ -1,7 +1,9 @@
 package org.dfhu.vpodplayer;
 
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
@@ -26,6 +28,7 @@ import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.service.SubscribeToShowService;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
@@ -106,21 +109,24 @@ public class VPodPlayer extends AppCompatActivity
      * this creates an alert dialogue to confirm the subscription
      */
     private void handleIntentFromBrowserLink() {
-        final String dataString = getIntent().getDataString();
+        final String showUrl = getIntent().getDataString();
 
-        if (dataString == null || dataString.isEmpty() || !dataString.startsWith("http")) {
+        if (showUrl == null || showUrl.isEmpty() || !showUrl.startsWith("http")) {
             return;
         }
-
+        final Context context = this;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         subscribeConfirmationAlertDialog = builder
                 .setTitle("Subscribe to Podcast")
-                .setMessage("Would you like to subscribe to: " + dataString + "?")
+                .setMessage("Would you like to subscribe to: " + showUrl + "?")
                 .setPositiveButton("Subscribe", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         getIntent().setData(Uri.EMPTY);
-                        triggerFetchFeed(dataString);
+                        Intent intent = new Intent(context, SubscribeToShowService.class);
+                        intent.setData(SubscribeToShowService.URI_SUBSCRIBE);
+                        intent.putExtra("showUrl", showUrl);
+                        context.startService(intent);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

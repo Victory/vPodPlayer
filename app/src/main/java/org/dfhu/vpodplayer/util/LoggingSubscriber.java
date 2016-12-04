@@ -19,6 +19,10 @@ public class LoggingSubscriber<T> extends Subscriber<T> {
 
     @Override
     public void onNext(T t) {
-        Log.d(TAG, "onNext: called with " + t.toString());
+        if (t == null) {
+            Log.d(TAG, "onNext: called with `NULL`");
+        } else {
+            Log.d(TAG, "onNext: called with " + t.toString());
+        }
     }
 }

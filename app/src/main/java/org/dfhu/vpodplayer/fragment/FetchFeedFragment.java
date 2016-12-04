@@ -47,13 +47,11 @@ public class FetchFeedFragment extends Fragment {
         super.onCreate(b);
         // save instance across config changes
         setRetainInstance(true);
-        Log.d("test-frag", "onCreate");
     }
 
     @Override
     @Nullable
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("test-title", "onCreateView FetchFeedFragment: " + this.getId());
         return null;
     }
 

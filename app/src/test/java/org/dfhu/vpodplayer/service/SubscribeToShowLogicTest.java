@@ -46,22 +46,21 @@ public class SubscribeToShowLogicTest extends Assert {
     StringsProvider stringsProvider;
 
     @Mock
-    RefreshAllShowsService.RefreshAllShowsServiceNotification mockRefreshAllShowsServiceNotification;
+    SubscribeToShowService.SubscribeToShowServiceNotification subscribeToShowServiceNotification;
 
     @Mock
     FeedFactory mockFeedFactory;
 
-    private TestSubscriber<RefreshAllShowsLogic.RefreshResults> testSubscriber;
+    final String showUrl = "http://example.com/feed.xml";
+
+    private TestSubscriber<SubscribeToShowLogic.SubscribeResult> testSubscriber;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
     }
 
-    @Test
-    @PrepareForTest(Log.class)
-    public void testBuild() {
-        PowerMockito.mockStatic(Log.class);
+    private SubscribeToShowLogic buildService() {
         mockFeedFactory = mock(FeedFactory.class);
 
         SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
@@ -70,14 +69,27 @@ public class SubscribeToShowLogicTest extends Assert {
                 .feedFactory(mockFeedFactory)
                 .build();
 
-        SubscribeToShowLogic subscribeToShowLogic = new SubscribeToShowLogic.Builder()
-                .showsDb(mockShowsDb)
-                .episodesDb(mockEpisodesDb)
+        return new SubscribeToShowLogic.Builder()
+                .subscribeToShowServiceNotification(subscribeToShowServiceNotification)
+                .showUrl(showUrl)
                 .subscriptionManager(subscriptionManager)
                 .stringsProvider(stringsProvider)
                 .build();
 
-        subscribeToShowLogic.handleIntent();
     }
 
+    @Test
+    public void testBuild() {
+        buildService();
+    }
+
+    @Test
+    @PrepareForTest(Log.class)
+    public void testManagerIsCalledWithCorrectUrl() {
+        PowerMockito.mockStatic(Log.class);
+        mockFeedFactory = mock(FeedFactory.class);
+
+        SubscribeToShowLogic subscribeToShowLogic = buildService();
+        subscribeToShowLogic.handleIntent();
+    }
 }

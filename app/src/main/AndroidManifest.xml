@@ -31,6 +31,10 @@
             android:name=".service.RefreshAllShowsService"
             android:exported="false">
         </service>
+        <service
+            android:name=".service.SubscribeToShowService"
+            android:exported="false">
+        </service>
 
         <activity android:name=".VPodPlayer">
             <intent-filter>
