@@ -62,7 +62,7 @@ public class SubscriptionManager {
 
     /** Store show and episodes from the feed in the database */
     @Deprecated
-    public static Show subscribe(Feed feed, Shows showsDb, Episodes episodesDb) {
+    private static Show subscribe(Feed feed, Shows showsDb, Episodes episodesDb) {
 
         Show show = new Show();
         show.title = feed.getTitle();

@@ -469,12 +469,17 @@ public class VPodPlayer extends AppCompatActivity
     }
 
     void handleFeed(Feed feed) {
+        Log.d(TAG, "NOT IMPLEMENTED");
+        Toast.makeText(this, "NOT IMPLEMENTED", Toast.LENGTH_SHORT).show();
+
+        /*
         Shows showsDb = new Shows(this.getApplicationContext());
         Episodes episodeDb = new Episodes(this.getApplicationContext());
         Show show = SubscriptionManager.subscribe(feed, showsDb, episodeDb);
 
         setEpisodeListFragment(show.id, 0);
         Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();
+        */
     }
 
     public static void safeToast(String s) {
