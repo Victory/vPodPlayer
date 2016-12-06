@@ -87,9 +87,9 @@ public class SubscriptionManager {
     }
 
     /** Get a brand new feed */
-    public void subscribeToFeed(String url) throws IOException {
+    public Show subscribeToFeed(String url) throws IOException {
         Feed feed = feedFactory.fromUrl(url);
-        SubscriptionManager.subscribe(feed, showsDb, episodesDb);
+        return SubscriptionManager.subscribe(feed, showsDb, episodesDb);
     }
 
     /** Get list of new episodes */

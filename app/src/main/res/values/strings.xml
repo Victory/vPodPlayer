@@ -10,6 +10,7 @@
     <string name="updatingFeed">Updating feed %1$s</string>
     <string name="ellipsis">…</string>
     <string name="subscribingToShow">Subscribing To Show</string>
+    <string name="newShowAdded">New Show Added</string>
     <plurals name="numShowsUpdated">
         <item quantity="one">Updated %1$d Show.</item>
         <item quantity="other">Updated %1$d Shows.</item>

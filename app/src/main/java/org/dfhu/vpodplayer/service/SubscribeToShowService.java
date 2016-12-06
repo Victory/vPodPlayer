@@ -6,16 +6,26 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.feed.FeedFactory;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
+import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
+import org.dfhu.vpodplayer.util.LoggingSubscriber;
 import org.dfhu.vpodplayer.util.StringsProvider;
 
+import java.util.concurrent.Callable;
+
 import javax.inject.Inject;
+
+import rx.Subscriber;
+import rx.observables.ConnectableObservable;
+import rx.schedulers.Schedulers;
 
 public class SubscribeToShowService extends IntentService {
     public static final String TAG = SubscribeToShowService.class.getName();
@@ -42,6 +52,17 @@ public class SubscribeToShowService extends IntentService {
             return;
         }
 
+        Logic logic = buildLogic(intent);
+        logic.handleIntent();
+    }
+
+    /**
+     * Build the Service Logic Object, from intent, context, etc..
+     * @param intent - this intent
+     * @return - new Logic
+     */
+    @NonNull
+    private Logic buildLogic(Intent intent) {
         Context applicationContext = getApplicationContext();
         Episodes episodesDb = new Episodes(applicationContext);
         Shows showsDb = new Shows(applicationContext);
@@ -54,41 +75,101 @@ public class SubscribeToShowService extends IntentService {
                 .feedFactory(feedFactory)
                 .build();
 
-
         String showUrl = intent.getStringExtra("showUrl");
+        Notification.Builder notificationBuilder = new Notification.Builder(applicationContext);
+        NotificationManager notificationManager =
+                (NotificationManager) applicationContext.getSystemService(NOTIFICATION_SERVICE);
 
-        NotificationManager notificationManager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        SubscribeToShowServiceNotification subscribeToShowServiceNotification =
-                new SubscribeToShowServiceNotification(notificationManager, applicationContext);
 
-        SubscribeToShowLogic.Builder builder = new SubscribeToShowLogic.Builder();
-        SubscribeToShowLogic subscribeToShowLogic = builder
-                .showUrl(showUrl)
-                .subscriptionManager(subscriptionManager)
-                .subscribeToShowServiceNotification(subscribeToShowServiceNotification)
-                .stringsProvider(stringsProvider)
-                .build();
+        Notifier.NotificationWrapper notificationWrapper =
+                new Notifier.NotificationWrapper(notificationBuilder, notificationManager);
+        Notifier notifier = new Notifier(notificationWrapper, stringsProvider);
 
-        subscribeToShowLogic.handleIntent();
-
+        return new Logic(showUrl, subscriptionManager, notifier);
     }
-    public static class SubscribeToShowServiceNotification {
-        private final NotificationManager notificationManager;
-        private final Context applicationContext;
 
-        public SubscribeToShowServiceNotification(NotificationManager notificationManager, Context applicationContext) {
-            this.notificationManager = notificationManager;
-            this.applicationContext = applicationContext;
+    static class Logic {
+        private final SubscriptionManager subscriptionManager;
+        private final Notifier notifier;
+        private final String showUrl;
+        private Subscriber<Results> extraResultsSubscriber;
+
+        Logic(@NonNull String showUrl,
+              @NonNull SubscriptionManager subscriptionManager,
+              @NonNull Notifier notifier) {
+            this.showUrl = showUrl;
+            this.subscriptionManager = subscriptionManager;
+            this.notifier = notifier;
         }
 
-        public void show(String title, String contentText) {
-            Notification notification = new Notification.Builder(applicationContext)
-                    .setContentTitle(title)
-                    .setContentText(contentText)
-                    .setSmallIcon(android.R.drawable.ic_menu_rotate)
-                    .build();
+        /**
+         * The main logic for the service
+         */
+        void handleIntent() {
+            SubscribeToShow subscribeToShow = new SubscribeToShow(subscriptionManager, showUrl, notifier);
+            ConnectableObservable<Results> connectable =
+                    ConnectableObservable.fromCallable(subscribeToShow)
+                            .subscribeOn(Schedulers.io())
+                            .publish();
 
-            notificationManager.notify(NOTIFICATIONS_INDEX, notification);
+            SubscribeToShowSubscriber subscribeToShowSubscriber = new SubscribeToShowSubscriber(notifier);
+            connectable.subscribe(subscribeToShowSubscriber);
+
+            if (extraResultsSubscriber != null) {
+                connectable.subscribe(extraResultsSubscriber);
+            }
+            connectable.connect();
+        }
+
+        Logic setExtraResultsSubscriber(Subscriber<Results> extraResultsSubscriber) {
+            this.extraResultsSubscriber = extraResultsSubscriber;
+            return this;
+        }
+
+        static final class Results {
+            Show show;
+        }
+
+        static class SubscribeToShow implements Callable<Results> {
+            private final SubscriptionManager subscriptionManager;
+            private final String showUrl;
+            private final Notifier notifier;
+
+            SubscribeToShow(
+                    SubscriptionManager subscriptionManager,
+                    String showUrl,
+                    Notifier notifier) {
+                this.notifier = notifier;
+                this.subscriptionManager = subscriptionManager;
+                this.showUrl = showUrl;
+            }
+
+            @Override
+            public Results call() throws Exception {
+                Results subscribeResults = new Results();
+
+                notifier.packString(Notifier.TITLE, R.string.subscribingToShow);
+                notifier.packString(Notifier.CONTENT_TEXT, R.string.updatingFeed, showUrl);
+                notifier.show(NOTIFICATIONS_INDEX);
+
+                subscribeResults.show = subscriptionManager.subscribeToFeed(showUrl);
+                return subscribeResults;
+            }
+        }
+
+        static class SubscribeToShowSubscriber extends LoggingSubscriber<Results> {
+            private final Notifier notifier;
+
+            SubscribeToShowSubscriber(Notifier notifier) {
+                this.notifier = notifier;
+            }
+
+            @Override
+            public void onNext(Results subscribeResults) {
+                notifier.packString(Notifier.TITLE, R.string.newShowAdded);
+                notifier.packString(Notifier.CONTENT_TEXT, subscribeResults.show.title);
+                notifier.show(NOTIFICATIONS_INDEX);
+            }
         }
     }
 }
