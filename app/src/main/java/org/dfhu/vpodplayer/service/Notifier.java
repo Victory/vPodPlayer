@@ -20,11 +20,11 @@ class Notifier extends StringsPacker {
         this.notificationWrapper = notificationWrapper;
     }
 
-    class NotificationWrapper {
+    static class NotificationWrapper {
         private final Notification.Builder notificationBuilder;
         private final NotificationManager notificationManager;
 
-        private NotificationWrapper(
+        NotificationWrapper(
                 @NonNull Notification.Builder notificationBuilder,
                 @NonNull NotificationManager notificationManager) {
             this.notificationBuilder = notificationBuilder;
