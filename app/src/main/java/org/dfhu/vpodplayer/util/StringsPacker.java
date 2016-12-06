@@ -1,10 +1,13 @@
 package org.dfhu.vpodplayer.util;
 
+import android.annotation.SuppressLint;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class StringsPacker {
-    // TODO SparseArray
+    // Note: SparseArray will give a "not mocked" error
+    @SuppressLint("UseSparseArrays")
     private final Map<Integer, String> packedStrings = new HashMap<>();
     private final StringsProvider stringsProvider;
 
@@ -15,7 +18,6 @@ public abstract class StringsPacker {
     public void packString(int key, String val) {
         packedStrings.put(key, val);
     }
-
 
     public void packString(int key, int resourceId) {
         String val = stringsProvider.getString(resourceId);
