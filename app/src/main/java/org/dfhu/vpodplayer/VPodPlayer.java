@@ -12,7 +12,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,7 +24,7 @@ import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
-import org.dfhu.vpodplayer.service.SubscribeToShowService;
+import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
 
@@ -120,8 +119,8 @@ public class VPodPlayer extends AppCompatActivity {
 
     // TODO - this was created to stop duplication and should be refactored
     public static void startSubscribeService (Context context, String showUrl) {
-        Intent intent = new Intent(context, SubscribeToShowService.class);
-        intent.setData(SubscribeToShowService.URI_SUBSCRIBE);
+        Intent intent = new Intent(context, UpdateSubscriptionService.class);
+        intent.setData(UpdateSubscriptionService.URI_SUBSCRIBE);
         intent.putExtra("showUrl", showUrl);
         context.startService(intent);
     }

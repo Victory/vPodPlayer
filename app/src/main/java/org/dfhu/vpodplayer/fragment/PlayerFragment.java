@@ -30,7 +30,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
 
-public class PlayerFragment extends Fragment {
+public class PlayerFragment extends VicFragment {
 
     @Inject
     PodPlayer podPlayer;

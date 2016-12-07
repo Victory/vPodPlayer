@@ -1,8 +1,6 @@
 package org.dfhu.vpodplayer.feed;
 
 
-import android.support.annotation.NonNull;
-
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;

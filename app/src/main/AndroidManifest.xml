@@ -32,7 +32,7 @@
             android:exported="false">
         </service>
         <service
-            android:name=".service.SubscribeToShowService"
+            android:name=".service.UpdateSubscriptionService"
             android:exported="false">
         </service>
 

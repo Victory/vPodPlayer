@@ -1,15 +1,12 @@
 package org.dfhu.vpodplayer;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.view.CollapsibleActionView;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
-
-import org.dfhu.vpodplayer.service.SubscribeToShowService;
 
 
 @SuppressWarnings("unused") // is used in XML

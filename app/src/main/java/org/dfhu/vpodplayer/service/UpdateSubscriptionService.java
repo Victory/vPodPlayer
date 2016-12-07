@@ -16,7 +16,6 @@ import org.dfhu.vpodplayer.feed.FeedFactory;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
 import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
-import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
@@ -30,8 +29,8 @@ import rx.Subscriber;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 
-public class SubscribeToShowService extends IntentService {
-    public static final String TAG = SubscribeToShowService.class.getName();
+public class UpdateSubscriptionService extends IntentService {
+    public static final String TAG = UpdateSubscriptionService.class.getName();
 
     public static final String URI_SUBSCRIBE_STRING = "addshow://";
     public static final Uri URI_SUBSCRIBE = Uri.parse(URI_SUBSCRIBE_STRING);
@@ -41,7 +40,7 @@ public class SubscribeToShowService extends IntentService {
     @Inject
     StringsProvider stringsProvider;
 
-    public SubscribeToShowService() {
+    public UpdateSubscriptionService() {
         super(TAG);
     }
 

@@ -61,12 +61,12 @@ public class SubscribeToShowLogicTest extends Assert {
         subscribeResults.show = targetShow;
     }
 
-    private SubscribeToShowService.Logic buildService() throws IOException {
+    private UpdateSubscriptionService.Logic buildService() throws IOException {
         testSubscriber = new TestSubscriber<>();
 
         when(mockSubscriptionManager.updateSubscription(showUrl)).thenReturn(subscribeResults);
 
-        return new SubscribeToShowService.Logic(
+        return new UpdateSubscriptionService.Logic(
                 showUrl, mockSubscriptionManager, mockNotifier)
                 .setExtraResultsSubscriber(testSubscriber);
     }
@@ -75,7 +75,7 @@ public class SubscribeToShowLogicTest extends Assert {
     @PrepareForTest(Log.class)
     public void testManagerIsCalledWithCorrectUrl() throws IOException {
         PowerMockito.mockStatic(Log.class);
-        SubscribeToShowService.Logic logic = buildService();
+        UpdateSubscriptionService.Logic logic = buildService();
         logic.handleIntent();
 
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
@@ -88,7 +88,7 @@ public class SubscribeToShowLogicTest extends Assert {
     @PrepareForTest(Log.class)
     public void testStartNotificationIsCalled() throws IOException {
         PowerMockito.mockStatic(Log.class);
-        SubscribeToShowService.Logic logic = buildService();
+        UpdateSubscriptionService.Logic logic = buildService();
         logic.handleIntent();
 
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
@@ -96,7 +96,7 @@ public class SubscribeToShowLogicTest extends Assert {
 
         verify(mockNotifier, times(1)).packString(Notifier.TITLE, R.string.subscribingToShow);
         verify(mockNotifier, times(1)).packString(Notifier.CONTENT_TEXT, R.string.updatingFeed, showUrl);
-        verify(mockNotifier, atLeastOnce()).show(SubscribeToShowService.NOTIFICATIONS_INDEX);
+        verify(mockNotifier, atLeastOnce()).show(UpdateSubscriptionService.NOTIFICATIONS_INDEX);
     }
 
 
@@ -104,7 +104,7 @@ public class SubscribeToShowLogicTest extends Assert {
     @PrepareForTest(Log.class)
     public void testEndNotificationIsCalled() throws IOException {
         PowerMockito.mockStatic(Log.class);
-        SubscribeToShowService.Logic logic = buildService();
+        UpdateSubscriptionService.Logic logic = buildService();
         logic.handleIntent();
 
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
@@ -112,7 +112,7 @@ public class SubscribeToShowLogicTest extends Assert {
 
         verify(mockNotifier, times(1)).packString(Notifier.TITLE, R.string.newShowAdded);
         verify(mockNotifier, times(1)).packString(Notifier.CONTENT_TEXT, targetTitle);
-        verify(mockNotifier, times(2)).show(SubscribeToShowService.NOTIFICATIONS_INDEX);
+        verify(mockNotifier, times(2)).show(UpdateSubscriptionService.NOTIFICATIONS_INDEX);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class SubscribeToShowLogicTest extends Assert {
             }
         });
 
-        SubscribeToShowService.Logic logic = buildService();
+        UpdateSubscriptionService.Logic logic = buildService();
         logic.handleIntent();
 
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
@@ -159,7 +159,7 @@ public class SubscribeToShowLogicTest extends Assert {
             }
         });
 
-        SubscribeToShowService.Logic logic = buildService();
+        UpdateSubscriptionService.Logic logic = buildService();
         logic.handleIntent();
 
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
