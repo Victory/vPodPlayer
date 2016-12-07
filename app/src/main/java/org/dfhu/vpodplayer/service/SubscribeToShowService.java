@@ -69,11 +69,10 @@ public class SubscribeToShowService extends IntentService {
 
         FeedFactory feedFactory = new FeedFactory();
 
-        SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
-                .episodesDb(episodesDb)
-                .showsDb(showsDb)
-                .feedFactory(feedFactory)
-                .build();
+        SubscriptionManager subscriptionManager = new SubscriptionManager(
+                feedFactory,
+                showsDb,
+                episodesDb);
 
         String showUrl = intent.getStringExtra("showUrl");
         Notification.Builder notificationBuilder = new Notification.Builder(applicationContext);

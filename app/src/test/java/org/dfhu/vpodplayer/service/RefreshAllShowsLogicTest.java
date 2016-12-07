@@ -104,11 +104,10 @@ public class RefreshAllShowsLogicTest extends Assert {
     private RefreshAllShowsLogic buildRefreshAllShowLogic() {
         RefreshAllShowsLogic.Builder builder = new RefreshAllShowsLogic.Builder();
 
-        SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
-                .showsDb(mockShowsDb)
-                .feedFactory(mockFeedFactory)
-                .episodesDb(mockEpisodesDb)
-                .build();
+        SubscriptionManager subscriptionManager = new SubscriptionManager(
+                mockFeedFactory,
+                mockShowsDb,
+                mockEpisodesDb);
 
         return builder
                 .refreshAllShowsServiceNotification(mockRefreshAllShowsServiceNotification)

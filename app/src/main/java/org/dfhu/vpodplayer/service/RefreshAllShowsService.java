@@ -49,11 +49,10 @@ public class RefreshAllShowsService extends IntentService {
         Shows showsDb = new Shows(applicationContext);
         Episodes episodesDb = new Episodes(applicationContext);
 
-        SubscriptionManager subscriptionManager = new SubscriptionManager.Builder()
-                .episodesDb(episodesDb)
-                .feedFactory(new FeedFactory())
-                .showsDb(showsDb)
-                .build();
+        SubscriptionManager subscriptionManager = new SubscriptionManager(
+                new FeedFactory(),
+                showsDb,
+                episodesDb);
 
         RefreshAllShowsLogic logic = builder
                 .showsDb(showsDb)

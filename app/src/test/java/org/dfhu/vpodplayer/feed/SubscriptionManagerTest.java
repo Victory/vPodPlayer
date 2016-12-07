@@ -52,7 +52,6 @@ public class SubscriptionManagerTest extends Assert {
     @Test
     public void testShowDbMethodsCalledOnRefresh() throws IOException {
         InputStream inputStream = new ByteArrayInputStream(TEST_FEED.getBytes());
-        SubscriptionManager.Builder builder = new SubscriptionManager.Builder();
 
         when(mockShowsDb.add(any(Show.class))).thenReturn(2L);
 
@@ -60,11 +59,7 @@ public class SubscriptionManagerTest extends Assert {
         FeedFactory mockFeedFactory = mock(FeedFactory.class);
         when(mockFeedFactory.fromUrl("http://example.com/0")).thenReturn(feed);
 
-        SubscriptionManager subscriptionManager = builder
-                .showsDb(mockShowsDb)
-                .episodesDb(mockEpisodesDb)
-                .feedFactory(mockFeedFactory)
-                .build();
+        SubscriptionManager subscriptionManager = new SubscriptionManager(mockFeedFactory, mockShowsDb, mockEpisodesDb);
 
         subscriptionManager.refreshFeed("http://example.com/0");
 
@@ -78,7 +73,6 @@ public class SubscriptionManagerTest extends Assert {
     @Test
     public void testAllEpisodesAreCalled() throws IOException {
         InputStream inputStream = new ByteArrayInputStream(TEST_FEED.getBytes());
-        SubscriptionManager.Builder builder = new SubscriptionManager.Builder();
 
         when(mockShowsDb.add(any(Show.class))).thenReturn(2L);
 
@@ -86,12 +80,8 @@ public class SubscriptionManagerTest extends Assert {
         FeedFactory mockFeedFactory = mock(FeedFactory.class);
         when(mockFeedFactory.fromUrl("http://example.com/0")).thenReturn(feed);
 
-        SubscriptionManager subscriptionManager = builder
-                .showsDb(mockShowsDb)
-                .episodesDb(mockEpisodesDb)
-                .feedFactory(mockFeedFactory)
-                .build();
 
+        SubscriptionManager subscriptionManager = new SubscriptionManager(mockFeedFactory, mockShowsDb, mockEpisodesDb);
         subscriptionManager.refreshFeed("http://example.com/0");
 
         ArgumentCaptor<ArrayList<Episode>> arg = ArgumentCaptor.forClass((Class) List.class);
