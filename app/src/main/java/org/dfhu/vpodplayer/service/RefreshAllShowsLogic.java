@@ -38,7 +38,7 @@ class RefreshAllShowsLogic {
             @NonNull RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification,
             @NonNull Shows showsDb,
             @NonNull SubscriptionManager subscriptionManager,
-            @NonNull Subscriber<RefreshResults> subscriber,
+            Subscriber<RefreshResults> subscriber,
             @NonNull StringsProvider stringsProvider) {
         this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
         this.showsDb = showsDb;
@@ -67,7 +67,7 @@ class RefreshAllShowsLogic {
             return this;
         }
 
-        public Builder subscriptionManager(@NonNull SubscriptionManager subscriptionManager) {
+        Builder subscriptionManager(@NonNull SubscriptionManager subscriptionManager) {
             this.subscriptionManager = subscriptionManager;
             return this;
         }
@@ -167,11 +167,12 @@ class RefreshAllShowsLogic {
                 showsTodo.add(Executors.callable(new Runnable() {
                     @Override
                     public void run() {
+                        //noinspection PrivateMemberAccessBetweenOuterAndInnerClass
                         synchronized (guard) {
                             showNotification(showTitle);
                         }
                         try {
-                            threadSubscriptionManager.refreshFeed(showUrl);
+                            threadSubscriptionManager.updateSubscription(showUrl);
                         } catch (IOException e) {
                             // TODO
                             e.printStackTrace();

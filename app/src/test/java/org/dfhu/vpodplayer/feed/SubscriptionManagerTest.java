@@ -61,7 +61,7 @@ public class SubscriptionManagerTest extends Assert {
 
         SubscriptionManager subscriptionManager = new SubscriptionManager(mockFeedFactory, mockShowsDb, mockEpisodesDb);
 
-        subscriptionManager.refreshFeed("http://example.com/0");
+        subscriptionManager.updateSubscription("http://example.com/0");
 
         ArgumentCaptor<Show> arg = ArgumentCaptor.forClass(Show.class);
         verify(mockShowsDb).add(arg.capture());
@@ -82,8 +82,9 @@ public class SubscriptionManagerTest extends Assert {
 
 
         SubscriptionManager subscriptionManager = new SubscriptionManager(mockFeedFactory, mockShowsDb, mockEpisodesDb);
-        subscriptionManager.refreshFeed("http://example.com/0");
+        subscriptionManager.updateSubscription("http://example.com/0");
 
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<ArrayList<Episode>> arg = ArgumentCaptor.forClass((Class) List.class);
         verify(mockEpisodesDb).addAllForShow(arg.capture(), eq(2));
         assertEquals(arg.getValue().get(1).title, "Title 1");

@@ -33,7 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import rx.Observable;
-import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -58,7 +57,7 @@ public class VPodPlayer extends AppCompatActivity {
         private static PublishSubject<Class> subject = PublishSubject.create();
 
         public static void publish(Class v) { subject.onNext(v); }
-        static Observable<Class> getEvents() { return subject; }
+        public static Observable<Class> getEvents() { return subject; }
     }
 
     Toolbar toolbar;
@@ -151,8 +150,11 @@ public class VPodPlayer extends AppCompatActivity {
                                 getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
                         if (cls == ShowListFragment.class && fragment instanceof ShowListFragment) {
                             setShowListFragment();
+                        } else if (cls == EpisodeListFragment.class && fragment instanceof EpisodeListFragment) {
+                            Bundle arguments = fragment.getArguments();
+                            setEpisodeListFragment(arguments.getInt("showId"), 0);
                         } else {
-                            safeToast("Not implemented");
+                            safeToast("Not implemented subscribeToRefreshFragment");
                         }
                     }
                 });
@@ -301,7 +303,7 @@ public class VPodPlayer extends AppCompatActivity {
         } else if (fragment instanceof ShowListFragment) {
             ((ShowListFragment) fragment).refreshAllEpisodes();
         } else {
-            safeToast("Not implemented");
+            safeToast("Not implemented handleRefreshButton");
         }
     }
 

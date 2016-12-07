@@ -245,8 +245,8 @@ public class RefreshAllShowsLogicTest extends Assert {
 
         logic.handleIntent();
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
-        verify(mockSubscriptionManager, times(10)).refreshFeed(any(String.class));
-        verify(mockSubscriptionManager, times(1)).refreshFeed("http://example.com/5");
+        verify(mockSubscriptionManager, times(10)).updateSubscription(any(String.class));
+        verify(mockSubscriptionManager, times(1)).updateSubscription("http://example.com/5");
     }
 
     @Test
