@@ -1,17 +1,16 @@
 package org.dfhu.vpodplayer;
 
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dfhu.vpodplayer.feed.Feed;
-import org.dfhu.vpodplayer.feed.SubscriptionManager;
 import org.dfhu.vpodplayer.fragment.DownloadFragment;
 import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
@@ -29,35 +27,22 @@ import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.service.SubscribeToShowService;
-import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
-import org.dfhu.vpodplayer.fragment.FetchFeedFragment;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.subjects.PublishSubject;
 
-public class VPodPlayer extends AppCompatActivity
-        implements FetchFeedFragment.FetchFeedCallbacks, FeedFetcher {
+public class VPodPlayer extends AppCompatActivity {
 
     public static final String TAG = VPodPlayer.class.getName();
 
     private AlertDialog subscribeConfirmationAlertDialog;
-
-    private static class FetchFeedBus {
-        private FetchFeedBus() {}
-        private static PublishSubject<Feed> subject = PublishSubject.create();
-
-        static void publish(Feed v) { subject.onNext(v); }
-        static Observable<Feed> getEvents() { return subject; }
-    }
 
     private static class ToastErrorBus {
         private ToastErrorBus() {}
@@ -91,7 +76,6 @@ public class VPodPlayer extends AppCompatActivity
         setSupportActionBar(toolbar);
         showHomeButton(true);
 
-        subscribeToFetch();
         subscribeToToastError();
         subscribeToShowClicked();
         subscribeToEpisodeClicked();
@@ -262,32 +246,6 @@ public class VPodPlayer extends AppCompatActivity
         subscriptions.add(sub);
     }
 
-    /**
-     * Subscribe the the results of fetching a feed
-     */
-    private void subscribeToFetch() {
-        Subscription sub = FetchFeedBus.getEvents()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Feed>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d(TAG, "busy onCompleted");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG, "busy onError", e);
-                    }
-
-                    @Override
-                    public void onNext(Feed feed) {
-                        handleFeed(feed);
-                    }
-                });
-
-        subscriptions.add(sub);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -320,8 +278,6 @@ public class VPodPlayer extends AppCompatActivity
     /** set the binding for subscribe ActionView */
     private void bindSubscribeMenuItem(Menu menu) {
         MenuItem subscribeItem = menu.findItem(R.id.menu_subscribe);
-        final SubscribeActionView subscribeView = (SubscribeActionView) MenuItemCompat.getActionView(subscribeItem);
-        subscribeView.setFeedFetcher(this);
 
         MenuItemCompat.setOnActionExpandListener(subscribeItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
@@ -419,53 +375,9 @@ public class VPodPlayer extends AppCompatActivity
         showHomeButton(false);
     }
 
-    @Override
-    public void addFetchFeedSubscription(Observable<Feed> observable) {
-        observable
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Log.d("test-title", "subcribing addFetchFeedSubscription");
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new DoFeed());
-    }
-
-    public static class DoFeed implements Observer<Feed> {
-        @Override
-        public void onCompleted() {
-            Log.d("test-title", "onComplete");
-        }
-
-        @Override
-        public void onError(Throwable e) {
-            Log.e("test-title", "error: " + e.getMessage());
-            safeToast("error: " + e.getMessage());
-        }
-
-        @Override
-        public void onNext(Feed feed) {
-            Log.d("test-title", "onNext: "+ feed.getTitle());
-            FetchFeedBus.publish(feed);
-        }
-    }
-
-    @Override
-    public void triggerFetchFeed(String feedUrl) {
-        FragmentManager fm = getFragmentManager();
-        FetchFeedFragment fetchFeedFragment = (FetchFeedFragment) fm.findFragmentByTag(TAG_FETCH_FEED_FRAGMENT);
-        if (fetchFeedFragment == null) {
-            fetchFeedFragment = new FetchFeedFragment();
-            fm.beginTransaction().add(fetchFeedFragment, TAG_FETCH_FEED_FRAGMENT).commit();
-        }
-        addFetchFeedSubscription(fetchFeedFragment.buildObserver(feedUrl));
-    }
-
     private void getNewEpisodesForShow(int showId) {
         Shows db = new Shows(getApplicationContext());
         Show show = db.getById(showId);
-        triggerFetchFeed(show.url);
     }
 
     void handleFeed(Feed feed) {

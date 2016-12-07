@@ -1,6 +1,7 @@
 package org.dfhu.vpodplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.view.CollapsibleActionView;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.KeyEvent;
@@ -8,10 +9,10 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
+import org.dfhu.vpodplayer.service.SubscribeToShowService;
+
 
 public class SubscribeActionView extends LinearLayoutCompat implements CollapsibleActionView {
-
-    FeedFetcher feedFetcher;
 
     public SubscribeActionView(Context context) {
         super(context);
@@ -20,10 +21,6 @@ public class SubscribeActionView extends LinearLayoutCompat implements Collapsib
 
     private void init() {
         inflate(getContext(), R.layout.subscribe_action, this);
-    }
-
-    public void setFeedFetcher(FeedFetcher feedFetcher) {
-        this.feedFetcher = feedFetcher;
     }
 
     @Override
@@ -42,9 +39,16 @@ public class SubscribeActionView extends LinearLayoutCompat implements Collapsib
                     // Close the open soft keyboard
                     InputMethodManager inputMethodManager =
                             (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                    String showUrl = subscribeUrl.getText().toString();
                     inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
-                    feedFetcher.triggerFetchFeed(subscribeUrl.getText().toString());
+                    Context applicationContext = getContext().getApplicationContext();
+                    Intent intent = new Intent(applicationContext, SubscribeToShowService.class);
+                    intent.setData(SubscribeToShowService.URI_SUBSCRIBE);
+                    intent.putExtra("showUrl", showUrl);
+                    applicationContext.startService(intent);
+
                     return true;
                 }
                 return false;
