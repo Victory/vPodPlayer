@@ -12,6 +12,7 @@ import android.widget.TextView;
 import org.dfhu.vpodplayer.service.SubscribeToShowService;
 
 
+@SuppressWarnings("unused") // is used in XML
 public class SubscribeActionView extends LinearLayoutCompat implements CollapsibleActionView {
 
     public SubscribeActionView(Context context) {
