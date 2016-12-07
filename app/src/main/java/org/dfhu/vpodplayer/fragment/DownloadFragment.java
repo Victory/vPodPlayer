@@ -40,7 +40,7 @@ import rx.subscriptions.CompositeSubscription;
 import rx.util.async.Async;
 
 
-public class DownloadFragment extends Fragment {
+public class DownloadFragment extends VicFragment {
 
     public static final String TAG = DownloadFragment.class.getSimpleName();
 

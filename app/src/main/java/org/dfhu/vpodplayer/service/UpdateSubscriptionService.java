@@ -10,10 +10,12 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.feed.FeedFactory;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
-import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
+import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
@@ -27,8 +29,8 @@ import rx.Subscriber;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 
-public class SubscribeToShowService extends IntentService {
-    public static final String TAG = SubscribeToShowService.class.getName();
+public class UpdateSubscriptionService extends IntentService {
+    public static final String TAG = UpdateSubscriptionService.class.getName();
 
     public static final String URI_SUBSCRIBE_STRING = "addshow://";
     public static final Uri URI_SUBSCRIBE = Uri.parse(URI_SUBSCRIBE_STRING);
@@ -38,7 +40,7 @@ public class SubscribeToShowService extends IntentService {
     @Inject
     StringsProvider stringsProvider;
 
-    public SubscribeToShowService() {
+    public UpdateSubscriptionService() {
         super(TAG);
     }
 
@@ -91,7 +93,7 @@ public class SubscribeToShowService extends IntentService {
         private final SubscriptionManager subscriptionManager;
         private final Notifier notifier;
         private final String showUrl;
-        private Subscriber<Results> extraResultsSubscriber;
+        private Subscriber<SubscriptionManager.SubscribeResults> extraResultsSubscriber;
 
         Logic(@NonNull String showUrl,
               @NonNull SubscriptionManager subscriptionManager,
@@ -106,7 +108,7 @@ public class SubscribeToShowService extends IntentService {
          */
         void handleIntent() {
             SubscribeToShow subscribeToShow = new SubscribeToShow(subscriptionManager, showUrl, notifier);
-            ConnectableObservable<Results> connectable =
+            ConnectableObservable<SubscriptionManager.SubscribeResults> connectable =
                     ConnectableObservable.fromCallable(subscribeToShow)
                             .subscribeOn(Schedulers.io())
                             .publish();
@@ -120,16 +122,12 @@ public class SubscribeToShowService extends IntentService {
             connectable.connect();
         }
 
-        Logic setExtraResultsSubscriber(Subscriber<Results> extraResultsSubscriber) {
+        Logic setExtraResultsSubscriber(Subscriber<SubscriptionManager.SubscribeResults> extraResultsSubscriber) {
             this.extraResultsSubscriber = extraResultsSubscriber;
             return this;
         }
 
-        static final class Results {
-            Show show;
-        }
-
-        static class SubscribeToShow implements Callable<Results> {
+        static class SubscribeToShow implements Callable<SubscriptionManager.SubscribeResults> {
             private final SubscriptionManager subscriptionManager;
             private final String showUrl;
             private final Notifier notifier;
@@ -144,19 +142,16 @@ public class SubscribeToShowService extends IntentService {
             }
 
             @Override
-            public Results call() throws Exception {
-                Results subscribeResults = new Results();
+            public SubscriptionManager.SubscribeResults call() throws Exception {
 
                 notifier.packString(Notifier.TITLE, R.string.subscribingToShow);
                 notifier.packString(Notifier.CONTENT_TEXT, R.string.updatingFeed, showUrl);
                 notifier.show(NOTIFICATIONS_INDEX);
-
-                subscribeResults.show = subscriptionManager.subscribeToFeed(showUrl);
-                return subscribeResults;
+                return subscriptionManager.updateSubscription(showUrl);
             }
         }
 
-        static class SubscribeToShowSubscriber extends LoggingSubscriber<Results> {
+        static class SubscribeToShowSubscriber extends LoggingSubscriber<SubscriptionManager.SubscribeResults> {
             private final Notifier notifier;
 
             SubscribeToShowSubscriber(Notifier notifier) {
@@ -164,10 +159,15 @@ public class SubscribeToShowService extends IntentService {
             }
 
             @Override
-            public void onNext(Results subscribeResults) {
+            public void onNext(SubscriptionManager.SubscribeResults subscribeResults) {
                 notifier.packString(Notifier.TITLE, R.string.newShowAdded);
                 notifier.packString(Notifier.CONTENT_TEXT, subscribeResults.show.title);
                 notifier.show(NOTIFICATIONS_INDEX);
+                if (subscribeResults.isNew) {
+                    VPodPlayer.RefreshFragmentBus.publish(ShowListFragment.class);
+                } else {
+                    VPodPlayer.RefreshFragmentBus.publish(EpisodeListFragment.class);
+                }
             }
         }
     }

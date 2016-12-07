@@ -9,9 +9,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 
+@SuppressWarnings("unused") // is used in XML
 public class SubscribeActionView extends LinearLayoutCompat implements CollapsibleActionView {
-
-    FeedFetcher feedFetcher;
 
     public SubscribeActionView(Context context) {
         super(context);
@@ -20,10 +19,6 @@ public class SubscribeActionView extends LinearLayoutCompat implements Collapsib
 
     private void init() {
         inflate(getContext(), R.layout.subscribe_action, this);
-    }
-
-    public void setFeedFetcher(FeedFetcher feedFetcher) {
-        this.feedFetcher = feedFetcher;
     }
 
     @Override
@@ -42,9 +37,12 @@ public class SubscribeActionView extends LinearLayoutCompat implements Collapsib
                     // Close the open soft keyboard
                     InputMethodManager inputMethodManager =
                             (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                    String showUrl = subscribeUrl.getText().toString();
                     inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
-                    feedFetcher.triggerFetchFeed(subscribeUrl.getText().toString());
+                    Context applicationContext = getContext().getApplicationContext();
+                    VPodPlayer.startSubscribeService(applicationContext, showUrl);
                     return true;
                 }
                 return false;

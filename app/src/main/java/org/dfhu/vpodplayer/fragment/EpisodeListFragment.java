@@ -18,7 +18,7 @@ import org.dfhu.vpodplayer.sqlite.Episodes;
 
 import java.util.List;
 
-public class EpisodeListFragment extends Fragment {
+public class EpisodeListFragment extends VicFragment {
 
     public static final String TAG = EpisodeListFragment.class.getName();
 
