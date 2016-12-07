@@ -187,6 +187,7 @@ public class VPodPlayer extends AppCompatActivity {
     }
 
     private void subscribeToShowClicked() {
+        /*
         Subscription sub = ShowsRecyclerViewAdapter.ShowClickBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new LoggingSubscriber<Show>() {
@@ -196,6 +197,7 @@ public class VPodPlayer extends AppCompatActivity {
                     }
                 });
         subscriptions.add(sub);
+        */
     }
 
 

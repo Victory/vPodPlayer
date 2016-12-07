@@ -5,11 +5,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.dfhu.vpodplayer.model.Show;
@@ -22,18 +20,7 @@ import rx.subjects.PublishSubject;
 
 public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecyclerViewAdapter.ViewHolder> {
 
-    static class ShowClickBus {
-        private ShowClickBus() {}
-        private static PublishSubject<Show> subject = PublishSubject.create();
-
-        static void publish(Show v) { subject.onNext(v); }
-        static Observable<Show> getEvents() { return subject; }
-    }
-
-    private final List<Show> shows;
-
     public ShowsRecyclerViewAdapter(List<Show> shows) {
-        this.shows = shows;
     }
 
     @Override
@@ -46,14 +33,12 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Show show = shows.get(position);
-        holder.setShow(show);
-        holder.itemShowTitle.setText(show.title);
+        holder.itemShowTitle.setText("" + position);
     }
 
     @Override
     public int getItemCount() {
-        return shows.size();
+        return 10;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder
@@ -61,12 +46,6 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
 
         final TextView itemShowTitle;
         final Button buttonWorthClicking;
-
-        private Show show;
-
-        public void setShow(Show show) {
-            this.show = show;
-        }
 
         ViewHolder(final View itemView) {
             super(itemView);
@@ -87,6 +66,7 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
             facedForClicks.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    // pass along the short click
                     ViewHolder.this.onClick(itemView);
                 }
             });
@@ -107,18 +87,12 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
 
         @Override
         public void onClick(View v) {
-            ShowClickBus.publish(show);
+            Log.d("one-off", "short click on item");
         }
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
-            Context context = view.getContext().getApplicationContext();
-            menu.setHeaderTitle(show.title);
-
-            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 1,
-                    context.getString(R.string.contextMenuDeleteListened));
-            menu.add(R.id.ShowListFragmentContextMenuId, show.id, 2,
-                    context.getString(R.string.contextMenuUnsubscribe));
+            Log.d("one-off", "long click on item");
         }
     }
 }
