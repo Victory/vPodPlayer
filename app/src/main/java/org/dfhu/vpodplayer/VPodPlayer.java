@@ -19,7 +19,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.dfhu.vpodplayer.feed.Feed;
 import org.dfhu.vpodplayer.fragment.DownloadFragment;
 import org.dfhu.vpodplayer.fragment.EpisodeListFragment;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
@@ -28,6 +27,7 @@ import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.service.SubscribeToShowService;
 import org.dfhu.vpodplayer.sqlite.Shows;
+import org.dfhu.vpodplayer.util.LoggingSubscriber;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +36,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 public class VPodPlayer extends AppCompatActivity {
@@ -62,7 +63,6 @@ public class VPodPlayer extends AppCompatActivity {
 
     Toolbar toolbar;
 
-    private static final String TAG_FETCH_FEED_FRAGMENT = "TAG_FETCH_FEED_FRAGMENT";
     public static final String TAG_MAIN_DISPLAY_FRAGMENT = "TAG_MAIN_DISPLAY_FRAGMENT";
     private List<Subscription> subscriptions = new LinkedList<>();
 
@@ -98,7 +98,6 @@ public class VPodPlayer extends AppCompatActivity {
         if (showUrl == null || showUrl.isEmpty() || !showUrl.startsWith("http")) {
             return;
         }
-        final Context context = this;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         subscribeConfirmationAlertDialog = builder
                 .setTitle("Subscribe to Podcast")
@@ -107,10 +106,7 @@ public class VPodPlayer extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         getIntent().setData(Uri.EMPTY);
-                        Intent intent = new Intent(context, SubscribeToShowService.class);
-                        intent.setData(SubscribeToShowService.URI_SUBSCRIBE);
-                        intent.putExtra("showUrl", showUrl);
-                        context.startService(intent);
+                        VPodPlayer.startSubscribeService(getApplicationContext(), showUrl);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -121,6 +117,14 @@ public class VPodPlayer extends AppCompatActivity {
                 })
                 .show();
 
+    }
+
+    // TODO - this was created to stop duplication and should be refactored
+    public static void startSubscribeService (Context context, String showUrl) {
+        Intent intent = new Intent(context, SubscribeToShowService.class);
+        intent.setData(SubscribeToShowService.URI_SUBSCRIBE);
+        intent.putExtra("showUrl", showUrl);
+        context.startService(intent);
     }
 
     /**
@@ -138,17 +142,9 @@ public class VPodPlayer extends AppCompatActivity {
 
     private void subscribeToRefreshFragment() {
         Subscription sub = RefreshFragmentBus.getEvents()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Class>() {
-                    @Override
-                    public void onCompleted() {
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e(TAG, "onError: trying to refresh", e);
-                    }
-
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new LoggingSubscriber<Class>() {
                     @Override
                     public void onNext(Class cls) {
                         Fragment fragment =
@@ -166,21 +162,9 @@ public class VPodPlayer extends AppCompatActivity {
     private void subscribeToEpisodeClicked() {
         Subscription sub = EpisodesRecyclerViewAdapter.EpisodeClickBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Episode>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d("episodeClickSub", "onComplete");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("episodeClickSub", "onError", e);
-                    }
-
+                .subscribe(new LoggingSubscriber<Episode>() {
                     @Override
                     public void onNext(Episode episode) {
-                        Log.d("episodeClickSub", "onNext: " + episode);
-
                         Fragment fragment = (episode.isReadyToPlay()) ?
                                 new PlayerFragment() :
                                 new DownloadFragment();
@@ -204,17 +188,7 @@ public class VPodPlayer extends AppCompatActivity {
     private void subscribeToShowClicked() {
         Subscription sub = ShowsRecyclerViewAdapter.ShowClickBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Show>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d("showClickSubscription", "onComplete");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("showClickSubscription", "onError", e);
-                    }
-
+                .subscribe(new LoggingSubscriber<Show>() {
                     @Override
                     public void onNext(Show show) {
                         setEpisodeListFragment(show.id, 0);
@@ -227,17 +201,7 @@ public class VPodPlayer extends AppCompatActivity {
     private void subscribeToToastError() {
         Subscription sub = ToastErrorBus.getEvents()
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<String>() {
-                    @Override
-                    public void onCompleted() {
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
+                .subscribe(new LoggingSubscriber<String>() {
                     @Override
                     public void onNext(String s) {
                         makeToast(s);
@@ -298,7 +262,7 @@ public class VPodPlayer extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_refresh_podcast:
-                refresh();
+                handleRefreshButton();
                 return true;
             case android.R.id.home:
                 handleHomeButton();
@@ -327,7 +291,7 @@ public class VPodPlayer extends AppCompatActivity {
         }
     }
 
-    private void refresh() {
+    private void handleRefreshButton() {
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
         if (fragment instanceof EpisodeListFragment) {
             int showId = fragment.getArguments().getInt("showId");
@@ -378,20 +342,7 @@ public class VPodPlayer extends AppCompatActivity {
     private void getNewEpisodesForShow(int showId) {
         Shows db = new Shows(getApplicationContext());
         Show show = db.getById(showId);
-    }
-
-    void handleFeed(Feed feed) {
-        Log.d(TAG, "NOT IMPLEMENTED");
-        Toast.makeText(this, "NOT IMPLEMENTED", Toast.LENGTH_SHORT).show();
-
-        /*
-        Shows showsDb = new Shows(this.getApplicationContext());
-        Episodes episodeDb = new Episodes(this.getApplicationContext());
-        Show show = SubscriptionManager.subscribe(feed, showsDb, episodeDb);
-
-        setEpisodeListFragment(show.id, 0);
-        Toast.makeText(this, "Updated: " + show.title, Toast.LENGTH_SHORT).show();
-        */
+        VPodPlayer.startSubscribeService(getApplicationContext(), show.url);
     }
 
     public static void safeToast(String s) {

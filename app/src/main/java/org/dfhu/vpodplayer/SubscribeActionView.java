@@ -45,11 +45,7 @@ public class SubscribeActionView extends LinearLayoutCompat implements Collapsib
                     inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
                     Context applicationContext = getContext().getApplicationContext();
-                    Intent intent = new Intent(applicationContext, SubscribeToShowService.class);
-                    intent.setData(SubscribeToShowService.URI_SUBSCRIBE);
-                    intent.putExtra("showUrl", showUrl);
-                    applicationContext.startService(intent);
-
+                    VPodPlayer.startSubscribeService(applicationContext, showUrl);
                     return true;
                 }
                 return false;

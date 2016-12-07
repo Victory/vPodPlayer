@@ -10,9 +10,11 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.VPodPlayer;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.feed.FeedFactory;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
+import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
@@ -168,6 +170,7 @@ public class SubscribeToShowService extends IntentService {
                 notifier.packString(Notifier.TITLE, R.string.newShowAdded);
                 notifier.packString(Notifier.CONTENT_TEXT, subscribeResults.show.title);
                 notifier.show(NOTIFICATIONS_INDEX);
+                VPodPlayer.RefreshFragmentBus.publish(ShowListFragment.class);
             }
         }
     }
