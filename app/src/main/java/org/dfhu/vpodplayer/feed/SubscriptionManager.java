@@ -61,8 +61,7 @@ public class SubscriptionManager {
     }
 
     /** Store show and episodes from the feed in the database */
-    @Deprecated
-    private static Show subscribe(Feed feed, Shows showsDb, Episodes episodesDb) {
+    private Show subscribe(Feed feed, Shows showsDb, Episodes episodesDb) {
 
         Show show = new Show();
         show.title = feed.getTitle();
@@ -89,12 +88,12 @@ public class SubscriptionManager {
     /** Get a brand new feed */
     public Show subscribeToFeed(String url) throws IOException {
         Feed feed = feedFactory.fromUrl(url);
-        return SubscriptionManager.subscribe(feed, showsDb, episodesDb);
+        return subscribe(feed, showsDb, episodesDb);
     }
 
     /** Get list of new episodes */
     public void refreshFeed(String url) throws IOException {
         Feed feed = feedFactory.fromUrl(url);
-        SubscriptionManager.subscribe(feed, showsDb, episodesDb);
+        subscribe(feed, showsDb, episodesDb);
     }
 }
