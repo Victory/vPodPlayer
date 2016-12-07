@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clickable="true"
-    android:focusable="true"
+    android:clickable="false"
+    android:focusable="false"
     android:background="@drawable/list_item_border"
     >
 
@@ -31,5 +31,11 @@
             android:minHeight="30dp"
             android:textColor="#FFFFFF"
             />
+
+        <Button
+            android:id="@+id/buttonWorthClicking"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="button worth clicking"/>
     </LinearLayout>
 </LinearLayout>

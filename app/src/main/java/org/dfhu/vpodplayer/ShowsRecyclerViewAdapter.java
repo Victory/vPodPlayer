@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -59,6 +60,7 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
             implements View.OnClickListener, View.OnCreateContextMenuListener {
 
         final TextView itemShowTitle;
+        final Button buttonWorthClicking;
 
         private Show show;
 
@@ -70,6 +72,7 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
             super(itemView);
             itemView.setOnClickListener(this);
             itemShowTitle = (TextView) itemView.findViewById(R.id.itemShowTitle);
+            buttonWorthClicking = (Button) itemView.findViewById(R.id.buttonWorthClicking);
 
             setViewFacade(itemView);
 
@@ -91,6 +94,13 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
                 @Override
                 public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
                     // no-op but passes up to the ViewHolder
+                }
+            });
+
+            buttonWorthClicking.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("one-off", "the button was clicked");
                 }
             });
         }
