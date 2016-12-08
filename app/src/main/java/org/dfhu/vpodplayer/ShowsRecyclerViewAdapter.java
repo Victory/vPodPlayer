@@ -80,14 +80,14 @@ public class ShowsRecyclerViewAdapter extends RecyclerView.Adapter<ShowsRecycler
          * Because the layout is nested to for the ripple we build a facade to pass along clicks
          */
         private void setViewFacade(final View itemView) {
-            View facedForClicks = itemView.findViewById(R.id.showClickable);
-            facedForClicks.setOnClickListener(new View.OnClickListener() {
+            View facadeForClicks = itemView.findViewById(R.id.showClickable);
+            facadeForClicks.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     ViewHolder.this.onClick(itemView);
                 }
             });
-            facedForClicks.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+            facadeForClicks.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                 @Override
                 public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
                     // no-op but passes up to the ViewHolder
