@@ -5,12 +5,17 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.content.IntentFilter;
 
+import com.evernote.android.job.JobManager;
+import com.evernote.android.job.JobRequest;
+import com.facebook.stetho.Stetho;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
 import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
+import org.dfhu.vpodplayer.job.UpdateFeedsJob;
+import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
 
@@ -50,6 +55,9 @@ public class VPodPlayerApplication extends Application {
         }
         refWatcher = LeakCanary.install(this);
 
+        JobManager.create(this).addJobCreator(new UpdateFeedsJobCreator());
+        scheduleSyncJob();
+
         component = DaggerVPodPlayerApplication_ApplicationComponent.builder()
                 .androidModule(new AndroidModule(this))
                 .build();
@@ -58,6 +66,17 @@ public class VPodPlayerApplication extends Application {
         this.registerReceiver(
                 new DownloadCompleteBroadcastReceiver(),
                 new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+        Stetho.initializeWithDefaults(this);
+
+    }
+
+    private void scheduleSyncJob() {
+        new JobRequest.Builder(UpdateFeedsJob.TAG)
+                .setExecutionWindow(30000L, 40000L)
+                .setPersisted(true)
+                .build()
+                .schedule();
     }
 
     public ApplicationComponent component() {
