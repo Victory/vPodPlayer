@@ -19,6 +19,9 @@ import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
 
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
@@ -72,9 +75,20 @@ public class VPodPlayerApplication extends Application {
     }
 
     private void scheduleSyncJob() {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        // 1 AM - 6 AM, ignore seconds
+        long startMs = TimeUnit.MINUTES.toMillis(60 - minute)
+                + TimeUnit.HOURS.toMillis((24 - hour) % 24);
+        long endMs = startMs + TimeUnit.HOURS.toMillis(5);
+
         new JobRequest.Builder(UpdateFeedsJob.TAG)
-                .setExecutionWindow(30000L, 40000L)
+                .setExecutionWindow(startMs, endMs)
                 .setPersisted(true)
+                .setRequiredNetworkType(JobRequest.NetworkType.UNMETERED)
+                .setUpdateCurrent(true)
                 .build()
                 .schedule();
     }
