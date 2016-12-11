@@ -51,6 +51,7 @@ public class VPodPlayerApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        // Setup leaky Canary
         if (LeakCanary.isInAnalyzerProcess(this)) {
             // This process is dedicated to LeakCanary for heap analysis.
             // You should not init your app in this process.
@@ -58,39 +59,24 @@ public class VPodPlayerApplication extends Application {
         }
         refWatcher = LeakCanary.install(this);
 
+        // Setup Update feeds job
         JobManager.create(this).addJobCreator(new UpdateFeedsJobCreator());
-        scheduleSyncJob();
+        UpdateFeedsJob.schedule();
 
+        // setup injection
         component = DaggerVPodPlayerApplication_ApplicationComponent.builder()
                 .androidModule(new AndroidModule(this))
                 .build();
         component.inject(this);
 
+        // setup global Reciever for download
         this.registerReceiver(
                 new DownloadCompleteBroadcastReceiver(),
                 new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
+        // Setup the Steho Chorme plugin hook
         Stetho.initializeWithDefaults(this);
 
-    }
-
-    private void scheduleSyncJob() {
-        Calendar calendar = Calendar.getInstance();
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-
-        // 1 AM - 6 AM, ignore seconds
-        long startMs = TimeUnit.MINUTES.toMillis(60 - minute)
-                + TimeUnit.HOURS.toMillis((24 - hour) % 24);
-        long endMs = startMs + TimeUnit.HOURS.toMillis(5);
-
-        new JobRequest.Builder(UpdateFeedsJob.TAG)
-                .setExecutionWindow(startMs, endMs)
-                .setPersisted(true)
-                .setRequiredNetworkType(JobRequest.NetworkType.UNMETERED)
-                .setUpdateCurrent(true)
-                .build()
-                .schedule();
     }
 
     public ApplicationComponent component() {
