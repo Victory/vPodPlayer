@@ -40,6 +40,11 @@ public class RefreshAllShowsService extends IntentService {
             return;
         }
 
+        RefreshAllShowsLogic logic = buildRefreshAllShowsLogic();
+        logic.handleIntent();
+    }
+
+    private RefreshAllShowsLogic buildRefreshAllShowsLogic() {
         Context applicationContext = getApplicationContext();
         RefreshAllShowsLogic.Builder builder = new RefreshAllShowsLogic.Builder();
         NotificationManager notificationManager =
@@ -54,21 +59,19 @@ public class RefreshAllShowsService extends IntentService {
                 showsDb,
                 episodesDb);
 
-        RefreshAllShowsLogic logic = builder
+        return builder
                 .showsDb(showsDb)
                 .subscriptionManager(subscriptionManager)
                 .refreshAllShowsServiceNotification(refreshAllShowsServiceNotification)
                 .stringsProvider(stringsProvider)
                 .build();
-
-        logic.handleIntent();
     }
 
     public static class RefreshAllShowsServiceNotification {
         private final NotificationManager notificationManager;
         private final Context applicationContext;
 
-        public RefreshAllShowsServiceNotification(NotificationManager notificationManager, Context applicationContext) {
+        RefreshAllShowsServiceNotification(NotificationManager notificationManager, Context applicationContext) {
             this.notificationManager = notificationManager;
             this.applicationContext = applicationContext;
         }

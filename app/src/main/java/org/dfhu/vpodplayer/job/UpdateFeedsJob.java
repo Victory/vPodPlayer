@@ -1,17 +1,23 @@
 package org.dfhu.vpodplayer.job;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.evernote.android.job.Job;
 import com.evernote.android.job.JobRequest;
 
+
+import org.dfhu.vpodplayer.service.RefreshAllShowsService;
+
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 public class UpdateFeedsJob extends Job {
 
     public static final String TAG = UpdateFeedsJob.class.getName();
+    private static final long TARGET_HOUR = 14;
+    private static final long TARGET_MINUTE = 2;
+    private static final long WINDOW_LENGTH = 3;
 
     public static void schedule() {
         schedule(true);
@@ -22,16 +28,14 @@ public class UpdateFeedsJob extends Job {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
-        // 1 AM - 6 AM, ignore seconds
-        long startMs = TimeUnit.MINUTES.toMillis(60 - minute)
-                + TimeUnit.HOURS.toMillis((24 - hour) % 24);
-        startMs += TimeUnit.HOURS.toMillis(16);
-        long endMs = startMs + TimeUnit.MINUTES.toMillis(20);
+        DailyExecutionWindow executionWindow =
+                new DailyExecutionWindow(hour, minute, TARGET_HOUR, TARGET_MINUTE, WINDOW_LENGTH);
 
+        //startMs = 5000L; endMs = 2L * 5000L;
         new JobRequest.Builder(UpdateFeedsJob.TAG)
-                .setExecutionWindow(startMs, endMs)
+                .setExecutionWindow(executionWindow.startMs, executionWindow.endMs)
                 .setPersisted(true)
-                .setRequiredNetworkType(JobRequest.NetworkType.UNMETERED)
+                //.setRequiredNetworkType(JobRequest.NetworkType.UNMETERED)
                 .setUpdateCurrent(updateCurrent)
                 .build()
                 .schedule();
@@ -41,6 +45,10 @@ public class UpdateFeedsJob extends Job {
     @Override
     protected Result onRunJob(Params params) {
         try {
+            Intent intent = new Intent(getContext(), RefreshAllShowsService.class);
+            intent.setData(RefreshAllShowsService.URI_REFRESH_ALL);
+            getContext().startService(intent);
+
             Log.d(TAG, "onRunJob:  Hello Job World" + params);
             return Result.SUCCESS;
         } finally {

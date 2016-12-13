@@ -2,33 +2,35 @@ package org.dfhu.vpodplayer.job;
 
 import java.util.concurrent.TimeUnit;
 
-public class DailyExecutionWindow {
-    public final long startMs;
-    public final long endMs;
+class DailyExecutionWindow {
+    final long startMs;
+    final long endMs;
 
     /**
      * Holds the start end time in ms for a job.
-     * Will wrap around to next day if hour < targetHour.
-     * @param hour - current hour
-     * @param minute - current minute
-     * @param targetHour - hour we want to start
-     * @param targetMinute - minute we want to start
+     * Will wrap around to next day if currentHour < targetHour.
+     * @param currentHour - current currentHour
+     * @param currentMinute - current currentMinute
+     * @param targetHour - currentHour we want to start
+     * @param targetMinute - currentMinute we want to start
      * @param windowLengthInMinutes - number of minutes for the execution window
      */
-    public DailyExecutionWindow(int hour, int minute, long targetHour, long targetMinute, long windowLengthInMinutes) {
+    DailyExecutionWindow(int currentHour, int currentMinute, long targetHour, long targetMinute, long windowLengthInMinutes) {
         long hourOffset;
         long minuteOffset;
 
-        if (targetHour >= hour) {
-            hourOffset = TimeUnit.HOURS.toMillis(targetHour - hour);
+        if (targetHour == currentHour && targetMinute < currentMinute) {
+            hourOffset = TimeUnit.HOURS.toMillis(23);
+        } else if (targetHour >= currentHour) {
+            hourOffset = TimeUnit.HOURS.toMillis(targetHour - currentHour);
         } else {
-            hourOffset = TimeUnit.HOURS.toMillis((24 + targetHour) - hour);
+            hourOffset = TimeUnit.HOURS.toMillis((24 + targetHour) - currentHour);
         }
 
-        if (targetMinute >= minute) {
-            minuteOffset = TimeUnit.MINUTES.toMillis(targetMinute - minute);
+        if (targetMinute >= currentMinute) {
+            minuteOffset = TimeUnit.MINUTES.toMillis(targetMinute - currentMinute);
         } else {
-            minuteOffset = TimeUnit.MINUTES.toMillis((60 + targetMinute) - minute);
+            minuteOffset = TimeUnit.MINUTES.toMillis((60 + targetMinute) - currentMinute);
         }
 
         this.startMs = hourOffset + minuteOffset;
