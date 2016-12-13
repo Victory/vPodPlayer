@@ -15,8 +15,8 @@ import java.util.Calendar;
 public class UpdateFeedsJob extends Job {
 
     public static final String TAG = UpdateFeedsJob.class.getName();
-    private static final long TARGET_HOUR = 14;
-    private static final long TARGET_MINUTE = 2;
+    private static final long TARGET_HOUR = 17;
+    private static final long TARGET_MINUTE = 4;
     private static final long WINDOW_LENGTH = 3;
 
     public static void schedule() {

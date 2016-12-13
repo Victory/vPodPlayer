@@ -33,15 +33,15 @@ public class SubscriptionManager {
 
         SubscribeResults subscribeResults = new SubscribeResults();
 
-        Show show = new Show();
-        show.title = feed.getTitle();
-        show.url = feed.getUrl();
-
-        long result = showsDb.add(show);
-        if (result < 0) {
-            show = showsDb.findShowByUrl(show.url);
+        Show show;
+        show = showsDb.findShowByUrl(feed.getUrl());
+        if (show != null) {
             subscribeResults.isNew = false;
         } else {
+            show = new Show();
+            show.title = feed.getTitle();
+            show.url = feed.getUrl();
+            long result = showsDb.add(show);
             show.id = (int) result;
             subscribeResults.isNew = true;
         }
