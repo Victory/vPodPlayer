@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -21,10 +19,11 @@ import android.widget.TextView;
 import org.dfhu.vpodplayer.EpisodesRecyclerViewAdapter;
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.model.Episode;
+import org.dfhu.vpodplayer.service.EpisodeDownloader;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.util.MediaDuration;
+import org.dfhu.vpodplayer.util.PathsUtility;
 
-import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -180,7 +179,7 @@ public class DownloadFragment extends VicFragment {
             public Void call() throws Exception {
                 Episodes db = new Episodes(context);
                 Episode episode = db.getByDownloadId(downloadId);
-                if (episode.isReadyToPlay()) {
+                if (episode != null && episode.isReadyToPlay()) {
                     ShowPlayButton.publish(episode);
                 }
                 return null;
@@ -195,6 +194,11 @@ public class DownloadFragment extends VicFragment {
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(context);
         final Episode episode = db.getById(episodeId);
+
+        if (episode == null) {
+            Log.e(TAG, "queueDownload: episode is null ");
+            return;
+        }
 
         if (episode.isReadyToPlay()) {
             Log.d(TAG, "Episode marked ready to play: " + episode);
@@ -224,7 +228,10 @@ public class DownloadFragment extends VicFragment {
             }
         }
 
-        downloadId = startDownload(episode);
+        PathsUtility pathsUtility = new PathsUtility(this.context);
+        EpisodeDownloader.DownloadManagerWrapper downloadManagerWrapper =
+                new EpisodeDownloader.DownloadManagerWrapper(dm);
+        downloadId = new EpisodeDownloader(downloadManagerWrapper, pathsUtility).enqueue(episode);
         Log.d(TAG, "queueDownload() called: downloadId added: " + downloadId);
         episode.downloadId = downloadId;
         subscribeToShowPlayButton(downloadId);
@@ -327,38 +334,6 @@ public class DownloadFragment extends VicFragment {
         subs.unsubscribe();
         subs = null;
         super.onDetach();
-    }
-
-    private long startDownload(Episode episode) {
-        Log.d(TAG, "startDownload() called with: episode = [" + episode + "]");
-        File fileDir = context.getExternalFilesDir(null);
-
-        Uri uri = Uri.parse(episode.url);
-
-        File dir = new File(fileDir, "episodes");
-        dir = new File(dir, "show-" + episode.showId);
-        if (!dir.mkdirs()) {
-            Log.d("DownloadFragment", "Directory already exists: " + dir.getAbsolutePath());
-        }
-
-        Uri destinationUri = Uri.fromFile(new File(dir, episode.id + ".mp3"));
-
-        int allowedNetworkTypes = DownloadManager.Request.NETWORK_WIFI;
-
-        // allow Mobile data when emulating
-        if (Build.PRODUCT.contains("sdk_google")) {
-            allowedNetworkTypes |= DownloadManager.Request.NETWORK_MOBILE;
-        }
-
-        DownloadManager.Request request = new DownloadManager.Request(uri)
-                .setAllowedNetworkTypes(allowedNetworkTypes)
-                .setAllowedOverRoaming(false)
-                .setDescription("id: " + episode.id)
-                .setTitle(episode.title)
-                .setDestinationUri(destinationUri);
-
-        return dm.enqueue(request);
-
     }
 
     private void updateUi(final long downloadId) {
