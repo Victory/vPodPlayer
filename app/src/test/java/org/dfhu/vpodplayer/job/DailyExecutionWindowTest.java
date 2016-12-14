@@ -50,6 +50,20 @@ public class DailyExecutionWindowTest extends Assert {
     }
 
     @Test
+    public void laterInNextHour() {
+        int targetHour = 16;
+        int targetMinute = 15;
+        int windowLengthInMinutes = 5;
+        long expectedStartMs = 1000L * (45L * 60L);
+        long expectedEndMs = expectedStartMs + windowLengthInMinutes * 60000;
+
+        DailyExecutionWindow e = new DailyExecutionWindow(
+               nowHour, nowMinute, targetHour, targetMinute, windowLengthInMinutes);
+        assertEquals("startMs", expectedStartMs, e.startMs);
+        assertEquals("endMs", expectedEndMs, e.endMs);
+    }
+
+    @Test
     public void laterInCurrentHour() {
         int targetHour = 15;
         int targetMinute = 45;
@@ -62,7 +76,6 @@ public class DailyExecutionWindowTest extends Assert {
         assertEquals("startMs", expectedStartMs, e.startMs);
         assertEquals("endMs", expectedEndMs, e.endMs);
     }
-
     @Test
     public void rightNow() {
         int targetHour = 15;

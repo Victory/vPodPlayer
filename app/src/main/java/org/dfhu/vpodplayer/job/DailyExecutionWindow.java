@@ -21,6 +21,10 @@ class DailyExecutionWindow {
 
         if (targetHour == currentHour && targetMinute < currentMinute) {
             hourOffset = TimeUnit.HOURS.toMillis(23);
+        } else if (targetHour - currentHour == 1) { // if we are less then an hour ahead, but into the next hour
+            // move forward to 0 minute of next hour
+            hourOffset = TimeUnit.MINUTES.toMillis(60 - currentMinute);
+            currentMinute = 0;
         } else if (targetHour >= currentHour) {
             hourOffset = TimeUnit.HOURS.toMillis(targetHour - currentHour);
         } else {
