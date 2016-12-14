@@ -62,7 +62,7 @@ public class EpisodeDownloader {
         File destinationDir =
                 pathsUtility.makeExternalFilesDirChildDirs("episodes", "show-" + episode.showId);
         if (!pathsUtility.conditionalCreateDir(destinationDir)) {
-            Log.e(TAG, "enqueue: could not enqueue episode: " + episode);
+            //Log.e(TAG, "enqueue: could not enqueue episode: " + episode);
             return -1;
         }
         Uri destinationUri =
