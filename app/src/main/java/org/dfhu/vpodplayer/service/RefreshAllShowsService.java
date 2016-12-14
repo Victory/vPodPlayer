@@ -15,7 +15,12 @@ import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.inject.Inject;
+
+import rx.Observable;
+import rx.subjects.PublishSubject;
 
 public class RefreshAllShowsService extends IntentService {
     public static final String TAG = RefreshAllShowsService.class.getName();
@@ -85,5 +90,16 @@ public class RefreshAllShowsService extends IntentService {
 
             notificationManager.notify(2, notification);
         }
+    }
+    public static class RefreshResults {
+        AtomicInteger numShowsUpdated = new AtomicInteger(0);
+    }
+
+    public static class ServiceCompleteBus {
+        private ServiceCompleteBus() {}
+        private static PublishSubject<RefreshResults> subject = PublishSubject.create();
+
+        public static void publish(RefreshResults v) { subject.onNext(v); }
+        public static Observable<RefreshResults> getEvents() { return subject; }
     }
 }

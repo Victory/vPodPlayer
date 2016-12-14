@@ -16,7 +16,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import rx.Subscriber;
 import rx.observables.ConnectableObservable;
@@ -27,7 +26,7 @@ class RefreshAllShowsLogic {
     private final Shows showsDb;
     private final SubscriptionManager subscriptionManager;
     private final StringsProvider stringsProvider;
-    private final Subscriber<RefreshResults> subscriber;
+    private final Subscriber<RefreshAllShowsService.RefreshResults> subscriber;
 
     @SuppressWarnings("WeakerAccess")
     public static final int NUM_NETWORK_THREADS = 3;
@@ -38,7 +37,7 @@ class RefreshAllShowsLogic {
             @NonNull RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification,
             @NonNull Shows showsDb,
             @NonNull SubscriptionManager subscriptionManager,
-            Subscriber<RefreshResults> subscriber,
+            Subscriber<RefreshAllShowsService.RefreshResults> subscriber,
             @NonNull StringsProvider stringsProvider) {
         this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
         this.showsDb = showsDb;
@@ -52,7 +51,7 @@ class RefreshAllShowsLogic {
         private Shows showsDb = null;
         private SubscriptionManager subscriptionManager;
         private StringsProvider stringsProvider = null;
-        private Subscriber<RefreshResults> subscriber = null;
+        private Subscriber<RefreshAllShowsService.RefreshResults> subscriber = null;
 
         Builder() {
         }
@@ -77,7 +76,7 @@ class RefreshAllShowsLogic {
             return this;
         }
 
-        Builder subscriber(@NonNull Subscriber<RefreshResults> subscriber) {
+        Builder subscriber(@NonNull Subscriber<RefreshAllShowsService.RefreshResults> subscriber) {
             this.subscriber = subscriber;
             return this;
         }
@@ -113,7 +112,7 @@ class RefreshAllShowsLogic {
                 subscriptionManager,
                 stringsProvider);
 
-        ConnectableObservable<RefreshResults> connectable =
+        ConnectableObservable<RefreshAllShowsService.RefreshResults> connectable =
                 ConnectableObservable.fromCallable(refreshAllShows)
                         .subscribeOn(Schedulers.io())
                         .publish();
@@ -125,11 +124,7 @@ class RefreshAllShowsLogic {
         connectable.connect();
     }
 
-    static class RefreshResults {
-        AtomicInteger numShowsUpdated = new AtomicInteger(0);
-    }
-
-    private static class RefreshAllShows implements Callable<RefreshResults> {
+    private static class RefreshAllShows implements Callable<RefreshAllShowsService.RefreshResults> {
 
         private final Shows showsDb;
         private final StringsProvider stringsProvider;
@@ -147,13 +142,13 @@ class RefreshAllShowsLogic {
         }
 
         @Override
-        public RefreshResults call() throws Exception {
+        public RefreshAllShowsService.RefreshResults call() throws Exception {
             showNotification(stringsProvider.getString(R.string.ellipsis));
             return updateEachShow();
         }
 
-        private RefreshResults updateEachShow() throws InterruptedException {
-            final RefreshResults refreshResults = new RefreshResults();
+        private RefreshAllShowsService.RefreshResults updateEachShow() throws InterruptedException {
+            final RefreshAllShowsService.RefreshResults refreshResults = new RefreshAllShowsService.RefreshResults();
 
             final List<Show> showList = showsDb.all();
             ExecutorService pool = Executors.newFixedThreadPool(NUM_NETWORK_THREADS);
@@ -195,7 +190,7 @@ class RefreshAllShowsLogic {
         }
     }
 
-    private static class RefreshAllShowsSubscriber extends LoggingSubscriber<RefreshResults> {
+    private static class RefreshAllShowsSubscriber extends LoggingSubscriber<RefreshAllShowsService.RefreshResults> {
 
         private final RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification;
         private final StringsProvider stringsProvider;
@@ -208,16 +203,18 @@ class RefreshAllShowsLogic {
         }
 
         @Override
-        public void onNext(RefreshResults refreshResults) {
+        public void onNext(RefreshAllShowsService.RefreshResults refreshResults) {
             showNotification(refreshResults);
         }
 
-        private void showNotification(RefreshResults refreshResults) {
+        private void showNotification(RefreshAllShowsService.RefreshResults refreshResults) {
             String appName = stringsProvider.getString(R.string.app_name);
             int numUpdated = refreshResults.numShowsUpdated.get();
             String info =
                     stringsProvider.getQuantityString(R.plurals.numShowsUpdated, numUpdated, numUpdated);
             refreshAllShowsServiceNotification.show(appName, info);
+
+            RefreshAllShowsService.ServiceCompleteBus.publish(refreshResults);
         }
     }
 }

@@ -66,7 +66,7 @@ public class RefreshAllShowsLogicTest extends Assert {
     @Mock
     FeedFactory mockFeedFactory;
 
-    private TestSubscriber<RefreshAllShowsLogic.RefreshResults> testSubscriber;
+    private TestSubscriber<RefreshAllShowsService.RefreshResults> testSubscriber;
 
     @Before
     public void setUp() {
@@ -203,8 +203,8 @@ public class RefreshAllShowsLogicTest extends Assert {
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
 
-        List<RefreshAllShowsLogic.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
-        RefreshAllShowsLogic.RefreshResults refreshResults = onNextEvents.get(0);
+        List<RefreshAllShowsService.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
+        RefreshAllShowsService.RefreshResults refreshResults = onNextEvents.get(0);
         assertTrue(refreshResults.numShowsUpdated.get() == 10);
     }
 
@@ -221,7 +221,7 @@ public class RefreshAllShowsLogicTest extends Assert {
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
 
-        List<RefreshAllShowsLogic.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
+        List<RefreshAllShowsService.RefreshResults> onNextEvents = testSubscriber.getOnNextEvents();
         assertTrue("onNext should only be called once", onNextEvents.size() == 1);
     }
 
