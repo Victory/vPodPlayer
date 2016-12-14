@@ -78,7 +78,7 @@ public class VPodPlayer extends AppCompatActivity {
         subscribeToShowClicked();
         subscribeToEpisodeClicked();
         subscribeToRefreshFragment();
-        handleIntentFromBrowserLink();
+        handleIntentFromBrowserLink(getIntent());
 
 
         if (getSupportFragmentManager().findFragmentByTag(TAG_MAIN_DISPLAY_FRAGMENT) == null) {
@@ -86,16 +86,25 @@ public class VPodPlayer extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntentFromBrowserLink(intent);
+    }
+
     /**
      * If we get an intent from a browser link, this should be a url
      * this creates an alert dialogue to confirm the subscription
+     * @param intent
      */
-    private void handleIntentFromBrowserLink() {
-        final String showUrl = getIntent().getDataString();
+    private void handleIntentFromBrowserLink(final Intent intent) {
+        final String showUrl = intent.getDataString();
 
         if (showUrl == null || showUrl.isEmpty() || !showUrl.startsWith("http")) {
             return;
         }
+        getIntent().setData(Uri.parse(showUrl));
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         subscribeConfirmationAlertDialog = builder
                 .setTitle("Subscribe to Podcast")
@@ -103,14 +112,14 @@ public class VPodPlayer extends AppCompatActivity {
                 .setPositiveButton("Subscribe", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        getIntent().setData(Uri.EMPTY);
+                        intent.setData(Uri.EMPTY);
                         VPodPlayer.startSubscribeService(getApplicationContext(), showUrl);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        getIntent().setData(Uri.EMPTY);
+                        intent.setData(Uri.EMPTY);
                     }
                 })
                 .show();

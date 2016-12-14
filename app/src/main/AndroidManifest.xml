@@ -37,7 +37,8 @@
             android:exported="false">
         </service>
 
-        <activity android:name=".VPodPlayer">
+        <activity android:name=".VPodPlayer"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
