@@ -12,7 +12,7 @@ public class Episode {
     public int percentListened = 0;
     public int sizeInBytes = -1;
     public long downloadId = -1;
-    public String pubDate;
+    public long pubDate;
     public long lastListened;
 
     /** null if not set so can be populated on first pass */

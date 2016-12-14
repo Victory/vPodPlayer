@@ -53,8 +53,8 @@ class JsoupFeedItem implements FeedItem {
     }
 
     @Override
-    public String getPubDate() {
-        String date = "" + System.currentTimeMillis() / 1000L;
+    public long getPubDate() {
+        long date = System.currentTimeMillis() / 1000L;
 
         Elements elms = elm.select("pubDate");
         if (elms.size() <= 0) {
@@ -66,7 +66,7 @@ class JsoupFeedItem implements FeedItem {
 
         try {
             Date parsedDate = fromFormat.parse(pubDate);
-            date = "" + parsedDate.getTime() / 1000L;
+            date = parsedDate.getTime() / 1000L;
         } catch (ParseException e) {
             Log.e(TAG, "getPubDate could not be parsed: " + pubDate, e);
         }

@@ -6,5 +6,5 @@ interface FeedItem {
 
     String getUrl();
 
-    String getPubDate();
+    long getPubDate();
 }

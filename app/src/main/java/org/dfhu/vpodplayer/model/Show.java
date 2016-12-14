@@ -5,6 +5,7 @@ public class Show {
     public String title = "unknown title";
     public String description = "Description not found";
     public String url;
+    public long subscriptionDate;
 
     @Override
     public boolean equals(Object o) {

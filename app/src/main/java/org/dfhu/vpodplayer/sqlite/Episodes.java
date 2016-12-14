@@ -62,7 +62,7 @@ public class Episodes extends VicSQLiteOpenHelper {
                     "`percentListened` INTEGER," +
                     "`sizeInBytes` INTEGER," +
                     "`downloadId` INTEGER," +
-                    "`pubDate` STRING," +
+                    "`pubDate` INTEGER," +
                     "`duration` INTEGER," +
                     "`lastListened` INTEGER" +
                     ")";
@@ -305,7 +305,7 @@ public class Episodes extends VicSQLiteOpenHelper {
                 episode.sizeInBytes = cc.getIntColumn(K_SIZE_IN_BYTES);
                 episode.percentListened = cc.getIntColumn(K_PERCENT_LISTENED);
                 episode.isDownloaded = cc.getIntColumn(K_IS_DOWNLOADED);
-                episode.pubDate = cc.getStringColumn(K_PUB_DATE);
+                episode.pubDate = cc.getLongColumn(K_PUB_DATE);
                 episode.duration = cc.getIntColumn(K_DURATION);
                 episode.lastListened = cc.getLongColumn(K_LAST_LISTENED);
 

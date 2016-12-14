@@ -4,8 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-
 import org.dfhu.vpodplayer.model.Show;
 
 import java.util.List;
@@ -20,6 +18,7 @@ public class Shows extends VicSQLiteOpenHelper {
     private static final String K_TITLE = "title";
     private static final String K_DESCRIPTION = "description";
     private static final String K_URL = "url";
+    private static final String K_SUBSCRIPTION_DATE = "subscriptionDate";
 
     private static final String[] COLUMNS = {
             K_ID,
@@ -33,7 +32,8 @@ public class Shows extends VicSQLiteOpenHelper {
                     "`id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "`title` TEXT," +
                     "`description` TEXT," +
-                    "`url` TEXT NOT NULL UNIQUE" +
+                    "`url` TEXT NOT NULL UNIQUE," +
+                    "`subscriptionDate` INTEGER NOT NULL" +
                     ")";
 
     public Shows(Context context) {
@@ -53,7 +53,6 @@ public class Shows extends VicSQLiteOpenHelper {
         }
     }
 
-
     /**
      * Store a show
      * @param show - A podcast to subscribe to
@@ -64,6 +63,7 @@ public class Shows extends VicSQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(K_TITLE, show.title);
         contentValues.put(K_URL, show.url);
+        contentValues.put(K_SUBSCRIPTION_DATE, "" + System.currentTimeMillis() / 1000L);
 
         try {
             return db.insert(DB_NAME, null, contentValues);
@@ -108,7 +108,7 @@ public class Shows extends VicSQLiteOpenHelper {
      * Find a show with a url or create and empty show object if none found
      *
      * @param url - the url of the show to find
-     * @return - found show, or new Show() if none found
+     * @return - found show, null none found
      */
     public Show findShowByUrl(String url) {
         // XXX: can be done in sql
@@ -117,7 +117,7 @@ public class Shows extends VicSQLiteOpenHelper {
                 return show;
             }
         }
-        return new Show();
+        return null;
     }
 
     public void deleteById(int showId) {
@@ -137,6 +137,7 @@ public class Shows extends VicSQLiteOpenHelper {
             show.title = cc.getStringColumn(K_TITLE);
             show.url = cc.getStringColumn(K_URL);
             show.description = cc.getStringColumn(K_DESCRIPTION);
+            show.subscriptionDate = cc.getLongColumn(K_SUBSCRIPTION_DATE);
             items.add(show);
         }
     }
