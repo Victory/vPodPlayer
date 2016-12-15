@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.IntentFilter;
 
 import com.evernote.android.job.JobManager;
-import com.evernote.android.job.JobRequest;
 import com.facebook.stetho.Stetho;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
@@ -18,9 +17,6 @@ import org.dfhu.vpodplayer.job.UpdateFeedsJob;
 import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
-
-import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 
@@ -37,6 +33,7 @@ public class VPodPlayerApplication extends Application {
         void inject(EpisodesRecyclerViewAdapter episodesRecyclerViewAdapter);
         void inject(RefreshAllShowsService refreshAllShowsService);
         void inject(UpdateSubscriptionService updateSubscriptionService);
+        void inject(UpdateFeedsJobCreator updateFeedsJobCreator);
     }
 
     private ApplicationComponent component;
@@ -59,15 +56,17 @@ public class VPodPlayerApplication extends Application {
         }
         refWatcher = LeakCanary.install(this);
 
-        // Setup Update feeds job
-        JobManager.create(this).addJobCreator(new UpdateFeedsJobCreator());
-        UpdateFeedsJob.schedule();
-
         // setup injection
         component = DaggerVPodPlayerApplication_ApplicationComponent.builder()
                 .androidModule(new AndroidModule(this))
                 .build();
         component.inject(this);
+
+        // Setup Update feeds job
+        UpdateFeedsJobCreator updateFeedsJobCreator = new UpdateFeedsJobCreator();
+        component.inject(updateFeedsJobCreator);
+        JobManager.create(this).addJobCreator(updateFeedsJobCreator);
+        UpdateFeedsJob.schedule();
 
         // setup global Reciever for download
         this.registerReceiver(

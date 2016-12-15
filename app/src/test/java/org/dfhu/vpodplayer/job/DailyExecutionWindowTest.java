@@ -81,7 +81,7 @@ public class DailyExecutionWindowTest extends Assert {
         int targetHour = 15;
         int targetMinute = 30;
         int windowLengthInMinutes = 5;
-        long expectedStartMs = 0;
+        long expectedStartMs = 60000;
         long expectedEndMs = expectedStartMs + windowLengthInMinutes * 60000;
 
         DailyExecutionWindow e = new DailyExecutionWindow(

@@ -9,6 +9,8 @@ class DailyExecutionWindow {
     /**
      * Holds the start end time in ms for a job.
      * Will wrap around to next day if currentHour < targetHour.
+     * If the current time is exactly now it will be forced to 60 seconds in the future.
+     *
      * @param currentHour - current currentHour
      * @param currentMinute - current currentMinute
      * @param targetHour - currentHour we want to start
@@ -37,7 +39,7 @@ class DailyExecutionWindow {
             minuteOffset = TimeUnit.MINUTES.toMillis((60 + targetMinute) - currentMinute);
         }
 
-        this.startMs = hourOffset + minuteOffset;
+        this.startMs = Math.max(hourOffset + minuteOffset, 60000);
         this.endMs = this.startMs + TimeUnit.MINUTES.toMillis(windowLengthInMinutes);
 
     }
