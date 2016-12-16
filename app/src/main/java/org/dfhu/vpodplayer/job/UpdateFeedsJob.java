@@ -16,10 +16,6 @@ import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-
-import dagger.Lazy;
-
 public class UpdateFeedsJob extends Job {
 
     public static final String TAG = UpdateFeedsJob.class.getName();
@@ -30,7 +26,7 @@ public class UpdateFeedsJob extends Job {
 
     private final EpisodeDownloader episodeDownloader;
 
-    public UpdateFeedsJob(EpisodeDownloader episodeDownloader) {
+    UpdateFeedsJob(EpisodeDownloader episodeDownloader) {
         this.episodeDownloader = episodeDownloader;
     }
 
@@ -56,16 +52,16 @@ public class UpdateFeedsJob extends Job {
                 .schedule();
     }
 
-    public static class RefreshAllShowsSubscriber extends LoggingSubscriber<RefreshAllShowsService.RefreshResults> {
+    private static class RefreshAllShowsSubscriber extends LoggingSubscriber<RefreshAllShowsService.RefreshResults> {
         private final CountDownLatch latch;
         private final EpisodeDownloader episodeDownloader;
 
-        public RefreshAllShowsSubscriber(@NonNull EpisodeDownloader episodeDownloader) {
+        RefreshAllShowsSubscriber(@NonNull EpisodeDownloader episodeDownloader) {
             this.latch = new CountDownLatch(1);
             this.episodeDownloader = episodeDownloader;
         }
 
-        public CountDownLatch getLatch() {
+        CountDownLatch getLatch() {
             return latch;
         }
 
@@ -84,10 +80,13 @@ public class UpdateFeedsJob extends Job {
     protected Result onRunJob(Params params) {
 
         try {
+
+            // Start the refresh all show intent
             Intent intent = new Intent(getContext(), RefreshAllShowsService.class);
             intent.setData(RefreshAllShowsService.URI_REFRESH_ALL);
             getContext().startService(intent);
 
+            // subscribe to events complete bus
             RefreshAllShowsSubscriber refreshAllShowsSubscriber
                 = new RefreshAllShowsSubscriber(episodeDownloader);
             RefreshAllShowsService.ServiceCompleteBus.getEvents()
@@ -97,7 +96,6 @@ public class UpdateFeedsJob extends Job {
             refreshAllShowsSubscriber.getLatch()
                     .await(WAKE_LOCK_AWAIT_TIME_SECONDS, TimeUnit.SECONDS);
 
-            Log.d(TAG, "onRunJob:  Hello Job World" + params);
             return Result.SUCCESS;
         } catch (InterruptedException e) {
             Log.d(TAG, "onRunJob", e);
