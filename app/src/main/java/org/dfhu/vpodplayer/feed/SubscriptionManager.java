@@ -26,6 +26,7 @@ public class SubscriptionManager {
     public static class SubscribeResults {
         public Show show;
         public boolean isNew;
+        public List<Episode> newEpisodes;
     }
 
     /** Store show and episodes from the feed in the database */
@@ -54,8 +55,8 @@ public class SubscriptionManager {
         }
 
         List<Episode> episodes = feed.getEpisodes();
-        episodesDb.addAllForShow(episodes, show.id);
-
+        subscribeResults.newEpisodes
+                = episodesDb.addAllForShow(episodes, show.id);
 
         return subscribeResults;
     }

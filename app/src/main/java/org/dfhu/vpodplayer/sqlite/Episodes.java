@@ -11,6 +11,7 @@ import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @SuppressWarnings("TryFinallyCanBeTryWithResources")
@@ -98,6 +99,14 @@ public class Episodes extends VicSQLiteOpenHelper {
         }
     }
 
+    /**
+     * A version of addOrUpdate that opens and closes the database each call
+     * TODO: this should be removed when we switch to no close singleton
+     */
+    public long freshAddOrUpdate(Episode episode) {
+        return new Episodes(context).addOrUpdate(episode);
+    }
+
 
     /**
      * Add a record but don't close the database
@@ -155,17 +164,23 @@ public class Episodes extends VicSQLiteOpenHelper {
      * Add episodes for show with showId
      * @param episodes - epiodes to add
      * @param showId - target id
+     * @return - list of added episodes
      */
-    public void addAllForShow(List<Episode> episodes, int showId) {
+    public List<Episode> addAllForShow(List<Episode> episodes, int showId) {
         SQLiteDatabase db = getWritableDatabase();
+        List<Episode> newEpisodes = new LinkedList<>();
         try {
             for (Episode episode : episodes) {
                 episode.showId = showId;
-                addNoClose(episode, db, false);
+                if (addNoClose(episode, db, false) > 0) {
+                    newEpisodes.add(episode);
+                }
             }
         } finally {
             db.close();
         }
+
+        return newEpisodes;
     }
 
     /**
@@ -227,12 +242,14 @@ public class Episodes extends VicSQLiteOpenHelper {
     }
 
 
+    /*
     public Episode getByUrl(final String url) {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `url` = ? LIMIT 1";
         Cursor cursor = db.rawQuery(sql, new String[]{url});
         return getFirst(db, cursor);
     }
+    */
 
     /**
      * Update the percentListened of this episode
@@ -279,7 +296,6 @@ public class Episodes extends VicSQLiteOpenHelper {
         }
     }
 
-
     /** Get the first matched episode */
     @Nullable
     private Episode getFirst(SQLiteDatabase db, Cursor cursor) {
@@ -291,7 +307,7 @@ public class Episodes extends VicSQLiteOpenHelper {
         return episodes.get(0);
     }
 
-     static class Hydrator implements ConsumeHydrator<Episode> {
+     private static class Hydrator implements ConsumeHydrator<Episode> {
             @Override
             public void consume(ColumnCursor cc, List<Episode> items) {
                 Episode episode = new Episode();

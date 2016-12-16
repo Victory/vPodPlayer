@@ -5,14 +5,18 @@ import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public abstract class VicSQLiteOpenHelper extends SQLiteOpenHelper{
+public abstract class VicSQLiteOpenHelper extends SQLiteOpenHelper {
+
+    protected final Context context;
 
     public VicSQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
+        this.context = context;
     }
 
     public VicSQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
         super(context, name, factory, version, errorHandler);
+        this.context = context;
     }
 
     /**

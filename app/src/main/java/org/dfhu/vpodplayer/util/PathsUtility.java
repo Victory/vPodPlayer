@@ -13,7 +13,6 @@ public class PathsUtility {
 
     public PathsUtility(Context applicationContext) {
         this.applicationContext = applicationContext;
-
     }
 
     /**

@@ -11,11 +11,16 @@ import android.util.Log;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.feed.FeedFactory;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
+import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.StringsProvider;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
@@ -93,6 +98,15 @@ public class RefreshAllShowsService extends IntentService {
     }
     public static class RefreshResults {
         AtomicInteger numShowsUpdated = new AtomicInteger(0);
+        List<Episode> newEpisodes = Collections.synchronizedList(new LinkedList<Episode>());
+
+        public List<Episode> getNewEpisodes() {
+            return newEpisodes;
+        }
+
+        public int getNumShowsUpdated() {
+            return numShowsUpdated.get();
+        }
     }
 
     public static class ServiceCompleteBus {

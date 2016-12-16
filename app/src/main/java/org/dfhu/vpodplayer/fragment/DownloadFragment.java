@@ -230,12 +230,11 @@ public class DownloadFragment extends VicFragment {
 
         PathsUtility pathsUtility = new PathsUtility(this.context);
         EpisodeDownloader.DownloadManagerWrapper downloadManagerWrapper =
-                new EpisodeDownloader.DownloadManagerWrapper(dm);
+                new EpisodeDownloader.DownloadManagerWrapper(dm, db);
         downloadId = new EpisodeDownloader(downloadManagerWrapper, pathsUtility).enqueue(episode);
         Log.d(TAG, "queueDownload() called: downloadId added: " + downloadId);
         episode.downloadId = downloadId;
         subscribeToShowPlayButton(downloadId);
-        db.addOrUpdate(episode);
 
         if (downloadId > 0) {
             updateUi(downloadId);
@@ -401,8 +400,6 @@ public class DownloadFragment extends VicFragment {
         });
 
     }
-
-
 
     BroadcastReceiver onNotificationClicked = new BroadcastReceiver() {
         @Override

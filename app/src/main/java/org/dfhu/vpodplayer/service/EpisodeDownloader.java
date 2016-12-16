@@ -3,9 +3,9 @@ package org.dfhu.vpodplayer.service;
 import android.app.DownloadManager;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 
 import org.dfhu.vpodplayer.model.Episode;
+import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.util.PathsUtility;
 
 import java.io.File;
@@ -28,9 +28,11 @@ public class EpisodeDownloader {
     /** Mockable download manager that can create requests */
     public static class DownloadManagerWrapper {
         private final DownloadManager downloadManager;
+        private final Episodes episodesDb;
 
-        public DownloadManagerWrapper(DownloadManager downloadManager) {
+        public DownloadManagerWrapper(DownloadManager downloadManager, Episodes episodesDb) {
             this.downloadManager = downloadManager;
+            this.episodesDb = episodesDb;
         }
 
         private DownloadManager.Request buildRequest(Episode episode, Uri episodeUri, Uri destinationUri) {
@@ -49,11 +51,11 @@ public class EpisodeDownloader {
                     .setDestinationUri(destinationUri);
         }
 
-        public long enqueue(Episode episode, Uri episodeUri, Uri destinationUri) {
-            //Log.d(TAG, "enqueue() called with: episode = [" + episode + "], episodeUri = [" + episodeUri + "], destinationUri = [" + destinationUri + "]");
-
+        long enqueue(Episode episode, Uri episodeUri, Uri destinationUri) {
             DownloadManager.Request request = buildRequest(episode, episodeUri, destinationUri);
-            return downloadManager.enqueue(request);
+            episode.downloadId = downloadManager.enqueue(request);
+            episodesDb.freshAddOrUpdate(episode);
+            return episode.downloadId;
         }
    }
 
@@ -62,7 +64,6 @@ public class EpisodeDownloader {
         File destinationDir =
                 pathsUtility.makeExternalFilesDirChildDirs("episodes", "show-" + episode.showId);
         if (!pathsUtility.conditionalCreateDir(destinationDir)) {
-            //Log.e(TAG, "enqueue: could not enqueue episode: " + episode);
             return -1;
         }
         Uri destinationUri =

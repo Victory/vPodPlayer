@@ -1,6 +1,7 @@
 package org.dfhu.vpodplayer.service;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
@@ -31,7 +32,7 @@ class RefreshAllShowsLogic {
     @SuppressWarnings("WeakerAccess")
     public static final int NUM_NETWORK_THREADS = 3;
 
-    private static final Object guard = new Object();
+    private static final Object notificationGuard = new Object();
 
     private RefreshAllShowsLogic(
             @NonNull RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification,
@@ -163,17 +164,21 @@ class RefreshAllShowsLogic {
                     @Override
                     public void run() {
                         //noinspection PrivateMemberAccessBetweenOuterAndInnerClass
-                        synchronized (guard) {
+                        synchronized (notificationGuard) {
                             showNotification(showTitle);
                         }
+                        SubscriptionManager.SubscribeResults subscribeResults;
                         try {
-                            threadSubscriptionManager.updateSubscription(showUrl);
+                             subscribeResults =
+                                    threadSubscriptionManager.updateSubscription(showUrl);
                         } catch (IOException e) {
                             // TODO
                             e.printStackTrace();
                             return;
                         }
+
                         refreshResults.numShowsUpdated.incrementAndGet();
+                        refreshResults.newEpisodes.addAll(subscribeResults.newEpisodes);
                     }
                 }));
             }
@@ -205,6 +210,7 @@ class RefreshAllShowsLogic {
         @Override
         public void onNext(RefreshAllShowsService.RefreshResults refreshResults) {
             showNotification(refreshResults);
+            RefreshAllShowsService.ServiceCompleteBus.publish(refreshResults);
         }
 
         private void showNotification(RefreshAllShowsService.RefreshResults refreshResults) {
@@ -213,8 +219,6 @@ class RefreshAllShowsLogic {
             String info =
                     stringsProvider.getQuantityString(R.plurals.numShowsUpdated, numUpdated, numUpdated);
             refreshAllShowsServiceNotification.show(appName, info);
-
-            RefreshAllShowsService.ServiceCompleteBus.publish(refreshResults);
         }
     }
 }

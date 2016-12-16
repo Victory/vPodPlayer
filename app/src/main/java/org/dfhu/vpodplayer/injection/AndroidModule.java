@@ -1,11 +1,15 @@
 package org.dfhu.vpodplayer.injection;
 
+import android.app.DownloadManager;
 import android.content.Context;
 
 import org.dfhu.vpodplayer.PodPlayer;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
+import org.dfhu.vpodplayer.service.EpisodeDownloader;
+import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.util.ColorResource;
 import org.dfhu.vpodplayer.util.DateUtil;
+import org.dfhu.vpodplayer.util.PathsUtility;
 import org.dfhu.vpodplayer.util.StringsProvider;
 import org.dfhu.vpodplayer.util.StringsProviderFromContext;
 
@@ -54,5 +58,18 @@ public class AndroidModule {
     @Singleton
     public StringsProvider provideStringsProvider () {
         return StringsProviderFromContext.getInstance(provideApplicationContext());
+    }
+
+    @Provides
+    @Singleton
+    public EpisodeDownloader providesEpisodeDownloader() {
+        Context context = provideApplicationContext();
+        DownloadManager downloadManager =
+                (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        EpisodeDownloader.DownloadManagerWrapper downloadManagerWrapper =
+                new EpisodeDownloader.DownloadManagerWrapper(downloadManager, new Episodes(context));
+        PathsUtility pathsUtility =
+                new PathsUtility(context.getApplicationContext());
+        return new EpisodeDownloader(downloadManagerWrapper, pathsUtility);
     }
 }
