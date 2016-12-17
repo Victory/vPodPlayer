@@ -62,6 +62,8 @@ public class PlayerFragment extends VicFragment {
     @Override
     public void onDestroy() {
         podPlayer.end();
+        podPlayer = null;
+        controls = null;
         subscriptions.unsubscribe();
         super.onDestroy();
     }
