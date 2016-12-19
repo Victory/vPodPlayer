@@ -107,10 +107,11 @@ public class PlayerFragment extends VicFragment {
      * Set the listeners for controls view
      */
     private void setControlsListeners(PlayerControlsView controls, final Episode episode) {
+        final Context fragmentContext = getContext().getApplicationContext();
         controls.setOnCenterClickListener(new PlayerControlsView.OnCenterClickListener() {
             @Override
             public void click(PlayerControlsView playerControlsView) {
-                Toast.makeText(getContext(), episode.title, Toast.LENGTH_SHORT).show();
+                Toast.makeText(fragmentContext, episode.title, Toast.LENGTH_SHORT).show();
 
                 if (isPlaying) {
                     podPlayer.setPlayWhenReady(false);
