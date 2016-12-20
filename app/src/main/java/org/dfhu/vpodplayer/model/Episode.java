@@ -14,6 +14,12 @@ public class Episode {
     public long downloadId = -1;
     public long pubDate;
     public long lastListened;
+    public int deletionState;
+    public int rating;
+    public String notes;
+
+    public static final int DS_NORMAL = 0;
+    public static final int DS_DO_NOT_DELETE = 1;
 
     /** null if not set so can be populated on first pass */
     public Integer duration = null;

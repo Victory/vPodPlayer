@@ -36,6 +36,9 @@ public class Episodes extends VicSQLiteOpenHelper {
     private static final String K_PUB_DATE = "pubDate";
     private static final String K_DURATION = "duration";
     private static final String K_LAST_LISTENED = "lastListened";
+    private static final String K_DELETION_STATE = "deletionState";
+    private static final String K_RATING = "rating";
+    private static final String K_NOTES = "notes";
 
     private static final String[] COLUMNS = {
             K_ID,
@@ -65,7 +68,10 @@ public class Episodes extends VicSQLiteOpenHelper {
                     "`downloadId` INTEGER," +
                     "`pubDate` INTEGER," +
                     "`duration` INTEGER," +
-                    "`lastListened` INTEGER" +
+                    "`lastListened` INTEGER," +
+                    "`deletionState` INTEGER," +
+                    "`rating` INTEGER," +
+                    "`notes` STRING" +
                     ")";
 
     public Episodes(Context context) {
@@ -138,6 +144,9 @@ public class Episodes extends VicSQLiteOpenHelper {
         contentValues.put(K_PUB_DATE, episode.pubDate);
         contentValues.put(K_DURATION, episode.duration);
         contentValues.put(K_LAST_LISTENED, episode.lastListened);
+        contentValues.put(K_RATING, episode.rating);
+        contentValues.put(K_NOTES, episode.notes);
+        contentValues.put(K_DELETION_STATE, episode.deletionState);
 
         // look for the row before decided if we should add or update
         String sql = "SELECT * FROM `" + DB_NAME + "` WHERE `url` = ? LIMIT 1";
@@ -324,6 +333,9 @@ public class Episodes extends VicSQLiteOpenHelper {
                 episode.pubDate = cc.getLongColumn(K_PUB_DATE);
                 episode.duration = cc.getIntColumn(K_DURATION);
                 episode.lastListened = cc.getLongColumn(K_LAST_LISTENED);
+                episode.rating = cc.getIntColumn(K_RATING);
+                episode.deletionState = cc.getIntColumn(K_DELETION_STATE);
+                episode.notes = cc.getStringColumn(K_NOTES);
 
                 items.add(episode);
             }

@@ -1,5 +1,7 @@
 package org.dfhu.vpodplayer.feed;
 
+import android.util.Log;
+
 import org.dfhu.vpodplayer.util.VicURL;
 import org.dfhu.vpodplayer.util.VicURLProvider;
 import org.jsoup.Jsoup;
@@ -15,6 +17,12 @@ public class FeedFactory {
 
     public Feed fromUrl(String url) throws IOException {
         InputStream inputStream = createInputStream(url);
+        /*
+        byte[] b = new byte[5000];
+        int read = inputStream.read(b, 0, 4999);
+        Log.d("one-off", "fromUrl: " + new String(b));
+        */
+
         return fromInputStream(url, inputStream);
     }
 

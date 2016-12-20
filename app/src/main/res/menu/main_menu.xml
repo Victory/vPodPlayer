@@ -6,22 +6,25 @@
     >
 
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="action settings"
-        app:showAsAction="never" />
-
-    <item android:title="refresh"
-        android:orderInCategory="200"
-        app:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_rotate"
-        android:id="@+id/menu_refresh_podcast" />ic_search
-
-    <item
         android:id="@+id/menu_subscribe"
+        android:orderInCategory="10"
         app:actionViewClass="org.dfhu.vpodplayer.SubscribeActionView"
         android:icon="@android:drawable/alert_dark_frame"
         app:showAsAction="ifRoom|collapseActionView"
         android:title="Subscribe" />
+
+    <item android:title="refresh"
+        android:orderInCategory="20"
+        app:showAsAction="always"
+        android:icon="@android:drawable/ic_menu_rotate"
+        android:id="@+id/menu_refresh_podcast" />
+
+    <item
+        android:id="@+id/annotate"
+        android:orderInCategory="30"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="Annotate"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
 
 </menu>

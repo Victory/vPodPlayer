@@ -57,7 +57,6 @@ public class ShowListFragment extends VicFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.d(this.getClass().getName(), "onCreateView");
-
         View view = inflater.inflate(R.layout.fragment_shows, container, false);
 
         Shows db = new Shows(getActivity().getApplicationContext());
@@ -68,6 +67,7 @@ public class ShowListFragment extends VicFragment {
         showsRecyclerView.setAdapter(adapter);
         showsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        //getActivity().findViewById(R.id.action_settings).setVisibility(View.GONE);
         return view;
     }
 
