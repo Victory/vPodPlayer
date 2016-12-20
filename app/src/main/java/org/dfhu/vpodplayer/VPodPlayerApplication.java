@@ -13,6 +13,7 @@ import com.squareup.leakcanary.RefWatcher;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
 import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
+import org.dfhu.vpodplayer.injection.PodPlayerModule;
 import org.dfhu.vpodplayer.job.UpdateFeedsJob;
 import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
@@ -25,8 +26,13 @@ import dagger.Component;
 public class VPodPlayerApplication extends Application {
 
     @Singleton
-    @Component(modules = AndroidModule.class)
+    @Component(modules = {
+            AndroidModule.class,
+            PodPlayerModule.class
+    })
     public interface  ApplicationComponent {
+        Context provideApplicationContext();
+
         void inject(VPodPlayerApplication application);
         void inject(PlayerFragment playerFragment);
         void inject(PlayerControlsView playerControlsView);

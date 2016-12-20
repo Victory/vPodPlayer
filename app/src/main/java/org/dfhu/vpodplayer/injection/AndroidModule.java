@@ -29,17 +29,8 @@ public class AndroidModule {
 
     @Provides
     @Singleton
-    @ForApplication
     public Context provideApplicationContext() {
         return application.getApplicationContext();
-    }
-
-    @Provides
-    @Singleton
-    public PodPlayer providePodPlayer() {
-        return PodPlayer.builder()
-                .context(provideApplicationContext())
-                .build();
     }
 
     @Provides
