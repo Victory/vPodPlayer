@@ -4,7 +4,6 @@ import android.content.Context;
 
 import org.dfhu.vpodplayer.PodPlayer;
 
-import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
@@ -13,8 +12,7 @@ import dagger.Provides;
 public class PodPlayerModule {
 
     @Provides
-    @Singleton
-    public PodPlayer providePodPlayer(Context context) {
+    public PodPlayer podPlayer(Context context) {
         return PodPlayer.builder()
                 .context(context)
                 .build();

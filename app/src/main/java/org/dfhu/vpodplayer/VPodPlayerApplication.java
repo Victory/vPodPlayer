@@ -13,6 +13,8 @@ import com.squareup.leakcanary.RefWatcher;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
 import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
+import org.dfhu.vpodplayer.injection.ContextModule;
+import org.dfhu.vpodplayer.injection.ForApplication;
 import org.dfhu.vpodplayer.injection.PodPlayerModule;
 import org.dfhu.vpodplayer.job.UpdateFeedsJob;
 import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
@@ -25,14 +27,33 @@ import dagger.Component;
 
 public class VPodPlayerApplication extends Application {
 
-    @Singleton
     @Component(modules = {
-            AndroidModule.class,
-            PodPlayerModule.class
+            ContextModule.class
+    })
+    public interface ContextComponent {
+        Context applicationContext();
+    }
+
+    @Component(
+            dependencies = {
+                    ContextComponent.class
+            },
+            modules =  {
+                    PodPlayerModule.class
+    })
+    public interface PodPlayerComponent {
+        PodPlayer podPlayer();
+    }
+
+    @Component(
+            dependencies = {
+                    ContextComponent.class,
+                    PodPlayerComponent.class
+            },
+            modules = {
+                    AndroidModule.class,
     })
     public interface  ApplicationComponent {
-        Context provideApplicationContext();
-
         void inject(VPodPlayerApplication application);
         void inject(PlayerFragment playerFragment);
         void inject(PlayerControlsView playerControlsView);
@@ -63,8 +84,17 @@ public class VPodPlayerApplication extends Application {
         refWatcher = LeakCanary.install(this);
 
         // setup injection
+        ContextComponent contextComponent = DaggerVPodPlayerApplication_ContextComponent.builder()
+                .contextModule(new ContextModule(this))
+                .build();
+
+        PodPlayerComponent podPlayerComponent = DaggerVPodPlayerApplication_PodPlayerComponent.builder()
+                .contextComponent(contextComponent)
+                .build();
+
         component = DaggerVPodPlayerApplication_ApplicationComponent.builder()
-                .androidModule(new AndroidModule(this))
+                .podPlayerComponent(podPlayerComponent)
+                .contextComponent(contextComponent)
                 .build();
         component.inject(this);
 

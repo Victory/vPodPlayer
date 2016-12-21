@@ -32,12 +32,13 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 
+import javax.inject.Singleton;
 
+@Singleton
 public class PodPlayer {
     public static final String TAG = PodPlayer.class.getName();
 
     private final Context context;
-    //private final RemoteControlClient remoteControlClient;
     private MediaSessionCompat mediaSession;
     private SimpleExoPlayer player;
     private AudioManager audioManager;

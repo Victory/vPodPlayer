@@ -21,40 +21,23 @@ import dagger.Provides;
 @Module
 public class AndroidModule {
 
-    private final VPodPlayerApplication application;
-
-    public AndroidModule(VPodPlayerApplication application) {
-        this.application = application;
+    @Provides
+    public ColorResource provideColorResource(Context context) {
+        return new ColorResource(context);
     }
 
     @Provides
-    @Singleton
-    public Context provideApplicationContext() {
-        return application.getApplicationContext();
+    public DateUtil provideDateUtil(Context context) {
+        return new DateUtil(context);
     }
 
     @Provides
-    @Singleton
-    public ColorResource provideColorResource() {
-        return new ColorResource(provideApplicationContext());
+    public StringsProvider provideStringsProvider (Context context) {
+        return StringsProviderFromContext.getInstance(context);
     }
 
     @Provides
-    @Singleton
-    public DateUtil provideDateUtil() {
-        return new DateUtil(provideApplicationContext());
-    }
-
-    @Provides
-    @Singleton
-    public StringsProvider provideStringsProvider () {
-        return StringsProviderFromContext.getInstance(provideApplicationContext());
-    }
-
-    @Provides
-    @Singleton
-    public EpisodeDownloader providesEpisodeDownloader() {
-        Context context = provideApplicationContext();
+    public EpisodeDownloader providesEpisodeDownloader(Context context) {
         DownloadManager downloadManager =
                 (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         EpisodeDownloader.DownloadManagerWrapper downloadManagerWrapper =
