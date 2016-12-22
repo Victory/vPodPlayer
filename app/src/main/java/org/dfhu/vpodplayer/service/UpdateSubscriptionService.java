@@ -1,6 +1,5 @@
 package org.dfhu.vpodplayer.service;
 
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -29,7 +28,7 @@ import rx.Subscriber;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 
-public class UpdateSubscriptionService extends IntentService {
+public class UpdateSubscriptionService extends VicIntentService<VPodPlayerApplication> {
     public static final String TAG = UpdateSubscriptionService.class.getName();
 
     public static final String URI_SUBSCRIBE_STRING = "addshow://";
@@ -45,8 +44,13 @@ public class UpdateSubscriptionService extends IntentService {
     }
 
     @Override
+    void inject() {
+       getRealApplication().component().inject(this);
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {
-        ((VPodPlayerApplication) getApplication()).component().inject(this);
+        super.onHandleIntent(intent);
 
         String dataString = intent.getDataString();
         if (!dataString.equals(URI_SUBSCRIBE_STRING)) {

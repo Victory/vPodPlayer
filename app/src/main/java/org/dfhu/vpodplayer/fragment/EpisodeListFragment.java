@@ -12,15 +12,19 @@ import android.view.ViewGroup;
 
 import org.dfhu.vpodplayer.EpisodesRecyclerViewAdapter;
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 
 import java.util.List;
 
-public class EpisodeListFragment extends VicFragment {
+public class EpisodeListFragment extends VicFragment<VPodPlayerApplication> {
 
     public static final String TAG = EpisodeListFragment.class.getName();
 
+    @Override
+    void inject() {
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -62,7 +66,7 @@ public class EpisodeListFragment extends VicFragment {
      *
      * @param episodes - all episodes in order
      * @param episodeId - target episode id
-     * @return
+     * @return - position
      */
     private int findEpisodeScrollPosition(List<Episode> episodes, int episodeId) {
         if (episodeId == 0) {

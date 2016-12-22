@@ -39,7 +39,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
 
-public class PlayerFragment extends VicFragment {
+public class PlayerFragment extends VicFragment<VPodPlayerApplication> {
 
     @Inject
     PodPlayer podPlayer;
@@ -62,11 +62,15 @@ public class PlayerFragment extends VicFragment {
     }
 
     @Override
+    void inject() {
+        getRealApplication().getPodPlayerComponent().inject(this);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
-        ((VPodPlayerApplication) getActivity().getApplication()).component().inject(this);
 
         applicationContext = getContext().getApplicationContext();
 
@@ -83,11 +87,12 @@ public class PlayerFragment extends VicFragment {
     @Override
     public void onDestroy() {
         podPlayer.end();
-        podPlayer = null;
+        getRealApplication().releasePodPlayerComponent();
         subscriptions.unsubscribe();
         if (annotate != null) annotate.setVisible(false);
         super.onDestroy();
     }
+
 
     @Nullable
     @Override

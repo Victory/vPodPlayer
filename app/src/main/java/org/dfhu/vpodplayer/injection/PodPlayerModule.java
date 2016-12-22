@@ -11,8 +11,8 @@ import dagger.Provides;
 @Module
 public class PodPlayerModule {
 
-    @Provides
-    public PodPlayer podPlayer(Context context) {
+    @Provides @PodPlayerScope
+    PodPlayer podPlayer(Context context) {
         return PodPlayer.builder()
                 .context(context)
                 .build();

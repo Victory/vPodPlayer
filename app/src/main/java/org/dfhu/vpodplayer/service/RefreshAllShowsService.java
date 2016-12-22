@@ -1,6 +1,5 @@
 package org.dfhu.vpodplayer.service;
 
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -20,14 +19,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-public class RefreshAllShowsService extends IntentService {
+public class RefreshAllShowsService extends VicIntentService<VPodPlayerApplication> {
     public static final String TAG = RefreshAllShowsService.class.getName();
 
     public static final String URI_REFRESH_ALL_STRING = "refreshall://shows";
@@ -41,8 +39,13 @@ public class RefreshAllShowsService extends IntentService {
     }
 
     @Override
+    public void inject() {
+        getRealApplication().component().inject(this);
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {
-        ((VPodPlayerApplication) getApplication()).component().inject(this);
+        super.onHandleIntent(intent);
 
         String dataString = intent.getDataString();
         if (!dataString.equals(URI_REFRESH_ALL_STRING)) {
@@ -102,10 +105,6 @@ public class RefreshAllShowsService extends IntentService {
 
         public List<Episode> getNewEpisodes() {
             return newEpisodes;
-        }
-
-        public int getNumShowsUpdated() {
-            return numShowsUpdated.get();
         }
     }
 

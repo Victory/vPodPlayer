@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 public class UpdateFeedsJob extends Job {
 
     public static final String TAG = UpdateFeedsJob.class.getName();
-    private static final long TARGET_HOUR = 2L;
-    private static final long TARGET_MINUTE = 15;
+    private static final long TARGET_HOUR = 14L;
+    private static final long TARGET_MINUTE = 51L;
     private static final long WINDOW_LENGTH = 60;
     private static final int WAKE_LOCK_AWAIT_TIME_SECONDS = 60;
 
@@ -46,7 +46,6 @@ public class UpdateFeedsJob extends Job {
         new JobRequest.Builder(UpdateFeedsJob.TAG)
                 .setExecutionWindow(executionWindow.startMs, executionWindow.endMs)
                 .setPersisted(true)
-                //.setRequiredNetworkType(JobRequest.NetworkType.UNMETERED)
                 .setUpdateCurrent(updateCurrent)
                 .build()
                 .schedule();

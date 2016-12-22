@@ -18,14 +18,16 @@ import android.widget.TextView;
 
 import org.dfhu.vpodplayer.EpisodesRecyclerViewAdapter;
 import org.dfhu.vpodplayer.R;
+import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.service.EpisodeDownloader;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.util.MediaDuration;
-import org.dfhu.vpodplayer.util.PathsUtility;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -38,7 +40,7 @@ import rx.subscriptions.CompositeSubscription;
 import rx.util.async.Async;
 
 
-public class DownloadFragment extends VicFragment {
+public class DownloadFragment extends VicFragment<VPodPlayerApplication> {
 
     public static final String TAG = DownloadFragment.class.getSimpleName();
 
@@ -47,6 +49,8 @@ public class DownloadFragment extends VicFragment {
     TextView downloadTitle;
     ProgressBar progressBar;
     Button playDownloadButton;
+
+    private EpisodeDownloader episodeDownloader;
 
     long downloadId;
 
@@ -58,6 +62,10 @@ public class DownloadFragment extends VicFragment {
 
         public static void publish(DownloadRow v) { subject.onNext(v); }
         static Observable<DownloadRow> getEvents() { return subject; }
+    }
+
+    @Override
+    void inject() {
     }
 
     public static class ShowPlayButton {
@@ -228,10 +236,9 @@ public class DownloadFragment extends VicFragment {
             }
         }
 
-        PathsUtility pathsUtility = new PathsUtility(this.context);
-        EpisodeDownloader.DownloadManagerWrapper downloadManagerWrapper =
-                new EpisodeDownloader.DownloadManagerWrapper(dm, db);
-        downloadId = new EpisodeDownloader(downloadManagerWrapper, pathsUtility).enqueue(episode);
+        //getRealApplication().getEpisodeDownloadComponent().inject(this);
+        episodeDownloader = getRealApplication().getEpisodeDownloadComponent().episodeDownloader();
+        downloadId = this.episodeDownloader.enqueue(episode);
         Log.d(TAG, "queueDownload() called: downloadId added: " + downloadId);
         episode.downloadId = downloadId;
         subscribeToShowPlayButton(downloadId);

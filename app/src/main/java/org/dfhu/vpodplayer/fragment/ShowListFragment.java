@@ -17,32 +17,42 @@ import android.view.ViewGroup;
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.ShowsRecyclerViewAdapter;
 import org.dfhu.vpodplayer.VPodPlayer;
+import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.service.DeleteEpisodeFilesService;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 import org.dfhu.vpodplayer.service.UnsubscribeService;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
+import org.dfhu.vpodplayer.util.StringsProvider;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
-public class ShowListFragment extends VicFragment {
+public class ShowListFragment extends VicFragment<VPodPlayerApplication> {
 
     public static final String TAG = ShowListFragment.class.getName();
 
     AlertDialog unsubscribeConfirmationAlertDialog;
+
+    @Inject
+    StringsProvider stringsProvider;
+
+    public void inject() {
+        getRealApplication().component().inject(this);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
     }
-
 
     @Override
     public void onPause() {
@@ -77,11 +87,10 @@ public class ShowListFragment extends VicFragment {
             return false;
         }
         String clickedTitle = (String) item.getTitle();
-        Context context = getContext().getApplicationContext();
-        if (context.getString(R.string.contextMenuDeleteListened).equals(clickedTitle)) {
+        if (stringsProvider.getString(R.string.contextMenuDeleteListened).equals(clickedTitle)) {
             startDeleteListenedService(item.getItemId());
-        } else if (context.getString(R.string.contextMenuUnsubscribe).equals(clickedTitle)) {
-                confirmAndConditionallyUnsubscribe(item.getItemId());
+        } else if (stringsProvider.getString(R.string.contextMenuUnsubscribe).equals(clickedTitle)) {
+            confirmAndConditionallyUnsubscribe(item.getItemId());
         } else {
             VPodPlayer.safeToast("Not implemented");
         }

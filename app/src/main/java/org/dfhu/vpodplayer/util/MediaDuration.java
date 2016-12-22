@@ -12,7 +12,8 @@ public class MediaDuration {
     }
 
     public int get(String localUri) {
-        MediaPlayer mediaPlayer = MediaPlayer.create(context, Uri.parse(localUri));
+        Uri uri = Uri.parse(localUri);
+        MediaPlayer mediaPlayer = MediaPlayer.create(context, uri);
         int duration = mediaPlayer.getDuration();
         mediaPlayer.release();
         return duration;

@@ -10,60 +10,22 @@ import com.facebook.stetho.Stetho;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 
-import org.dfhu.vpodplayer.fragment.PlayerFragment;
-import org.dfhu.vpodplayer.injection.AndroidModule;
 import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
-import org.dfhu.vpodplayer.injection.ContextModule;
-import org.dfhu.vpodplayer.injection.ForApplication;
+import org.dfhu.vpodplayer.injection.AndroidComponent;
+import org.dfhu.vpodplayer.injection.AndroidModule;
+import org.dfhu.vpodplayer.injection.DaggerAndroidComponent;
+import org.dfhu.vpodplayer.injection.EpisodeDownloadComponent;
+import org.dfhu.vpodplayer.injection.EpisodeDownloadModule;
+import org.dfhu.vpodplayer.injection.PodPlayerComponent;
 import org.dfhu.vpodplayer.injection.PodPlayerModule;
 import org.dfhu.vpodplayer.job.UpdateFeedsJob;
 import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
-import org.dfhu.vpodplayer.service.RefreshAllShowsService;
-import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
-
-import javax.inject.Singleton;
-
-import dagger.Component;
 
 public class VPodPlayerApplication extends Application {
 
-    @Component(modules = {
-            ContextModule.class
-    })
-    public interface ContextComponent {
-        Context applicationContext();
-    }
-
-    @Component(
-            dependencies = {
-                    ContextComponent.class
-            },
-            modules =  {
-                    PodPlayerModule.class
-    })
-    public interface PodPlayerComponent {
-        PodPlayer podPlayer();
-    }
-
-    @Component(
-            dependencies = {
-                    ContextComponent.class,
-                    PodPlayerComponent.class
-            },
-            modules = {
-                    AndroidModule.class,
-    })
-    public interface  ApplicationComponent {
-        void inject(VPodPlayerApplication application);
-        void inject(PlayerFragment playerFragment);
-        void inject(PlayerControlsView playerControlsView);
-        void inject(EpisodesRecyclerViewAdapter episodesRecyclerViewAdapter);
-        void inject(RefreshAllShowsService refreshAllShowsService);
-        void inject(UpdateSubscriptionService updateSubscriptionService);
-        void inject(UpdateFeedsJobCreator updateFeedsJobCreator);
-    }
-
-    private ApplicationComponent component;
+    private AndroidComponent component;
+    private PodPlayerComponent podPlayerComponent;
+    private EpisodeDownloadComponent episodeDownloadComponent;
 
     private RefWatcher refWatcher;
 
@@ -84,23 +46,13 @@ public class VPodPlayerApplication extends Application {
         refWatcher = LeakCanary.install(this);
 
         // setup injection
-        ContextComponent contextComponent = DaggerVPodPlayerApplication_ContextComponent.builder()
-                .contextModule(new ContextModule(this))
+        component = DaggerAndroidComponent.builder()
+                .androidModule(new AndroidModule(this))
                 .build();
-
-        PodPlayerComponent podPlayerComponent = DaggerVPodPlayerApplication_PodPlayerComponent.builder()
-                .contextComponent(contextComponent)
-                .build();
-
-        component = DaggerVPodPlayerApplication_ApplicationComponent.builder()
-                .podPlayerComponent(podPlayerComponent)
-                .contextComponent(contextComponent)
-                .build();
-        component.inject(this);
 
         // Setup Update feeds job
         UpdateFeedsJobCreator updateFeedsJobCreator = new UpdateFeedsJobCreator();
-        component.inject(updateFeedsJobCreator);
+        getEpisodeDownloadComponent().inject(updateFeedsJobCreator);
         JobManager.create(this).addJobCreator(updateFeedsJobCreator);
         UpdateFeedsJob.schedule();
 
@@ -114,7 +66,25 @@ public class VPodPlayerApplication extends Application {
 
     }
 
-    public ApplicationComponent component() {
+    public AndroidComponent component() {
         return component;
+    }
+
+    public void releasePodPlayerComponent() {
+        podPlayerComponent = null;
+    }
+
+    public PodPlayerComponent getPodPlayerComponent() {
+        if (podPlayerComponent == null) {
+            podPlayerComponent = component.plus(new PodPlayerModule());
+        }
+        return podPlayerComponent;
+    }
+
+    public EpisodeDownloadComponent getEpisodeDownloadComponent() {
+        if (episodeDownloadComponent == null) {
+            episodeDownloadComponent = component.plus(new EpisodeDownloadModule());
+        }
+        return episodeDownloadComponent;
     }
 }
