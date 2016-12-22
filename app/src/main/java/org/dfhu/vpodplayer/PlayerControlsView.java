@@ -81,6 +81,13 @@ public class PlayerControlsView extends View {
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        onPositionDoneListener = null;
+        onCenterClickListener = null;
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawCircle(centerX, centerY, size, outerPaint);
@@ -296,4 +303,6 @@ public class PlayerControlsView extends View {
     public OnPositionDoneListener getOnPositionDoneListener() {
         return onPositionDoneListener;
     }
+
+
 }

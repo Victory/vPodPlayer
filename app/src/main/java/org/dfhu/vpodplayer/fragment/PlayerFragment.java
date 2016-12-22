@@ -84,8 +84,6 @@ public class PlayerFragment extends VicFragment {
     public void onDestroy() {
         podPlayer.end();
         podPlayer = null;
-        controls.setOnCenterClickListener(null);
-        controls = null;
         subscriptions.unsubscribe();
         if (annotate != null) annotate.setVisible(false);
         super.onDestroy();
