@@ -42,11 +42,9 @@ public class UpdateFeedsJob extends Job {
         DailyExecutionWindow executionWindow =
                 new DailyExecutionWindow(hour, minute, TARGET_HOUR, TARGET_MINUTE, WINDOW_LENGTH);
 
-        //startMs = 5000L; endMs = 2L * 5000L;
         new JobRequest.Builder(UpdateFeedsJob.TAG)
                 .setExecutionWindow(executionWindow.startMs, executionWindow.endMs)
                 .setPersisted(true)
-                //.setRequiredNetworkType(JobRequest.NetworkType.UNMETERED)
                 .setUpdateCurrent(updateCurrent)
                 .build()
                 .schedule();
