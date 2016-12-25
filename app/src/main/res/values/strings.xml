@@ -12,7 +12,7 @@
     <string name="subscribingToShow">Subscribing To Show</string>
     <string name="newShowAdded">New Show Added</string>
     <plurals name="numShowsUpdated">
-        <item quantity="one">Updated %1$d Show.</item>
-        <item quantity="other">Updated %1$d Shows.</item>
+        <item quantity="one">Downloaded %1$d episode.</item>
+        <item quantity="other">Downloaded %1$d episodes.</item>
     </plurals>
 </resources>

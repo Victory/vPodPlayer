@@ -215,7 +215,10 @@ class RefreshAllShowsLogic {
 
         private void showNotification(RefreshAllShowsService.RefreshResults refreshResults) {
             String appName = stringsProvider.getString(R.string.app_name);
-            int numUpdated = refreshResults.numShowsUpdated.get();
+            int numUpdated = refreshResults.getNewEpisodes().size();
+            if (numUpdated == 0) {
+                return;
+            }
             String info =
                     stringsProvider.getQuantityString(R.plurals.numShowsUpdated, numUpdated, numUpdated);
             refreshAllShowsServiceNotification.show(appName, info);
