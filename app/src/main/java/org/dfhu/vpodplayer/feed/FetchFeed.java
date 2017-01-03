@@ -3,7 +3,6 @@ package org.dfhu.vpodplayer.feed;
 
 import android.support.annotation.NonNull;
 
-
 import org.dfhu.vpodplayer.util.VicURL;
 
 import java.io.BufferedInputStream;

@@ -1,7 +1,5 @@
 package org.dfhu.vpodplayer.util;
 
-import android.os.Parcelable;
-
 import java.io.IOException;
 import java.net.URLConnection;
 

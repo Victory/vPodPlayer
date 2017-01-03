@@ -4,7 +4,6 @@ import android.content.Context;
 
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 
-
 import dagger.Module;
 import dagger.Provides;
 

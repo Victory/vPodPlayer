@@ -1,7 +1,5 @@
 package org.dfhu.vpodplayer.feed;
 
-import android.util.Log;
-
 import org.dfhu.vpodplayer.util.VicURL;
 import org.dfhu.vpodplayer.util.VicURLProvider;
 import org.jsoup.Jsoup;

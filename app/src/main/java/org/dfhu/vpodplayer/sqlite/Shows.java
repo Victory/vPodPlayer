@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
 import org.dfhu.vpodplayer.model.Show;
 
 import java.util.List;

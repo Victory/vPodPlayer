@@ -10,18 +10,15 @@ import com.facebook.stetho.Stetho;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 
+import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
 import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.injection.AndroidModule;
-import org.dfhu.vpodplayer.broadcastreceiver.DownloadCompleteBroadcastReceiver;
 import org.dfhu.vpodplayer.injection.ContextModule;
-import org.dfhu.vpodplayer.injection.ForApplication;
 import org.dfhu.vpodplayer.injection.PodPlayerModule;
 import org.dfhu.vpodplayer.job.UpdateFeedsJob;
 import org.dfhu.vpodplayer.job.UpdateFeedsJobCreator;
 import org.dfhu.vpodplayer.service.RefreshAllShowsService;
 import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
-
-import javax.inject.Singleton;
 
 import dagger.Component;
 

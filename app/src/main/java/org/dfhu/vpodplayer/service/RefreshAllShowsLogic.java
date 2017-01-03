@@ -1,7 +1,6 @@
 package org.dfhu.vpodplayer.service;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;

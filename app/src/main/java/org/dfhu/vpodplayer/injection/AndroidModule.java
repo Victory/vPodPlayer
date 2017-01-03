@@ -3,8 +3,6 @@ package org.dfhu.vpodplayer.injection;
 import android.app.DownloadManager;
 import android.content.Context;
 
-import org.dfhu.vpodplayer.PodPlayer;
-import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.service.EpisodeDownloader;
 import org.dfhu.vpodplayer.sqlite.Episodes;
 import org.dfhu.vpodplayer.util.ColorResource;
@@ -12,8 +10,6 @@ import org.dfhu.vpodplayer.util.DateUtil;
 import org.dfhu.vpodplayer.util.PathsUtility;
 import org.dfhu.vpodplayer.util.StringsProvider;
 import org.dfhu.vpodplayer.util.StringsProviderFromContext;
-
-import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
