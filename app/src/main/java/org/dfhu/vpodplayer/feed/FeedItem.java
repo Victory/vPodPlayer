@@ -6,5 +6,7 @@ interface FeedItem {
 
     String getUrl();
 
+    String getUniqueId();
+
     long getPubDate();
 }

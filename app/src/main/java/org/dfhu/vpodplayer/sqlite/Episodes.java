@@ -20,7 +20,7 @@ public class Episodes extends VicSQLiteOpenHelper {
     public static final String TAG = Episodes.class.getName();
 
     private static final String DB_NAME = "episodes";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
 
     // Column keys
     private static final String K_ID = "id";
@@ -39,6 +39,7 @@ public class Episodes extends VicSQLiteOpenHelper {
     private static final String K_DELETION_STATE = "deletionState";
     private static final String K_RATING = "rating";
     private static final String K_NOTES = "notes";
+    private static final String K_UNIQUE_ID = "uniqueId";
 
     private static final String[] COLUMNS = {
             K_ID,
@@ -51,7 +52,8 @@ public class Episodes extends VicSQLiteOpenHelper {
             K_DOWNLOAD_ID,
             K_PUB_DATE,
             K_DURATION,
-            K_LAST_LISTENED
+            K_LAST_LISTENED,
+            K_UNIQUE_ID
     };
 
     private static final String CREATE =
@@ -71,7 +73,8 @@ public class Episodes extends VicSQLiteOpenHelper {
                     "`lastListened` INTEGER," +
                     "`deletionState` INTEGER," +
                     "`rating` INTEGER," +
-                    "`notes` STRING" +
+                    "`notes` STRING," +
+                    "`uniqueId` STRING UNIQUE NOT NULL " +
                     ")";
 
     public Episodes(Context context) {
@@ -87,6 +90,12 @@ public class Episodes extends VicSQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
             String sql = "ALTER TABLE `" + DB_NAME + "` ADD COLUMN `lastListened` INTEGER";
+            db.execSQL(sql);
+        }
+        if (oldVersion < 3) {
+            String sql = "ALTER TABLE `" + DB_NAME + "` ADD COLUMN `uniqueId` STRING UNIQUE NOT NULL";
+            db.execSQL(sql);
+            sql = "UPDATE `" + DB_NAME + "` SET `uniqueId` = `url` WHERE (`uniqueId` IS NULL OR `uniqueId` = '')";
             db.execSQL(sql);
         }
     }
@@ -146,6 +155,7 @@ public class Episodes extends VicSQLiteOpenHelper {
         contentValues.put(K_LAST_LISTENED, episode.lastListened);
         contentValues.put(K_RATING, episode.rating);
         contentValues.put(K_NOTES, episode.notes);
+        contentValues.put(K_UNIQUE_ID, episode.uniqueId);
         contentValues.put(K_DELETION_STATE, episode.deletionState);
 
         // look for the row before decided if we should add or update
@@ -336,6 +346,7 @@ public class Episodes extends VicSQLiteOpenHelper {
                 episode.rating = cc.getIntColumn(K_RATING);
                 episode.deletionState = cc.getIntColumn(K_DELETION_STATE);
                 episode.notes = cc.getStringColumn(K_NOTES);
+                episode.uniqueId = cc.getStringColumn(K_UNIQUE_ID);
 
                 items.add(episode);
             }

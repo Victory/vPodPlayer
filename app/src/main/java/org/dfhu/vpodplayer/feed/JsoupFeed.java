@@ -47,6 +47,7 @@ public class JsoupFeed implements Feed {
             FeedItem item = new JsoupFeedItem(elm);
             Episode episode = new Episode();
             episode.url = item.getUrl();
+            episode.uniqueId = item.getUniqueId();
             episode.title = item.getTitle();
             episode.pubDate = item.getPubDate();
             items.add(episode);

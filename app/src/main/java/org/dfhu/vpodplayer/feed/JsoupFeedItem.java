@@ -29,6 +29,7 @@ class JsoupFeedItem implements FeedItem {
         return elm.select("title").text();
     }
 
+
     @Override
     public String getUrl() {
 
@@ -50,6 +51,15 @@ class JsoupFeedItem implements FeedItem {
         }
 
         return "";
+    }
+
+    @Override
+    public String getUniqueId() {
+        Elements elms = elm.select("guid");
+        if (elms.size() > 0 && !elms.get(0).text().isEmpty()) {
+            return elms.get(0).text();
+        }
+        return null;
     }
 
     @Override

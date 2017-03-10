@@ -17,6 +17,7 @@ public class Episode {
     public int deletionState;
     public int rating;
     public String notes;
+    public String uniqueId;
 
     public static final int DS_NORMAL = 0;
     public static final int DS_DO_NOT_DELETE = 1;
