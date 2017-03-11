@@ -10,6 +10,8 @@ import android.os.Handler;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
@@ -47,6 +49,7 @@ public class PodPlayer {
         this.player = player;
         this.context = applicationContext;
         this.audioManager = (AudioManager) this.context.getSystemService(Context.AUDIO_SERVICE);
+
 
         ComponentName componentName = new ComponentName(context, RemoveControlReceiver.class);
         mediaSession = new MediaSessionCompat(context, TAG, componentName, null);
@@ -108,6 +111,32 @@ public class PodPlayer {
         mediaSession.setActive(true);
 
         setPlaybackStateStopped();
+
+        TelephonyManager telephoneManager = (TelephonyManager) this.context.getSystemService(Context.TELEPHONY_SERVICE);
+        setPhoneStateListener(telephoneManager);
+    }
+
+
+    private void setPhoneStateListener(TelephonyManager telephoneManager) {
+
+        PhoneStateListener phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                switch (state) {
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        setPlayWhenReady(false);
+                        break;
+                    case TelephonyManager.CALL_STATE_OFFHOOK:
+                        setPlayWhenReady(false);
+                        break;
+                }
+                super.onCallStateChanged(state, incomingNumber);
+            }
+        };
+        if (telephoneManager != null) {
+            telephoneManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
+
     }
 
     private void setPlaybackStateStopped() {
@@ -225,6 +254,10 @@ public class PodPlayer {
         return true;
     }
 
+    /**
+     * Start or pause
+     * @param playWhenReady - true to start playing, false to pause
+     */
     public void setPlayWhenReady(boolean playWhenReady) {
         player.setPlayWhenReady(playWhenReady);
 
