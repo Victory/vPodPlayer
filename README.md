@@ -8,6 +8,5 @@ to seek, pause and play.
 
 In no particular order
 
- - Better UUID support to detect duplicate podcasts
  - Export/Import features
  
