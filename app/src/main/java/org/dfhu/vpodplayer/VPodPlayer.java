@@ -34,6 +34,7 @@ import java.util.List;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
@@ -57,6 +58,14 @@ public class VPodPlayer extends AppCompatActivity {
 
         public static void publish(Class v) { subject.onNext(v); }
         public static Observable<Class> getEvents() { return subject; }
+    }
+
+    public static class CloseSubscribeActionViewBus {
+        private CloseSubscribeActionViewBus() {}
+        private static PublishSubject<Void> subject = PublishSubject.create();
+
+        public static void publish() { subject.onNext(null); }
+        public static Observable<Void> getEvents() { return subject; }
     }
 
     Toolbar toolbar;
@@ -251,7 +260,7 @@ public class VPodPlayer extends AppCompatActivity {
 
     /** set the binding for subscribe ActionView */
     private void bindSubscribeMenuItem(Menu menu) {
-        MenuItem subscribeItem = menu.findItem(R.id.menu_subscribe);
+        final MenuItem subscribeItem = menu.findItem(R.id.menu_subscribe);
 
         MenuItemCompat.setOnActionExpandListener(subscribeItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
@@ -266,6 +275,15 @@ public class VPodPlayer extends AppCompatActivity {
                 return true;
             }
         });
+
+        CloseSubscribeActionViewBus.getEvents()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Void>() {
+                    @Override
+                    public void call(Void aVoid) {
+                        subscribeItem.collapseActionView();
+                    }
+                });
     }
 
     @Override
