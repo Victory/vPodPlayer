@@ -37,6 +37,11 @@
             android:name=".service.UpdateSubscriptionService"
             android:exported="false">
         </service>
+        <service
+            android:name=".service.ExportService"
+            android:exported="false">
+        </service>
+
 
         <activity android:name=".VPodPlayer"
             android:launchMode="singleTask">

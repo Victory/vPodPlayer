@@ -12,9 +12,11 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +26,7 @@ import org.dfhu.vpodplayer.fragment.PlayerFragment;
 import org.dfhu.vpodplayer.fragment.ShowListFragment;
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
+import org.dfhu.vpodplayer.service.ExportService;
 import org.dfhu.vpodplayer.service.UpdateSubscriptionService;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
@@ -295,9 +298,47 @@ public class VPodPlayer extends AppCompatActivity {
             case android.R.id.home:
                 handleHomeButton();
                 return true;
+            case R.id.export:
+                handleExportImport();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void handleExportImport() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Set up the input
+        final EditText input = new EditText(this);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder
+                .setTitle("ExportService")
+                .setMessage("Full URL of Server")
+                .setPositiveButton("Export", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String url = input.getText().toString();
+
+                        Context context = getApplicationContext();
+
+                        Intent intent = new Intent(context, ExportService.class);
+                        intent.setData(ExportService.URI_EXPORT);
+                        intent.putExtra("url", url);
+                        context.startService(intent);
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                })
+                .show();
     }
 
     /**

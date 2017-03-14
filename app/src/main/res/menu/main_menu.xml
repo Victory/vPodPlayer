@@ -27,4 +27,12 @@
         android:visible="false"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/export"
+        android:orderInCategory="40"
+        android:icon="@android:drawable/ic_popup_disk_full"
+        android:title="Export"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+
 </menu>
