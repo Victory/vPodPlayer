@@ -6,6 +6,14 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
+import org.dfhu.vpodplayer.sqlite.Episodes;
+import org.dfhu.vpodplayer.sqlite.Shows;
+import org.dfhu.vpodplayer.util.JsonHttpPoster;
+
+import java.io.IOException;
+
 public class ExportService extends IntentService {
     public static final String TAG = ExportService.class.getName();
 
@@ -23,6 +31,47 @@ public class ExportService extends IntentService {
         if (!dataString.equals(URI_EXPORT_STRING)) {
             Log.e(TAG, "Could not handle intent bad dataString:" + dataString);
             return;
+        }
+
+        Logic logic = buildLogic(intent);
+        logic.handleIntent();
+    }
+
+    private Logic buildLogic(Intent intent) {
+        String url = intent.getStringExtra("url");
+        JsonHttpPoster jsonHttpPoster = new JsonHttpPoster();
+        JsonExporter jsonExporter = new JsonExporter();
+        Logic logic = new Logic(url, jsonExporter, jsonHttpPoster);
+        return logic;
+    }
+
+    private static class JsonExporter {
+        /**
+         * Gets a json representation of the shows and episodes
+         */
+        public String export() {
+            return "";
+        }
+    }
+
+    private static class Logic {
+        private final String url;
+        private final JsonHttpPoster jsonHttpPoster;
+        private final JsonExporter jsonExporter;
+
+        public Logic(String url, JsonExporter jsonExporter, JsonHttpPoster jsonHttpPoster) {
+            this.url = url;
+            this.jsonHttpPoster = jsonHttpPoster;
+            this.jsonExporter = jsonExporter;
+        }
+
+        void handleIntent() {
+            String json = jsonExporter.export();
+            try {
+                jsonHttpPoster.post(url, json);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }
