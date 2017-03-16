@@ -6,10 +6,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
-import org.dfhu.vpodplayer.sqlite.Episodes;
-import org.dfhu.vpodplayer.sqlite.Shows;
+import org.dfhu.vpodplayer.util.JsonExporter;
 import org.dfhu.vpodplayer.util.JsonHttpPoster;
 
 import java.io.IOException;
@@ -40,18 +37,9 @@ public class ExportService extends IntentService {
     private Logic buildLogic(Intent intent) {
         String url = intent.getStringExtra("url");
         JsonHttpPoster jsonHttpPoster = new JsonHttpPoster();
-        JsonExporter jsonExporter = new JsonExporter();
+        JsonExporter jsonExporter = null; //new JsonExporter(showsDb, episodesDb);
         Logic logic = new Logic(url, jsonExporter, jsonHttpPoster);
         return logic;
-    }
-
-    private static class JsonExporter {
-        /**
-         * Gets a json representation of the shows and episodes
-         */
-        public String export() {
-            return "";
-        }
     }
 
     private static class Logic {
