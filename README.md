@@ -7,6 +7,14 @@ The objective of the podcast player is to have the most streamlined ui, for ever
 It should take no more than three clicks to start an episode.
 The audio player should always be full screen and easy to seek, pause and play.
 
+### Testing
+
+If you have issues running tests directly from Android Studio it may help to run
+from Gradle directly first
+
+    ./gradlew test
+
+
 ### TODOs 
 
 In no particular order
