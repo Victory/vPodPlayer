@@ -14,7 +14,7 @@ public class JsonExporter {
     private final Shows showsDb;
     private final Episodes episodesDb;
 
-    public JsonExporter(Shows showsDb, Episodes episodesDb) {
+    JsonExporter(Shows showsDb, Episodes episodesDb) {
         this.showsDb = showsDb;
         this.episodesDb = episodesDb;
     }
@@ -25,15 +25,15 @@ public class JsonExporter {
     public String export() {
         Gson gson = new Gson();
 
-        Exported exported = new Exported();
-        exported.shows = showsDb.all();
-        exported.episodes = episodesDb.all();
-        exported.now = System.currentTimeMillis();
+        ExportedPodcasts exportedPodcasts = new ExportedPodcasts();
+        exportedPodcasts.shows = showsDb.all();
+        exportedPodcasts.episodes = episodesDb.all();
+        exportedPodcasts.now = System.currentTimeMillis();
 
-        return gson.toJson(exported);
+        return gson.toJson(exportedPodcasts);
     }
 
-    public static class Exported {
+    static class ExportedPodcasts {
         List<Show> shows;
         List<Episode> episodes;
         long now;

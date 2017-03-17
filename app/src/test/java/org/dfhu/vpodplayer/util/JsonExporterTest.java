@@ -1,5 +1,7 @@
 package org.dfhu.vpodplayer.util;
 
+import com.google.gson.Gson;
+
 import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
@@ -48,7 +50,11 @@ public class JsonExporterTest {
         JsonExporter jsonExporter = new JsonExporter(showsDb, episodesDb);
         String export = jsonExporter.export();
 
+        Gson gson = new Gson();
+        JsonExporter.ExportedPodcasts exportedPodcasts = gson.fromJson(export, JsonExporter.ExportedPodcasts.class);
 
+        assertEquals(3, exportedPodcasts.shows.size());
+        assertEquals("Show 2 Episode 1", exportedPodcasts.episodes.get(7).title);
     }
 
 
