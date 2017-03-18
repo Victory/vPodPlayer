@@ -14,7 +14,7 @@ public class JsonExporter {
     private final Shows showsDb;
     private final Episodes episodesDb;
 
-    JsonExporter(Shows showsDb, Episodes episodesDb) {
+    public JsonExporter(Shows showsDb, Episodes episodesDb) {
         this.showsDb = showsDb;
         this.episodesDb = episodesDb;
     }
