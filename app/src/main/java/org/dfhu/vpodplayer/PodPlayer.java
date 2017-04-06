@@ -56,6 +56,8 @@ public class PodPlayer {
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             int cnt = 0;
+            long debounceTic = System.currentTimeMillis();
+            long debounceRate = 300;
 
             @Override
             public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
@@ -67,11 +69,20 @@ public class PodPlayer {
                     return false;
                 }
 
+                long now = System.currentTimeMillis();
+                long dt = now - debounceTic;
+                if (dt < debounceRate) {
+                    Toast.makeText(context, "debounce", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                debounceTic = System.currentTimeMillis();
+
                 KeyEvent event =
                         (KeyEvent) mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
                 int keyCode = event.getKeyCode();
 
                 String msg = "other";
+                long seekTo;
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                         setPlayWhenReady(!player.getPlayWhenReady());
@@ -97,13 +108,21 @@ public class PodPlayer {
                         msg = "pause";
                         setPlayWhenReady(false);
                         break;
+                    case KeyEvent.KEYCODE_MEDIA_NEXT:
+                        msg = "Next";
+                        seekTo = player.getCurrentPosition() + 30 * 1000;
+                        seekTo(seekTo);
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                        msg = "Prev";
+                        seekTo = player.getCurrentPosition() - 30 * 1000;
+                        seekTo(seekTo);
+                        break;
                 }
 
                 cnt += 1;
                 Toast.makeText(context, "cnt: " + cnt + " msg: " + msg + " keycode:" + keyCode, Toast.LENGTH_SHORT).show();
-                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
-                audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_INVALID);
-
+                audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_SPACEBAR);
 
                 return true;
             }
@@ -235,19 +254,20 @@ public class PodPlayer {
 
     /**
      * Set the title to show on the media title
-     * @param title - name of the episode
+     * @param episodeTitle - name of the episode
+     * @param showTitle
      * @return - true if title was set
      */
-    public boolean setMetaDataTitle(String title) {
+    public boolean setMetaDataTitle(String episodeTitle, String showTitle) {
 
         if (mediaSession == null) {
             return false;
         }
 
         MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
-                //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                //.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, showTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, episodeTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, showTitle)
                 .build();
         mediaSession.setMetadata(mediaMetadataCompat);
 

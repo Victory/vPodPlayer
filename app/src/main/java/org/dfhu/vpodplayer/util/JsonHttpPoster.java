@@ -20,6 +20,7 @@ public class JsonHttpPoster {
                 .post(body)
                 .build();
         Response response = client.newCall(request).execute();
+        String string = response.body().string();
         return response;
     }
 }

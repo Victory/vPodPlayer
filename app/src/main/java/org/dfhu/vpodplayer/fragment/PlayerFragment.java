@@ -23,7 +23,9 @@ import org.dfhu.vpodplayer.PodPlayer;
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.VPodPlayerApplication;
 import org.dfhu.vpodplayer.model.Episode;
+import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Episodes;
+import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
 
 import java.util.concurrent.TimeUnit;
@@ -104,7 +106,7 @@ public class PlayerFragment extends VicFragment {
         int episodeId = getArguments().getInt("episodeId");
         Episodes db = new Episodes(getActivity().getApplicationContext());
         final Episode episode = db.getById(episodeId);
-
+        Shows shows = new Shows(getActivity().getApplicationContext());
         bindToUpdatePositionBus(applicationContext, episodeId);
 
         Uri uri = Uri.parse(episode.localUri);
@@ -114,7 +116,8 @@ public class PlayerFragment extends VicFragment {
         if (started && seekTo > 0) {
             podPlayer.seekTo(seekTo);
         }
-        podPlayer.setMetaDataTitle(episode.title);
+        Show show = shows.getById(episodeId);
+        podPlayer.setMetaDataTitle(episode.title, show.title);
         isPlaying = true;
         subscribeUpdatePosition();
 
