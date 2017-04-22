@@ -55,9 +55,17 @@ public class SubscriptionManager {
         }
 
         List<Episode> episodes = feed.getEpisodes();
-        subscribeResults.newEpisodes
-                = episodesDb.addAllForShow(episodes, show.id);
+        List<Episode> newEps = episodesDb.addAllForShow(episodes, show.id);
 
+
+        // regardless if any of the 5 latest episodes are not downloaded, count them as new
+        for (Episode e: episodesDb.allForShow(show.id).subList(0, 5)) {
+            if (!e.isDownloaded() && !newEps.contains(e) && e.percentListened == 0) {
+                newEps.add(e);
+            }
+        }
+
+        subscribeResults.newEpisodes = newEps;
         return subscribeResults;
     }
 

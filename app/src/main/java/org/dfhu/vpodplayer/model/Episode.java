@@ -38,7 +38,7 @@ public class Episode {
         if (!(o instanceof Episode)) {
             return false;
         }
-        return ((Episode) o).url.equals(this.url);
+        return ((Episode) o).uniqueId.equals(this.uniqueId);
     }
 
     public boolean isDownloaded() {

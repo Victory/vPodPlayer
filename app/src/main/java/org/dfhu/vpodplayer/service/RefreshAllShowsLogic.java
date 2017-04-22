@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import org.dfhu.vpodplayer.R;
 import org.dfhu.vpodplayer.feed.SubscriptionManager;
+import org.dfhu.vpodplayer.model.Episode;
 import org.dfhu.vpodplayer.model.Show;
 import org.dfhu.vpodplayer.sqlite.Shows;
 import org.dfhu.vpodplayer.util.LoggingSubscriber;
@@ -31,6 +32,8 @@ class RefreshAllShowsLogic {
     @SuppressWarnings("WeakerAccess")
     public static final int NUM_NETWORK_THREADS = 3;
 
+    private final EpisodeDownloader episodeDownloader;
+
     private static final Object notificationGuard = new Object();
 
     private RefreshAllShowsLogic(
@@ -38,12 +41,13 @@ class RefreshAllShowsLogic {
             @NonNull Shows showsDb,
             @NonNull SubscriptionManager subscriptionManager,
             Subscriber<RefreshAllShowsService.RefreshResults> subscriber,
-            @NonNull StringsProvider stringsProvider) {
+            @NonNull StringsProvider stringsProvider, EpisodeDownloader episodeDownloader) {
         this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
         this.showsDb = showsDb;
         this.subscriptionManager = subscriptionManager;
         this.stringsProvider = stringsProvider;
         this.subscriber = subscriber;
+        this.episodeDownloader = episodeDownloader;
     }
 
     static class Builder {
@@ -52,6 +56,7 @@ class RefreshAllShowsLogic {
         private SubscriptionManager subscriptionManager;
         private StringsProvider stringsProvider = null;
         private Subscriber<RefreshAllShowsService.RefreshResults> subscriber = null;
+        private EpisodeDownloader episodeDownloader;
 
         Builder() {
         }
@@ -81,6 +86,11 @@ class RefreshAllShowsLogic {
             return this;
         }
 
+        Builder episodeDownloader(@NonNull EpisodeDownloader episodeDownloader) {
+            this.episodeDownloader = episodeDownloader;
+            return this;
+        }
+
         public RefreshAllShowsLogic build() {
             //noinspection PrivateMemberAccessBetweenOuterAndInnerClass
             return new RefreshAllShowsLogic(
@@ -88,8 +98,8 @@ class RefreshAllShowsLogic {
                     this.showsDb,
                     this.subscriptionManager,
                     this.subscriber,
-                    this.stringsProvider
-            );
+                    this.stringsProvider,
+                    this.episodeDownloader);
         }
 
     }
@@ -117,7 +127,7 @@ class RefreshAllShowsLogic {
                         .subscribeOn(Schedulers.io())
                         .publish();
 
-        connectable.subscribe(new RefreshAllShowsSubscriber(refreshAllShowsServiceNotification, stringsProvider));
+        connectable.subscribe(new RefreshAllShowsSubscriber(refreshAllShowsServiceNotification, stringsProvider, episodeDownloader));
         if (subscriber != null) {
             connectable.subscribe(subscriber);
         }
@@ -198,18 +208,27 @@ class RefreshAllShowsLogic {
 
         private final RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification;
         private final StringsProvider stringsProvider;
+        private final EpisodeDownloader episodeDownloader;
 
         RefreshAllShowsSubscriber(
                 RefreshAllShowsService.RefreshAllShowsServiceNotification refreshAllShowsServiceNotification,
-                StringsProvider stringsProvider) {
+                StringsProvider stringsProvider, EpisodeDownloader episodeDownloader) {
             this.refreshAllShowsServiceNotification = refreshAllShowsServiceNotification;
             this.stringsProvider = stringsProvider;
+            this.episodeDownloader = episodeDownloader;
         }
 
         @Override
         public void onNext(RefreshAllShowsService.RefreshResults refreshResults) {
             showNotification(refreshResults);
+            enqueue(refreshResults);
             RefreshAllShowsService.ServiceCompleteBus.publish(refreshResults);
+        }
+
+        private void enqueue(RefreshAllShowsService.RefreshResults refreshResults) {
+            for (Episode e: refreshResults.getNewEpisodes()) {
+                episodeDownloader.enqueue(e);
+            }
         }
 
         private void showNotification(RefreshAllShowsService.RefreshResults refreshResults) {

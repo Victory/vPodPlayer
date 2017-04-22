@@ -35,6 +35,9 @@ public class RefreshAllShowsService extends IntentService {
     @Inject
     public StringsProvider stringsProvider;
 
+    @Inject
+    public EpisodeDownloader episodeDownloader;
+
     public RefreshAllShowsService() {
         super(TAG);
     }
@@ -73,6 +76,7 @@ public class RefreshAllShowsService extends IntentService {
                 .subscriptionManager(subscriptionManager)
                 .refreshAllShowsServiceNotification(refreshAllShowsServiceNotification)
                 .stringsProvider(stringsProvider)
+                .episodeDownloader(episodeDownloader)
                 .build();
     }
 
