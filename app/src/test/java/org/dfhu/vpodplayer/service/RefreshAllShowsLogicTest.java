@@ -149,7 +149,7 @@ public class RefreshAllShowsLogicTest extends Assert {
         logic.handleIntent();
         testSubscriber.awaitTerminalEvent(SUBSCRIBE_TIMEOUT_MILLI, TimeUnit.MILLISECONDS);
 
-        verify(mockRefreshAllShowsServiceNotification, times(12))
+        verify(mockRefreshAllShowsServiceNotification, times(11))
                 .show(any(String.class), any(String.class));
     }
 
@@ -168,9 +168,6 @@ public class RefreshAllShowsLogicTest extends Assert {
 
         verify(mockRefreshAllShowsServiceNotification, times(1))
                 .show(eq("appname"), eq("3dots"));
-
-        verify(mockRefreshAllShowsServiceNotification, times(1))
-                .show(eq("appname"), eq("none-updated"));
     }
 
     @Test

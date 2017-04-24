@@ -226,6 +226,7 @@ class RefreshAllShowsLogic {
         }
 
         private void enqueue(RefreshAllShowsService.RefreshResults refreshResults) {
+            // TODO test queue
             for (Episode e: refreshResults.getNewEpisodes()) {
                 episodeDownloader.enqueue(e);
             }
