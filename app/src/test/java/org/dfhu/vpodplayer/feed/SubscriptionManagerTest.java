@@ -67,7 +67,6 @@ public class SubscriptionManagerTest extends Assert {
         verify(mockShowsDb).add(arg.capture());
         assertEquals(arg.getValue().title, "Test title");
         assertEquals(arg.getValue().url, "http://example.com/0");
-        verify(mockShowsDb, never()).findShowByUrl(any(String.class));
     }
 
     @Test
